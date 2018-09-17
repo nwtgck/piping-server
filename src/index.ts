@@ -1,5 +1,6 @@
 import * as http from "http";
 import * as url from "url";
+import * as stream from "stream";
 import {ParsedUrlQuery} from "querystring";
 
 type ReqRes = {
@@ -85,47 +86,47 @@ const pathToUnconnectedPipe: {[path: string]: UnconnectedPipe} = {};
  */
 function runPipe(path: string, pipe: Pipe): void {
 
-  function closeReceivers(): void {
-    for(let receiver of receivers) {
-      receiver.res.end();
-    }
-  }
-
   // Set connected as true
   pathToConnected[path] = true;
   // Delete unconnected pipe
   delete pathToUnconnectedPipe[path];
 
   const {sender, receivers} = pipe;
-  sender.req.on("data", (chunk)=>{
-    console.log("on-data!");
 
-    // Write to receivers
-    for(let receiver of receivers) {
-      receiver.res.write(chunk);
-    }
-  });
+  let closeCount: number = 0;
+  for(let receiver of receivers) {
+    // Close receiver
+    const closeReceiver = (): void => {
+      closeCount += 1;
+      sender.req.unpipe(passThrough);
+      // If close-count is # of receivers
+      if(closeCount === receivers.length) {
+        sender.res.end("All receivers are closed halfway\n");
+        delete pathToConnected[path];
+      }
+    };
+
+    const passThrough = new stream.PassThrough();
+    sender.req.pipe(passThrough);
+    passThrough.pipe(receiver.res);
+    receiver.req.on("close", ()=>{
+      console.log("on-close");
+      closeReceiver();
+    });
+    receiver.req.on("error", (err)=>{
+      console.log("on-error");
+      closeReceiver();
+    });
+  }
 
   sender.req.on("end", ()=>{
-    console.log("on-end!");
-
-    // Close the sender
-    sender.res.shouldKeepAlive = false;
     sender.res.end("Sending Successful!\n");
-
-    // Close receivers
-    closeReceivers();
-
     // Delete from connected
     delete pathToConnected[path];
   });
 
-  sender.req.on("error", (err)=>{
-    console.error(`Error: ${err}`);
-
-    // Close receivers
-    closeReceivers();
-
+  sender.req.on("error", (error)=>{
+    sender.res.end("Sending Failed\n");
     // Delete from connected
     delete pathToConnected[path];
   });
