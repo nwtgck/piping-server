@@ -3,6 +3,8 @@ import * as url from "url";
 import * as stream from "stream";
 import {ParsedUrlQuery} from "querystring";
 
+import {opt, optMap, tryOpt} from "./utils";
+
 type ReqRes = {
   readonly req: http.IncomingMessage,
   readonly res: http.ServerResponse
@@ -30,47 +32,6 @@ function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
       receivers: p.receivers,
     }
   } else {
-    return undefined;
-  }
-}
-
-/**
- * Type which has optional property
- */
-type OptionalProperty<T> = {
-  [K in keyof T]: T[K] | undefined;
-};
-
-/**
- * Optional property
- * @param obj
- */
-function opt<T>(obj: T | null | undefined): OptionalProperty<T> {
-  return obj || ({} as OptionalProperty<T>);
-}
-
-/**
- * Mapping for optional
- * @param f
- * @param obj
- * @param args
- */
-function optMap<T, S>(f: (p: T, ...args: any[]) => S, obj: T | null | undefined, ...args: any[]): OptionalProperty<S> {
-  if (obj === null || obj === undefined) {
-    return {} as OptionalProperty<S>;
-  } else {
-    return f(obj, ...args);
-  }
-}
-
-/**
- * Try
- * @param f
- */
-function tryOpt<T>(f: ()=>T): T | undefined {
-  try {
-    return f();
-  } catch {
     return undefined;
   }
 }
