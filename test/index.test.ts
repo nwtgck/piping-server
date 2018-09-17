@@ -1,4 +1,4 @@
-import {}  from '../src';
+import {}  from '../src/piping';
 import * as assert from 'power-assert';
 
 // TODO: Write tests
