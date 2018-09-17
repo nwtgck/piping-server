@@ -2,13 +2,13 @@ import * as http from "http";
 import * as url from "url";
 
 type ReqRes = {
-  req: http.IncomingMessage,
-  res: http.ServerResponse
+  readonly req: http.IncomingMessage,
+  readonly res: http.ServerResponse
 }
 
 interface Pipe {
-  sender: ReqRes;
-  receivers: ReqRes[];
+  readonly sender: ReqRes;
+  readonly receivers: ReqRes[];
 }
 
 interface UnconnectedPipe {
