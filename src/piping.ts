@@ -98,7 +98,7 @@ export class Server {
     // Get path name
     const path: string =
       opt(optMap(url.parse, opt(req.url)).pathname)
-      // Remove last "/"
+         // Remove last "/"
         .replace(/\/$/, "");
     console.log(path);
 
@@ -172,7 +172,7 @@ export class Server {
               sender: {req: req, res: res},
               receivers: [],
               nReceivers: nReceivers
-            }
+            };
           }
         }
         break;
@@ -211,8 +211,7 @@ export class Server {
         }
         break;
       default:
-        console.error(`Unsupported method: ${req.method}`);
-        // TODO: Error to the user
+        res.end(`Error: Unsupported method: ${req.method}\n`);
         break;
     }
   });
