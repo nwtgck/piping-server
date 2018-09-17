@@ -1,5 +1,6 @@
 import * as http from "http";
 import * as url from "url";
+import {ParsedUrlQuery} from "querystring";
 
 type ReqRes = {
   readonly req: http.IncomingMessage,
@@ -51,12 +52,25 @@ function opt<T>(obj: T | null | undefined): OptionalProperty<T> {
  * Mapping for optional
  * @param f
  * @param obj
+ * @param args
  */
-function optMap<T, S>(f: (p: T) => S, obj: T | null | undefined): OptionalProperty<S> {
+function optMap<T, S>(f: (p: T, ...args: any[]) => S, obj: T | null | undefined, ...args: any[]): OptionalProperty<S> {
   if (obj === null || obj === undefined) {
     return {} as OptionalProperty<S>;
   } else {
-    return f(obj);
+    return f(obj, ...args);
+  }
+}
+
+/**
+ * Try
+ * @param f
+ */
+function tryOpt<T>(f: ()=>T): T | undefined {
+  try {
+    return f();
+  } catch {
+    return undefined;
   }
 }
 
@@ -127,8 +141,10 @@ const server = http.createServer((req: http.IncomingMessage, res: http.ServerRes
 
   switch (req.method) {
     case "POST":
+      // Get query parameter
+      const query = opt(optMap(url.parse, req.url, true).query);
       // The number receivers
-      const nReceivers: number = 1; // TODO: Hard code (this field will be fill by query-parameter such as &n=2)
+      const nReceivers: number = tryOpt(()=>parseInt((query as ParsedUrlQuery)['n'] as string) ) || 1;
       // if the path have been used
       if (path in pathToConnected) {
         res.writeHead(400);
