@@ -94,7 +94,7 @@ export class Server {
     });
   }
 
-  readonly server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse)=>{
+  readonly handler = (req: http.IncomingMessage, res: http.ServerResponse)=>{
     // Get path name
     const path: string =
       opt(optMap(url.parse, opt(req.url)).pathname)
@@ -214,5 +214,5 @@ export class Server {
         res.end(`Error: Unsupported method: ${req.method}\n`);
         break;
     }
-  });
+  };
 }
