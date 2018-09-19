@@ -194,7 +194,7 @@ export class Server {
 
               if (pipe !== undefined) {
                 // Emit message to sender
-                res.write("Start sending!\n");
+                pipe.sender.res.write("Start sending!\n");
                 // Start data transfer
                 this.runPipe(path, pipe)
               }
