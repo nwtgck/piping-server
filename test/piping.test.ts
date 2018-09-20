@@ -25,6 +25,26 @@ function closePromise(server: http.Server): Promise<void> {
 }
 
 describe('piping.Server', () => {
+  it('should return index page', async () => {
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Get response
+    const res1 = await thenRequest("GET", `${pipingUrl}`);
+    const res2 = await thenRequest("GET", `${pipingUrl}/`);
+
+    // Body should be index page
+    assert.equal(res1.getBody("UTF-8").includes("Piping server is running"), true);
+    assert.equal(res2.getBody("UTF-8").includes("Piping server is running"), true);
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
+
   it('should allow a sender and a receiver to connect in this order', async () => {
 
     const pipingPort   = 8787;
