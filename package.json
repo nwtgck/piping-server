@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.1.0-SNAPSHOT",
+  "version": "0.1.0",
   "description": "HTTP Piping Data Transfer Server",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
