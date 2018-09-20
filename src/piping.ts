@@ -39,7 +39,8 @@ function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
 
 // Name to registered path
 const NAME_TO_REGISTERED_PATH = {
-  index: "/"
+  index: "/",
+  version: "/version"
 };
 
 // All registered paths
@@ -202,6 +203,10 @@ export class Server {
                   "</a>" +
                 "</html>"
               );
+              break;
+            case NAME_TO_REGISTERED_PATH.version:
+              // (from: https://stackoverflow.com/a/22339262/2885946)
+              res.end(process.env.npm_package_version+"\n");
               break;
             default:
               console.error("Unexpected error", "reqPath:", reqPath);

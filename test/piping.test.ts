@@ -45,6 +45,25 @@ describe('piping.Server', () => {
     await closePromise(pipingServer);
   });
 
+  it('should return version page', async () => {
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Get response
+    const res = await thenRequest("GET", `${pipingUrl}/version`);
+
+    // Body should be index page
+    // (from: https://stackoverflow.com/a/22339262/2885946)
+    assert.equal(res.getBody("UTF-8"), process.env.npm_package_version+"\n");
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
+
   it('should allow a sender and a receiver to connect in this order', async () => {
 
     const pipingPort   = 8787;
