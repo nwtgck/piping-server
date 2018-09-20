@@ -1,0 +1,41 @@
+{
+  "name": "piping-server",
+  "version": "0.1.0",
+  "description": "HTTP Piping Data Transfer Server",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/src/index.js",
+    "prepublish": "npm run build",
+    "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts"
+  },
+  "keywords": [
+    "http",
+    "piping",
+    "data-trasfer",
+    "server",
+    "transfer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nwtgck/piping-server"
+  },
+  "author": "Ryo Ota",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/mocha": "^5.0.0",
+    "@types/node": "^10.10.0",
+    "@types/power-assert": "^1.5.0",
+    "@types/yargs": "^12.0.0",
+    "espower-typescript": "^9.0.0",
+    "mocha": "^5.0.5",
+    "power-assert": "^1.4.4",
+    "then-request": "^6.0.0",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.0.1"
+  },
+  "dependencies": {
+    "yargs": "^12.0.2"
+  }
+}
