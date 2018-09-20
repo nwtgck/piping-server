@@ -3,6 +3,27 @@ import * as assert from 'power-assert';
 import * as http from "http";
 import thenRequest from "then-request";
 
+/**
+ * Listen on the specify port
+ * @param server
+ * @param port
+ */
+function listenPromise(server: http.Server, port: number): Promise<void> {
+  return new Promise<void>((resolve)=>{
+    server.listen(port, resolve);
+  });
+}
+
+/**
+ * Close the server
+ * @param server
+ */
+function closePromise(server: http.Server): Promise<void> {
+  return new Promise<void>((resolve)=>{
+    server.close(resolve);
+  });
+}
+
 describe('piping.Server', () => {
   it('should allow a sender and a receiver to connect in this order', async () => {
 
@@ -11,9 +32,7 @@ describe('piping.Server', () => {
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
-    await new Promise<void>((resolve)=>{
-      pipingServer.listen(pipingPort, resolve);
-    });
+    await listenPromise(pipingServer, pipingPort);
 
     // Send data
     // (NOTE: Should use `await`)
@@ -28,8 +47,6 @@ describe('piping.Server', () => {
     assert.equal(data.body, "this is a content");
 
     // Close the piping server
-    await new Promise<void>((resolve)=>{
-      pipingServer.close(resolve);
-    });
+    await closePromise(pipingServer);
   });
 });
