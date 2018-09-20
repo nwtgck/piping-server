@@ -37,6 +37,15 @@ function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
   }
 }
 
+// Name to registered path
+const NAME_TO_REGISTERED_PATH = {
+  index: "/"
+};
+
+// All registered paths
+const REGISTERED_PATHS: string[] =
+  Object.values(NAME_TO_REGISTERED_PATH);
+
 export class Server {
   readonly pathToConnected: {[path: string]: boolean} = {};
   readonly pathToUnconnectedPipe: {[path: string]: UnconnectedPipe} = {};
@@ -181,35 +190,53 @@ export class Server {
         }
         break;
       case "GET":
-
-        // If connection has been established
-        if (reqPath in this.pathToConnected) {
-          res.writeHead(400);
-          res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+        // request path is in registered paths
+        if(REGISTERED_PATHS.includes(reqPath)) {
+          switch (reqPath) {
+            case NAME_TO_REGISTERED_PATH.index:
+              res.end(
+                "<html>" +
+                  "Piping server is running!\n<br>" +
+                  "Usage: <a href='https://github.com/nwtgck/piping-server#readme'>" +
+                    "https://github.com/nwtgck/piping-server#readme" +
+                  "</a>" +
+                "</html>"
+              );
+              break;
+            default:
+              console.error("Unexpected error", "reqPath:", reqPath);
+              break;
+          }
         } else {
-          if (reqPath in this.pathToUnconnectedPipe) {
-            // Get unconnectedPipe
-            const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
-            if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
-              unconnectedPipe.receivers.push({req: req, res: res});
-              // Get pipeOpt if connected
-              const pipe: Pipe | undefined =
-                getPipeIfConnected(unconnectedPipe);
+          // If connection has been established
+          if (reqPath in this.pathToConnected) {
+            res.writeHead(400);
+            res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+          } else {
+            if (reqPath in this.pathToUnconnectedPipe) {
+              // Get unconnectedPipe
+              const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+              if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
+                unconnectedPipe.receivers.push({req: req, res: res});
+                // Get pipeOpt if connected
+                const pipe: Pipe | undefined =
+                  getPipeIfConnected(unconnectedPipe);
 
-              if (pipe !== undefined) {
-                // Emit message to sender
-                pipe.sender.res.write("Start sending!\n");
-                // Start data transfer
-                this.runPipe(reqPath, pipe)
+                if (pipe !== undefined) {
+                  // Emit message to sender
+                  pipe.sender.res.write("Start sending!\n");
+                  // Start data transfer
+                  this.runPipe(reqPath, pipe)
+                }
+              } else {
+                res.writeHead(400);
+                res.end("Error: The number connection has reached limits\n");
               }
             } else {
-              res.writeHead(400);
-              res.end("Error: The number connection has reached limits\n");
-            }
-          } else {
-            // Set a receiver
-            this.pathToUnconnectedPipe[reqPath] = {
-              receivers: [{req: req, res: res}]
+              // Set a receiver
+              this.pathToUnconnectedPipe[reqPath] = {
+                receivers: [{req: req, res: res}]
+              }
             }
           }
         }
