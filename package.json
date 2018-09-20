@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "npm run build && node dist/src/index.js",
     "prepublish": "npm run build",
-    "test": "mocha --require ts-node/register test/**/*.ts"
+    "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts"
   },
   "keywords": [
     "http",
@@ -31,6 +31,7 @@
     "espower-typescript": "^9.0.0",
     "mocha": "^5.0.5",
     "power-assert": "^1.4.4",
+    "then-request": "^6.0.0",
     "ts-node": "^7.0.1",
     "typescript": "^3.0.1"
   },
