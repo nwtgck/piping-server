@@ -108,6 +108,40 @@ describe('piping.Server', () => {
     await closePromise(pipingServer);
   });
 
+  it('should not allow a sender and multi receivers to connect in this order if the number of receivers is over', async () => {
+
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Send data
+    // (NOTE: Should use `await`)
+    thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
+      body: "this is a content"
+    });
+
+    // Get data
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Await all data
+    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+
+    // Body should be the sent data
+    assert.equal(data1.body, "this is a content");
+    assert.equal(data2.body, "this is a content");
+
+    // Should be bad request
+    assert.equal(data3.statusCode, 400);
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
+
   it('should allow multi receivers and a sender to connect in this order', async () => {
     const pipingPort   = 8787;
     const pipingServer = http.createServer(new piping.Server().handler);
@@ -133,6 +167,38 @@ describe('piping.Server', () => {
     assert.equal(data1.body, "this is a content");
     assert.equal(data2.body, "this is a content");
     assert.equal(data3.body, "this is a content");
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
+
+  it('should allow multi receivers and a sender to connect in this order if the number of receivers is over', async () => {
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Get request promise
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
+      body: "this is a content"
+    });
+
+    // Await all data
+    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+
+    // Body should be the sent data
+    assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.getBody("UTF-8"), "this is a content");
+
+    // Should be bad request
+    assert.equal(data3.statusCode, 400);
 
     // Close the piping server
     await closePromise(pipingServer);
