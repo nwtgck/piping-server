@@ -49,4 +49,30 @@ describe('piping.Server', () => {
     // Close the piping server
     await closePromise(pipingServer);
   });
+
+  it('should allow a receiver and a sender to connect in this order', async () => {
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await reqPromise;
+
+    // Body should be the sent data
+    assert.equal(data.body, "this is a content");
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
 });
