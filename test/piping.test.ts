@@ -44,7 +44,7 @@ describe('piping.Server', () => {
     const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Body should be the sent data
-    assert.equal(data.body, "this is a content");
+    assert.equal(data.getBody("UTF-8"), "this is a content");
 
     // Close the piping server
     await closePromise(pipingServer);
@@ -70,7 +70,7 @@ describe('piping.Server', () => {
     const data = await reqPromise;
 
     // Body should be the sent data
-    assert.equal(data.body, "this is a content");
+    assert.equal(data.getBody("UTF-8"), "this is a content");
 
     // Close the piping server
     await closePromise(pipingServer);
@@ -100,9 +100,9 @@ describe('piping.Server', () => {
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
 
     // Body should be the sent data
-    assert.equal(data1.body, "this is a content");
-    assert.equal(data2.body, "this is a content");
-    assert.equal(data3.body, "this is a content");
+    assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.getBody("UTF-8"), "this is a content");
+    assert.equal(data3.getBody("UTF-8"), "this is a content");
 
     // Close the piping server
     await closePromise(pipingServer);
@@ -132,8 +132,8 @@ describe('piping.Server', () => {
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
 
     // Body should be the sent data
-    assert.equal(data1.body, "this is a content");
-    assert.equal(data2.body, "this is a content");
+    assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.getBody("UTF-8"), "this is a content");
 
     // Should be bad request
     assert.equal(data3.statusCode, 400);
@@ -164,9 +164,9 @@ describe('piping.Server', () => {
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
 
     // Body should be the sent data
-    assert.equal(data1.body, "this is a content");
-    assert.equal(data2.body, "this is a content");
-    assert.equal(data3.body, "this is a content");
+    assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.getBody("UTF-8"), "this is a content");
+    assert.equal(data3.getBody("UTF-8"), "this is a content");
 
     // Close the piping server
     await closePromise(pipingServer);
