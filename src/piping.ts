@@ -2,8 +2,10 @@ import * as http from "http";
 import * as url from "url";
 import * as stream from "stream";
 import {ParsedUrlQuery} from "querystring";
+import 'core-js'; // NOTE: For use Object.values() under node 6 (lib: ["es2017"] is not enough)
 
 import {opt, optMap, tryOpt} from "./utils";
+import * as path from "path";
 
 type ReqRes = {
   readonly req: http.IncomingMessage,
@@ -35,6 +37,16 @@ function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
     return undefined;
   }
 }
+
+// Name to registered path
+const NAME_TO_REGISTERED_PATH = {
+  index: "/",
+  version: "/version"
+};
+
+// All registered paths
+const REGISTERED_PATHS: string[] =
+  Object.values(NAME_TO_REGISTERED_PATH);
 
 export class Server {
   readonly pathToConnected: {[path: string]: boolean} = {};
@@ -96,11 +108,14 @@ export class Server {
 
   readonly handler = (req: http.IncomingMessage, res: http.ServerResponse)=>{
     // Get path name
-    const path: string =
-      opt(optMap(url.parse, opt(req.url)).pathname)
-         // Remove last "/"
-        .replace(/\/$/, "");
-    console.log(path);
+    const reqPath: string =
+      path.resolve(
+        "/",
+        opt(optMap(url.parse, opt(req.url)).pathname)
+          // Remove last "/"
+          .replace(/\/$/, "")
+      );
+    console.log(reqPath);
 
     switch (req.method) {
       case "POST":
@@ -109,15 +124,15 @@ export class Server {
         // The number receivers
         const nReceivers: number = tryOpt(()=>parseInt((query as ParsedUrlQuery)['n'] as string) ) || 1;
         // if the path have been used
-        if (path in this.pathToConnected) {
+        if (reqPath in this.pathToConnected) {
           res.writeHead(400);
-          res.end(`Error: Connection on '${path}' has been established already\n`);
+          res.end(`Error: Connection on '${reqPath}' has been established already\n`);
         } else {
           console.log(this.pathToUnconnectedPipe);
           // If the path connection is connecting
-          if (path in this.pathToUnconnectedPipe) {
+          if (reqPath in this.pathToUnconnectedPipe) {
             // Get unconnected pipe
-            const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[path];
+            const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
             // If a sender have not been registered yet
             if (unconnectedPipe.sender === undefined) {
               // Register the sender
@@ -157,18 +172,18 @@ export class Server {
                 // Emit message to sender
                 res.write("Start sending!\n");
                 // Start data transfer
-                this.runPipe(path, pipe)
+                this.runPipe(reqPath, pipe)
               }
             } else {
               res.writeHead(400);
-              res.end(`Error: Other sender has been registered on '${path}'\n`);
+              res.end(`Error: Other sender has been registered on '${reqPath}'\n`);
             }
           } else {
             // Send waiting message
             res.write(`Waiting for ${nReceivers} receivers...\n`);
 
             // Register new unconnected pipe
-            this.pathToUnconnectedPipe[path] = {
+            this.pathToUnconnectedPipe[reqPath] = {
               sender: {req: req, res: res},
               receivers: [],
               nReceivers: nReceivers
@@ -177,35 +192,57 @@ export class Server {
         }
         break;
       case "GET":
-
-        // If connection has been established
-        if (path in this.pathToConnected) {
-          res.writeHead(400);
-          res.end(`Error: Connection on '${path}' has been established already\n`);
+        // request path is in registered paths
+        if(REGISTERED_PATHS.includes(reqPath)) {
+          switch (reqPath) {
+            case NAME_TO_REGISTERED_PATH.index:
+              res.end(
+                "<html>" +
+                  "Piping server is running!\n<br>" +
+                  "Usage: <a href='https://github.com/nwtgck/piping-server#readme'>" +
+                    "https://github.com/nwtgck/piping-server#readme" +
+                  "</a>" +
+                "</html>"
+              );
+              break;
+            case NAME_TO_REGISTERED_PATH.version:
+              // (from: https://stackoverflow.com/a/22339262/2885946)
+              res.end(process.env.npm_package_version+"\n");
+              break;
+            default:
+              console.error("Unexpected error", "reqPath:", reqPath);
+              break;
+          }
         } else {
-          if (path in this.pathToUnconnectedPipe) {
-            // Get unconnectedPipe
-            const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[path];
-            if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
-              unconnectedPipe.receivers.push({req: req, res: res});
-              // Get pipeOpt if connected
-              const pipe: Pipe | undefined =
-                getPipeIfConnected(unconnectedPipe);
+          // If connection has been established
+          if (reqPath in this.pathToConnected) {
+            res.writeHead(400);
+            res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+          } else {
+            if (reqPath in this.pathToUnconnectedPipe) {
+              // Get unconnectedPipe
+              const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+              if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
+                unconnectedPipe.receivers.push({req: req, res: res});
+                // Get pipeOpt if connected
+                const pipe: Pipe | undefined =
+                  getPipeIfConnected(unconnectedPipe);
 
-              if (pipe !== undefined) {
-                // Emit message to sender
-                pipe.sender.res.write("Start sending!\n");
-                // Start data transfer
-                this.runPipe(path, pipe)
+                if (pipe !== undefined) {
+                  // Emit message to sender
+                  pipe.sender.res.write("Start sending!\n");
+                  // Start data transfer
+                  this.runPipe(reqPath, pipe)
+                }
+              } else {
+                res.writeHead(400);
+                res.end("Error: The number connection has reached limits\n");
               }
             } else {
-              res.writeHead(400);
-              res.end("Error: The number connection has reached limits\n");
-            }
-          } else {
-            // Set a receiver
-            this.pathToUnconnectedPipe[path] = {
-              receivers: [{req: req, res: res}]
+              // Set a receiver
+              this.pathToUnconnectedPipe[reqPath] = {
+                receivers: [{req: req, res: res}]
+              }
             }
           }
         }
