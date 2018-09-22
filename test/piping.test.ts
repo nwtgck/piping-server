@@ -107,7 +107,7 @@ describe('piping.Server', () => {
     await listenPromise(pipingServer, pipingPort);
 
     // Send data
-    // (NOTE: Should use `await`)
+    // (NOTE: Should NOT use `await` because of blocking a GET request)
     thenRequest("POST", `${pipingUrl}/mydataid`, {
       body: "this is a content"
     });
@@ -158,7 +158,7 @@ describe('piping.Server', () => {
     await listenPromise(pipingServer, pipingPort);
 
     // Send data
-    // (NOTE: Should use `await`)
+    // (NOTE: Should NOT use `await` because of blocking GET requests)
     thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
       body: "this is a content"
     });
@@ -190,7 +190,7 @@ describe('piping.Server', () => {
     await listenPromise(pipingServer, pipingPort);
 
     // Send data
-    // (NOTE: Should use `await`)
+    // (NOTE: Should NOT use `await` because of blocking GET requests)
     thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
       body: "this is a content"
     });
