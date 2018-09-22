@@ -26,6 +26,21 @@ Piping server supports multiple receiver. The following moving image is an examp
 
 ![Piping server multiple transfer](demo_images/piping-server-multi-transfer.gif)
 
+## Command-line Options
+
+Here is available command-line options.
+
+```
+Options:
+  --help          Show help                                            [boolean]
+  --version       Show version number                                  [boolean]
+  --http-port     Port of HTTP server                            [default: 8080]
+  --enable-https  Enable HTTPS                                  [default: false]
+  --https-port    Port of HTTPS server
+  --key-path      Private key path
+  --crt-path      Certification path
+```
+
 ## Run a server on Docker
 
 Run a Piping server on <http://localhost:8181> by the following command.
