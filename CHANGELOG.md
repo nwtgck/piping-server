@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.2.1] - 2018-09-22
+### Fixed
+* Not allow users to send registered paths via POST method
+
+### Added
+* `piping-server` command
+
 ## [0.2.0] - 2018-09-21
 ### Added
 * Add index routing
@@ -17,5 +24,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/nwtgck/piping-seraver/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/nwtgck/piping-server/compare/v0.1.0...v0.2.0
