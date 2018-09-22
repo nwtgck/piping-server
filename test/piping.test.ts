@@ -64,6 +64,39 @@ describe('piping.Server', () => {
     await closePromise(pipingServer);
   });
 
+  it('should not allow user to send the registered paths', async () => {
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Send data to ""
+    const req1 = await thenRequest("POST", `${pipingUrl}`, {
+      body: "this is a content"
+    });
+    // Should be failed
+    assert.equal(req1.statusCode, 400);
+
+    // Send data to "/"
+    const req2 = await thenRequest("POST", `${pipingUrl}/`, {
+      body: "this is a content"
+    });
+    // Should be failed
+    assert.equal(req2.statusCode, 400);
+
+    // Send data to "/version"
+    const req3 = await thenRequest("POST", `${pipingUrl}/`, {
+      body: "this is a content"
+    });
+    // Should be failed
+    assert.equal(req3.statusCode, 400);
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
+
   it('should allow a sender and a receiver to connect in this order', async () => {
 
     const pipingPort   = 8787;
@@ -74,7 +107,7 @@ describe('piping.Server', () => {
     await listenPromise(pipingServer, pipingPort);
 
     // Send data
-    // (NOTE: Should use `await`)
+    // (NOTE: Should NOT use `await` because of blocking a GET request)
     thenRequest("POST", `${pipingUrl}/mydataid`, {
       body: "this is a content"
     });
@@ -125,7 +158,7 @@ describe('piping.Server', () => {
     await listenPromise(pipingServer, pipingPort);
 
     // Send data
-    // (NOTE: Should use `await`)
+    // (NOTE: Should NOT use `await` because of blocking GET requests)
     thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
       body: "this is a content"
     });
@@ -157,7 +190,7 @@ describe('piping.Server', () => {
     await listenPromise(pipingServer, pipingPort);
 
     // Send data
-    // (NOTE: Should use `await`)
+    // (NOTE: Should NOT use `await` because of blocking GET requests)
     thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
       body: "this is a content"
     });

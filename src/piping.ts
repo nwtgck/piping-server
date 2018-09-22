@@ -115,79 +115,84 @@ export class Server {
           // Remove last "/"
           .replace(/\/$/, "")
       );
-    console.log(reqPath);
+    console.log(req.method, reqPath);
 
     switch (req.method) {
       case "POST":
-        // Get query parameter
-        const query = opt(optMap(url.parse, req.url, true).query);
-        // The number receivers
-        const nReceivers: number = tryOpt(()=>parseInt((query as ParsedUrlQuery)['n'] as string) ) || 1;
-        // if the path have been used
-        if (reqPath in this.pathToConnected) {
+        if(REGISTERED_PATHS.includes(reqPath)) {
           res.writeHead(400);
-          res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+          res.end(`Error: Cannot send to a registered path '${reqPath}'. (e.g. '/mypath123')\n`);
         } else {
-          console.log(this.pathToUnconnectedPipe);
-          // If the path connection is connecting
-          if (reqPath in this.pathToUnconnectedPipe) {
-            // Get unconnected pipe
-            const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
-            // If a sender have not been registered yet
-            if (unconnectedPipe.sender === undefined) {
-              // Register the sender
-              unconnectedPipe.sender = {req: req, res: res};
-              // Set the number of receivers
-              unconnectedPipe.nReceivers = nReceivers;
+          // Get query parameter
+          const query = opt(optMap(url.parse, req.url, true).query);
+          // The number receivers
+          const nReceivers: number = tryOpt(()=>parseInt((query as ParsedUrlQuery)['n'] as string) ) || 1;
+          // if the path have been used
+          if (reqPath in this.pathToConnected) {
+            res.writeHead(400);
+            res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+          } else {
+            console.log(this.pathToUnconnectedPipe);
+            // If the path connection is connecting
+            if (reqPath in this.pathToUnconnectedPipe) {
+              // Get unconnected pipe
+              const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+              // If a sender have not been registered yet
+              if (unconnectedPipe.sender === undefined) {
+                // Register the sender
+                unconnectedPipe.sender = {req: req, res: res};
+                // Set the number of receivers
+                unconnectedPipe.nReceivers = nReceivers;
 
-              // Get dropped receivers
-              // (NOTE: receivers can be empty array)
-              // (these receivers will be cancel to receive)
-              const droppedReceivers: ReqRes[] =
-                unconnectedPipe
-                  .receivers
-                  .slice(nReceivers, unconnectedPipe.receivers.length);
+                // Get dropped receivers
+                // (NOTE: receivers can be empty array)
+                // (these receivers will be cancel to receive)
+                const droppedReceivers: ReqRes[] =
+                  unconnectedPipe
+                    .receivers
+                    .slice(nReceivers, unconnectedPipe.receivers.length);
 
-              // (NOTE: receivers can be empty array)
-              for(let droppedReceiver of droppedReceivers) {
-                // Close dropped receiver
-                droppedReceiver.res.writeHead(400);
-                droppedReceiver.res.end("Error: The number connection has reached limits\n");
+                // (NOTE: receivers can be empty array)
+                for(let droppedReceiver of droppedReceivers) {
+                  // Close dropped receiver
+                  droppedReceiver.res.writeHead(400);
+                  droppedReceiver.res.end("Error: The number connection has reached limits\n");
+                }
+
+                // Drop receivers if need
+                unconnectedPipe.receivers =
+                  unconnectedPipe
+                    .receivers
+                    .slice(0, nReceivers);
+
+                // Send waiting message
+                res.write(`Waiting for ${nReceivers} receivers...\n`);
+
+                // Get pipeOpt if connected
+                const pipe: Pipe | undefined =
+                  getPipeIfConnected(unconnectedPipe);
+
+                if (pipe !== undefined) {
+                  // Emit message to sender
+                  res.write("Start sending!\n");
+                  // Start data transfer
+                  this.runPipe(reqPath, pipe)
+                }
+              } else {
+                res.writeHead(400);
+                res.end(`Error: Other sender has been registered on '${reqPath}'\n`);
               }
-
-              // Drop receivers if need
-              unconnectedPipe.receivers =
-                unconnectedPipe
-                  .receivers
-                  .slice(0, nReceivers);
-
+            } else {
               // Send waiting message
               res.write(`Waiting for ${nReceivers} receivers...\n`);
 
-              // Get pipeOpt if connected
-              const pipe: Pipe | undefined =
-                getPipeIfConnected(unconnectedPipe);
-
-              if (pipe !== undefined) {
-                // Emit message to sender
-                res.write("Start sending!\n");
-                // Start data transfer
-                this.runPipe(reqPath, pipe)
-              }
-            } else {
-              res.writeHead(400);
-              res.end(`Error: Other sender has been registered on '${reqPath}'\n`);
+              // Register new unconnected pipe
+              this.pathToUnconnectedPipe[reqPath] = {
+                sender: {req: req, res: res},
+                receivers: [],
+                nReceivers: nReceivers
+              };
             }
-          } else {
-            // Send waiting message
-            res.write(`Waiting for ${nReceivers} receivers...\n`);
-
-            // Register new unconnected pipe
-            this.pathToUnconnectedPipe[reqPath] = {
-              sender: {req: req, res: res},
-              receivers: [],
-              nReceivers: nReceivers
-            };
           }
         }
         break;

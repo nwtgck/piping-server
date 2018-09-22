@@ -1,9 +1,12 @@
 {
   "name": "piping-server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "HTTP Piping Data Transfer Server",
-  "main": "dist/lib/index.js",
-  "types": "dist/lib/index.d.ts",
+  "bin": {
+    "piping-server": "dist/src/index.js"
+  },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/src/index.js",
