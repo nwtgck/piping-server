@@ -120,6 +120,7 @@ export class Server {
     switch (req.method) {
       case "POST":
         if(REGISTERED_PATHS.includes(reqPath)) {
+          res.writeHead(400);
           res.end(`Error: Cannot send to a registered path '${reqPath}'. (e.g. '/mypath123')\n`);
         } else {
           // Get query parameter
