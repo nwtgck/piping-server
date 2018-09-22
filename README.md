@@ -26,9 +26,24 @@ Piping server supports multiple receiver. The following moving image is an examp
 
 ![Piping server multiple transfer](demo_images/piping-server-multi-transfer.gif)
 
-## Command-line Options
+## Run server
 
-Here is available command-line options.
+### Install
+
+```bash
+npm install -g piping-server
+```
+
+### Run server on localhost
+
+```bash
+piping-server
+```
+Then, a Piping server is running on <http://localhost:8080>.
+
+### Command-line Options
+
+Here is available command-line options by `piping-server --help`.
 
 ```
 Options:
@@ -41,10 +56,17 @@ Options:
   --crt-path      Certification path
 ```
 
-## Run a server on Docker
+### Run on Docker
 
 Run a Piping server on <http://localhost:8181> by the following command.
 
 ```bash
 docker run -it -p 8181:8080 nwtgck/piping-server
 ```
+
+You can also specify options like the following.
+
+```bash
+docker run -it -p 8181:80 nwtgck/piping-server --http-port=80
+```
+
