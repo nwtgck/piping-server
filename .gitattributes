@@ -1,0 +1,2 @@
+# index.ts has a shebang, "#!/usr/bin/env node", so it is regarded as JS
+src/index.ts linguist-language=TypeScript

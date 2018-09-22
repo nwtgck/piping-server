@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+// (from: https://qiita.com/takayukioda/items/a149bc2907ef77121229)
+
 import * as http from "http";
 import * as https from "https";
 import * as fs from "fs";
