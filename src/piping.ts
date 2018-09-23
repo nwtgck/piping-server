@@ -68,17 +68,25 @@ export class Server {
     const {sender, receivers} = pipe;
 
     let closeCount: number = 0;
-    for(let receiver of receivers) {
+    for(const receiver of receivers) {
       // Close receiver
       const closeReceiver = (): void => {
         closeCount += 1;
         sender.req.unpipe(passThrough);
         // If close-count is # of receivers
         if(closeCount === receivers.length) {
-          sender.res.end("All receivers are closed halfway\n");
+          sender.res.end("[INFO] All receivers are closed halfway\n");
           delete this.pathToConnected[path];
         }
       };
+
+      receiver.res.writeHead(200, {
+        // Add Content-Length if it exists
+        ...(
+          sender.req.headers["content-length"] === undefined ?
+          {}: {"Content-Length": sender.req.headers["content-length"]}
+        )
+      });
 
       const passThrough = new stream.PassThrough();
       sender.req.pipe(passThrough);
@@ -94,13 +102,13 @@ export class Server {
     }
 
     sender.req.on("end", ()=>{
-      sender.res.end("Sending Successful!\n");
+      sender.res.end("[INFO] Sending Successful!\n");
       // Delete from connected
       delete this.pathToConnected[path];
     });
 
     sender.req.on("error", (error)=>{
-      sender.res.end("Sending Failed\n");
+      sender.res.end("[ERROR] Sending Failed.\n");
       // Delete from connected
       delete this.pathToConnected[path];
     });
@@ -119,9 +127,10 @@ export class Server {
 
     switch (req.method) {
       case "POST":
+      case "PUT":
         if(REGISTERED_PATHS.includes(reqPath)) {
           res.writeHead(400);
-          res.end(`Error: Cannot send to a registered path '${reqPath}'. (e.g. '/mypath123')\n`);
+          res.end(`[ERROR] Cannot send to a registered path '${reqPath}'. (e.g. '/mypath123')\n`);
         } else {
           // Get query parameter
           const query = opt(optMap(url.parse, req.url, true).query);
@@ -130,7 +139,7 @@ export class Server {
           // if the path have been used
           if (reqPath in this.pathToConnected) {
             res.writeHead(400);
-            res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+            res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
           } else {
             console.log(this.pathToUnconnectedPipe);
             // If the path connection is connecting
@@ -166,7 +175,13 @@ export class Server {
                     .slice(0, nReceivers);
 
                 // Send waiting message
-                res.write(`Waiting for ${nReceivers} receivers...\n`);
+                res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
+                // Send the number of receivers information
+                res.write(`[INFO] ${unconnectedPipe.receivers.length} receivers have been connected.\n`);
+                if (droppedReceivers.length > 0) {
+                  // Send the number of dropped receivers
+                  res.write(`[INFO] ${droppedReceivers.length} receivers have been dropped because of connection limits.\n`);
+                }
 
                 // Get pipeOpt if connected
                 const pipe: Pipe | undefined =
@@ -180,11 +195,11 @@ export class Server {
                 }
               } else {
                 res.writeHead(400);
-                res.end(`Error: Other sender has been registered on '${reqPath}'\n`);
+                res.end(`[ERROR] Other sender has been registered on '${reqPath}'\n`);
               }
             } else {
               // Send waiting message
-              res.write(`Waiting for ${nReceivers} receivers...\n`);
+              res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
 
               // Register new unconnected pipe
               this.pathToUnconnectedPipe[reqPath] = {
@@ -228,14 +243,21 @@ export class Server {
               // Get unconnectedPipe
               const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
               if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
+                // Append new receiver
                 unconnectedPipe.receivers.push({req: req, res: res});
+
+                if(unconnectedPipe.sender !== undefined) {
+                  // Send connection message to the sender
+                  unconnectedPipe.sender.res.write("[INFO] A receiver is connected.\n");
+                }
+
                 // Get pipeOpt if connected
                 const pipe: Pipe | undefined =
                   getPipeIfConnected(unconnectedPipe);
 
                 if (pipe !== undefined) {
                   // Emit message to sender
-                  pipe.sender.res.write("Start sending!\n");
+                  pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receivers!\n`);
                   // Start data transfer
                   this.runPipe(reqPath, pipe)
                 }
