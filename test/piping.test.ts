@@ -124,6 +124,8 @@ describe('piping.Server', () => {
 
     // Body should be the sent data
     assert.equal(data.getBody("UTF-8"), "this is a content");
+    // Content-length should be returned
+    assert.equal(data.headers["content-length"], "this is a content".length);
 
     // Close the piping server
     await closePromise(pipingServer);
@@ -150,6 +152,8 @@ describe('piping.Server', () => {
 
     // Body should be the sent data
     assert.equal(data.getBody("UTF-8"), "this is a content");
+    // Content-length should be returned
+    assert.equal(data.headers["content-length"], "this is a content".length);
 
     // Close the piping server
     await closePromise(pipingServer);
@@ -178,10 +182,13 @@ describe('piping.Server', () => {
     // Await all data
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
 
-    // Body should be the sent data
+    // Body should be the sent data and content-length should be returned
     assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data1.headers["content-length"], "this is a content".length);
     assert.equal(data2.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.headers["content-length"], "this is a content".length);
     assert.equal(data3.getBody("UTF-8"), "this is a content");
+    assert.equal(data3.headers["content-length"], "this is a content".length);
 
     // Close the piping server
     await closePromise(pipingServer);
@@ -189,7 +196,7 @@ describe('piping.Server', () => {
 
   it('should not allow a sender and multi receivers to connect in this order if the number of receivers is over', async () => {
 
-    const pipingPort   = 9988;
+    const pipingPort   = 8877;
     const pipingServer = http.createServer(new piping.Server().handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
@@ -255,10 +262,13 @@ describe('piping.Server', () => {
     // Await all data
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
 
-    // Body should be the sent data
+    // Body should be the sent data and content-length should be returned
     assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data1.headers["content-length"], "this is a content".length);
     assert.equal(data2.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.headers["content-length"], "this is a content".length);
     assert.equal(data3.getBody("UTF-8"), "this is a content");
+    assert.equal(data3.headers["content-length"], "this is a content".length);
 
     // Close the piping server
     await closePromise(pipingServer);
