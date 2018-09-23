@@ -24,6 +24,13 @@ function closePromise(server: http.Server): Promise<void> {
   });
 }
 
+// Sleep
+// (from: https://qiita.com/yuba/items/2b17f9ac188e5138319c)
+export function sleep(ms: number): Promise<any> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 describe('piping.Server', () => {
   it('should return index page', async () => {
     const pipingPort   = 8787;
@@ -182,23 +189,36 @@ describe('piping.Server', () => {
 
   it('should not allow a sender and multi receivers to connect in this order if the number of receivers is over', async () => {
 
-    const pipingPort   = 8787;
+    const pipingPort   = 9988;
     const pipingServer = http.createServer(new piping.Server().handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
 
-    // Send data
-    // (NOTE: Should NOT use `await` because of blocking GET requests)
-    thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
-      body: "this is a content"
+    // Create send request
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
     });
+    // Send content-length
+    sendReq.setHeader("Content-Length", "this is a content".length);
+    // Send chunk of data
+    sendReq.write("this is");
 
-    // Get data
+    // Get request promises
+    // (NOTE: Each sleep is to ensure the order of requests)
     const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    await sleep(10);
     const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    await sleep(10);
     const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    await sleep(10);
+
+    // End send data
+    sendReq.end(" a content");
 
     // Await all data
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
@@ -252,10 +272,14 @@ describe('piping.Server', () => {
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
 
-    // Get request promise
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    // Get request promises
+    // (NOTE: Each sleep is to ensure the order of requests)
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?tag=first`);
+    await sleep(10);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?tag=second`);
+    await sleep(10);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?tag=third`);
+    await sleep(10);
 
     // Send data
     thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
