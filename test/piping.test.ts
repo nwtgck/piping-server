@@ -2,9 +2,10 @@ import * as piping  from '../src/piping';
 import * as assert from 'power-assert';
 import * as http from "http";
 import thenRequest from "then-request";
+import * as pkginfo from "pkginfo";
 
 // Set module.exports.version
-require('pkginfo')(module, 'version');
+pkginfo(module, 'version');
 
 /**
  * Listen on the specify port
