@@ -3,6 +3,9 @@ import * as assert from 'power-assert';
 import * as http from "http";
 import thenRequest from "then-request";
 
+// Set module.exports.version
+require('pkginfo')(module, 'version');
+
 /**
  * Listen on the specify port
  * @param server
@@ -65,7 +68,7 @@ describe('piping.Server', () => {
 
     // Body should be index page
     // (from: https://stackoverflow.com/a/22339262/2885946)
-    assert.equal(res.getBody("UTF-8"), process.env.npm_package_version+"\n");
+    assert.equal(res.getBody("UTF-8"), module.exports.version+"\n");
 
     // Close the piping server
     await closePromise(pipingServer);

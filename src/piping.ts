@@ -7,6 +7,9 @@ import 'core-js'; // NOTE: For use Object.values() under node 6 (lib: ["es2017"]
 import {opt, optMap, tryOpt} from "./utils";
 import * as path from "path";
 
+// Set module.exports.version
+require('pkginfo')(module, 'version');
+
 type ReqRes = {
   readonly req: http.IncomingMessage,
   readonly res: http.ServerResponse
@@ -227,7 +230,7 @@ export class Server {
               break;
             case NAME_TO_REGISTERED_PATH.version:
               // (from: https://stackoverflow.com/a/22339262/2885946)
-              res.end(process.env.npm_package_version+"\n");
+              res.end(module.exports.version+"\n");
               break;
             default:
               console.error("Unexpected error", "reqPath:", reqPath);
