@@ -190,6 +190,33 @@ describe('piping.Server', () => {
     await closePromise(pipingServer);
   });
 
+  it('should be sent by PUT method', async () => {
+
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Send data
+    // (NOTE: Should NOT use `await` because of blocking a GET request)
+    thenRequest("PUT", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Body should be the sent data
+    assert.equal(data.getBody("UTF-8"), "this is a content");
+    // Content-length should be returned
+    assert.equal(data.headers["content-length"], "this is a content".length);
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
+
   it('should allow a sender and multi receivers to connect in this order', async () => {
 
     const pipingPort   = 8787;
