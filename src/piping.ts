@@ -176,6 +176,12 @@ export class Server {
 
                 // Send waiting message
                 res.write(`Waiting for ${nReceivers} receivers...\n`);
+                // Send the number of receivers information
+                res.write(`${unconnectedPipe.receivers.length} receivers have been connected.\n`);
+                if (droppedReceivers.length > 0) {
+                  // Send the number of dropped receivers
+                  res.write(`${droppedReceivers.length} receivers have been dropped because of connection limits.\n`);
+                }
 
                 // Get pipeOpt if connected
                 const pipe: Pipe | undefined =
@@ -237,7 +243,14 @@ export class Server {
               // Get unconnectedPipe
               const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
               if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
+                // Append new receiver
                 unconnectedPipe.receivers.push({req: req, res: res});
+
+                if(unconnectedPipe.sender !== undefined) {
+                  // Send connection message to the sender
+                  unconnectedPipe.sender.res.write("A receiver is connected.\n");
+                }
+
                 // Get pipeOpt if connected
                 const pipe: Pipe | undefined =
                   getPipeIfConnected(unconnectedPipe);
