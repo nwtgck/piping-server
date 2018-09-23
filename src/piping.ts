@@ -68,7 +68,7 @@ export class Server {
     const {sender, receivers} = pipe;
 
     let closeCount: number = 0;
-    for(let receiver of receivers) {
+    for(const receiver of receivers) {
       // Close receiver
       const closeReceiver = (): void => {
         closeCount += 1;
@@ -79,6 +79,11 @@ export class Server {
           delete this.pathToConnected[path];
         }
       };
+
+      // Add Content-Length
+      receiver.res.writeHead(200, {
+        "Content-Length": sender.req.headers["content-length"]
+      });
 
       const passThrough = new stream.PassThrough();
       sender.req.pipe(passThrough);
