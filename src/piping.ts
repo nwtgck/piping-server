@@ -80,9 +80,12 @@ export class Server {
         }
       };
 
-      // Add Content-Length
       receiver.res.writeHead(200, {
-        "Content-Length": sender.req.headers["content-length"]
+        // Add Content-Length if it exists
+        ...(
+          sender.req.headers["content-length"] === undefined ?
+          {}: {"Content-Length": sender.req.headers["content-length"]}
+        )
       });
 
       const passThrough = new stream.PassThrough();

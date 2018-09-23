@@ -159,6 +159,37 @@ describe('piping.Server', () => {
     await closePromise(pipingServer);
   });
 
+  it('should be sent chunked data', async () => {
+
+    const pipingPort   = 8787;
+    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingUrl    = `http://localhost:${pipingPort}`;
+
+    // Listen on the port
+    await listenPromise(pipingServer, pipingPort);
+
+    // Create a send request
+    const sendReq = http.request({
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid`
+    });
+
+    // Send chunked data
+    sendReq.write("this is");
+    sendReq.end(" a content");
+
+    // Get data
+    const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Body should be the sent data
+    assert.equal(data.getBody("UTF-8"), "this is a content");
+
+    // Close the piping server
+    await closePromise(pipingServer);
+  });
+
   it('should allow a sender and multi receivers to connect in this order', async () => {
 
     const pipingPort   = 8787;
