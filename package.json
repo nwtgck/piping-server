@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "HTTP Piping Data Transfer Server",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "core-js": "^2.5.7",
+    "pkginfo": "^0.4.1",
     "yargs": "^12.0.2"
   }
 }
