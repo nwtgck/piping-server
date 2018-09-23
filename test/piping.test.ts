@@ -196,15 +196,12 @@ describe('piping.Server', () => {
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
 
-    // // Send data
-    // // (NOTE: Should NOT use `await` because of blocking GET requests)
-    // thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
-    //   body: "this is a content"
-    // });
-
     // Create send request
-    const sendReq = http.request(`${pipingUrl}/mydataid?n=2`, {
-      method: "POST"
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
     });
     // Send content-length
     sendReq.setHeader("Content-Length", "this is a content".length);
