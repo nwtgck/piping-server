@@ -228,7 +228,7 @@ describe('piping.Server', () => {
     const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
       body: "this is a content"
     });
 
@@ -258,7 +258,7 @@ describe('piping.Server', () => {
     const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
+    thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
       body: "this is a content"
     });
 
