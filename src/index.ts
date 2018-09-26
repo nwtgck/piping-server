@@ -29,6 +29,7 @@ const parser = yargs
   })
   .option("enable-log", {
     describe: 'Enable logging',
+    type: 'boolean',
     default: true
   });
 
