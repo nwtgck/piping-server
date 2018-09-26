@@ -12,12 +12,14 @@ HTTP Piping Data Transfer Server
 
 ## Transfer example
 
-Suppose a Piping server is running on <https://piping.glitch.me>. You can send "hello.txt" to a single receiver.
+Suppose a Piping server is running on <https://piping.glitch.me>. You can send "hello.txt" to a receiver.
 
 ```bash
 # Send
-cat hello.txt | curl -X POST https://piping.glitch.me/mysecret --data-binary @-
+cat hello.txt | curl -T - https://piping.glitch.me/mysecret
+```
 
+```bash
 # Get
 curl https://piping.glitch.me/mysecret > myhello.txt 
 ```
