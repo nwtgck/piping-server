@@ -10,4 +10,7 @@ node_js:
 install:
   - npm install
 script:
+  # Test
   - npm test
+  # Check whether "run build" is successful
+  - npm run build
