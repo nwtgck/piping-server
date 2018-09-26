@@ -38,7 +38,7 @@ export function sleep(ms: number): Promise<any> {
 describe('piping.Server', () => {
   it('should return index page', async () => {
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -58,7 +58,7 @@ describe('piping.Server', () => {
 
   it('should return version page', async () => {
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -77,7 +77,7 @@ describe('piping.Server', () => {
 
   it('should not allow user to send the reserved paths', async () => {
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -111,7 +111,7 @@ describe('piping.Server', () => {
   it('should allow a sender and a receiver to connect in this order', async () => {
 
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -137,7 +137,7 @@ describe('piping.Server', () => {
 
   it('should allow a receiver and a sender to connect in this order', async () => {
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -166,7 +166,7 @@ describe('piping.Server', () => {
   it('should be sent chunked data', async () => {
 
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -197,7 +197,7 @@ describe('piping.Server', () => {
   it('should be sent by PUT method', async () => {
 
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -224,7 +224,7 @@ describe('piping.Server', () => {
   it('should allow a sender and multi receivers to connect in this order', async () => {
 
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -259,7 +259,7 @@ describe('piping.Server', () => {
   it('should not allow a sender and multi receivers to connect in this order if the number of receivers is over', async () => {
 
     const pipingPort   = 8877;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -305,7 +305,7 @@ describe('piping.Server', () => {
 
   it('should allow multi receivers and a sender to connect in this order', async () => {
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
@@ -338,7 +338,7 @@ describe('piping.Server', () => {
 
   it('should allow multi receivers and a sender to connect in this order if the number of receivers is over', async () => {
     const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
+    const pipingServer = http.createServer(new piping.Server(false).handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;
 
     // Listen on the port
