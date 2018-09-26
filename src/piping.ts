@@ -57,6 +57,13 @@ export class Server {
   readonly pathToUnconnectedPipe: {[path: string]: UnconnectedPipe} = {};
 
   /**
+   *
+   * @param enableLog Enable logging
+   */
+  constructor(readonly enableLog: boolean){
+  }
+
+  /**
    * Start data transfer
    *
    * @param path
@@ -96,11 +103,11 @@ export class Server {
       sender.req.pipe(passThrough);
       passThrough.pipe(receiver.res);
       receiver.req.on("close", ()=>{
-        console.log("on-close");
+        if (this.enableLog) console.log("on-close");
         closeReceiver();
       });
       receiver.req.on("error", (err)=>{
-        console.log("on-error");
+        if (this.enableLog) console.log("on-error");
         closeReceiver();
       });
     }
@@ -127,7 +134,7 @@ export class Server {
           // Remove last "/"
           .replace(/\/$/, "")
       );
-    console.log(req.method, reqPath);
+    if (this.enableLog) console.log(req.method, reqPath);
 
     switch (req.method) {
       case "POST":
@@ -145,7 +152,7 @@ export class Server {
             res.writeHead(400);
             res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
           } else {
-            console.log(this.pathToUnconnectedPipe);
+            if (this.enableLog) console.log(this.pathToUnconnectedPipe);
             // If the path connection is connecting
             if (reqPath in this.pathToUnconnectedPipe) {
               // Get unconnected pipe

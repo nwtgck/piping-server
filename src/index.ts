@@ -26,6 +26,11 @@ const parser = yargs
   })
   .option("crt-path", {
     describe: 'Certification path',
+  })
+  .option("enable-log", {
+    describe: 'Enable logging',
+    type: 'boolean',
+    default: true
   });
 
 // Parse arguments
@@ -35,9 +40,10 @@ const enableHttps: boolean = args['enable-https'];
 const httpsPort: number | undefined = args['https-port'];
 const serverKeyPath: string | undefined = args['key-path'];
 const serverCrtPath: string | undefined = args['crt-path'];
+const enableLog: boolean = args['enable-log'];
 
 // Create a piping server
-const pipingServer = new piping.Server();
+const pipingServer = new piping.Server(enableLog);
 
 http.createServer(pipingServer.handler)
   .listen(httpPort, ()=>{

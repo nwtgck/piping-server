@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Added
 * Support Heroku deployment
+* Allow user to specify `--enable-log` option
 
 ## [0.3.1] - 2018-09-23
 ### Fixed
