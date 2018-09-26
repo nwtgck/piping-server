@@ -42,15 +42,15 @@ function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
   }
 }
 
-// Name to registered path
-const NAME_TO_REGISTERED_PATH = {
+// Name to reserved path
+const NAME_TO_RESERVED_PATH = {
   index: "/",
   version: "/version"
 };
 
-// All registered paths
-const REGISTERED_PATHS: string[] =
-  Object.values(NAME_TO_REGISTERED_PATH);
+// All reserved paths
+const RESERVED_PATHS: string[] =
+  Object.values(NAME_TO_RESERVED_PATH);
 
 export class Server {
   readonly pathToConnected: {[path: string]: boolean} = {};
@@ -132,9 +132,9 @@ export class Server {
     switch (req.method) {
       case "POST":
       case "PUT":
-        if(REGISTERED_PATHS.includes(reqPath)) {
+        if(RESERVED_PATHS.includes(reqPath)) {
           res.writeHead(400);
-          res.end(`[ERROR] Cannot send to a registered path '${reqPath}'. (e.g. '/mypath123')\n`);
+          res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
         } else {
           // Get query parameter
           const query = opt(optMap(url.parse, req.url, true).query);
@@ -216,10 +216,10 @@ export class Server {
         }
         break;
       case "GET":
-        // request path is in registered paths
-        if(REGISTERED_PATHS.includes(reqPath)) {
+        // request path is in reserved paths
+        if(RESERVED_PATHS.includes(reqPath)) {
           switch (reqPath) {
-            case NAME_TO_REGISTERED_PATH.index:
+            case NAME_TO_RESERVED_PATH.index:
               res.end(
                 "<html>" +
                   "Piping server is running!\n<br>" +
@@ -229,7 +229,7 @@ export class Server {
                 "</html>"
               );
               break;
-            case NAME_TO_REGISTERED_PATH.version:
+            case NAME_TO_RESERVED_PATH.version:
               // (from: https://stackoverflow.com/a/22339262/2885946)
               res.end(module.exports.version+"\n");
               break;

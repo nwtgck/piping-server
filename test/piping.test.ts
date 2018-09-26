@@ -75,7 +75,7 @@ describe('piping.Server', () => {
     await closePromise(pipingServer);
   });
 
-  it('should not allow user to send the registered paths', async () => {
+  it('should not allow user to send the reserved paths', async () => {
     const pipingPort   = 8787;
     const pipingServer = http.createServer(new piping.Server().handler);
     const pipingUrl    = `http://localhost:${pipingPort}`;

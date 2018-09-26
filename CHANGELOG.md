@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [0.2.1] - 2018-09-22
 ### Fixed
-* Not allow users to send registered paths via POST method
+* Not allow users to send reserved paths via POST method
 
 ### Added
 * `piping-server` command
