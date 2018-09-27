@@ -3,6 +3,7 @@ import * as assert from 'power-assert';
 import * as http from "http";
 import thenRequest from "then-request";
 import * as pkginfo from "pkginfo";
+import * as getPort from "get-port";
 
 // Set module.exports.version
 pkginfo(module, 'version');
@@ -37,10 +38,14 @@ export function sleep(ms: number): Promise<any> {
 
 describe('piping.Server', () => {
   let pipingServer: http.Server;
-  const pipingPort   = 8787;
-  const pipingUrl    = `http://localhost:${pipingPort}`;
+  let pipingPort: number;
+  let pipingUrl: string;
 
   beforeEach(async ()=>{
+    // Get available port
+    pipingPort = await getPort();
+    // Define Piping URL
+    pipingUrl = `http://localhost:${pipingPort}`;
     // Create a Piping server
     pipingServer = http.createServer(new piping.Server(false).handler);
     // Listen on the port
