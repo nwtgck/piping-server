@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Support Heroku deployment
 * Allow user to specify `--enable-log` option
 
+### Fixed
+*  Not to allow user to specify n <= 0 in query parameter
+
 ## [0.3.1] - 2018-09-23
 ### Fixed
 * Fix /version routing
