@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.3.2] - 2018-09-27
+### Added
+* Support Heroku deployment
+* Allow user to specify `--enable-log` option
+
+### Fixed
+*  Not to allow user to specify n <= 0 in query parameter
+
 ## [0.3.1] - 2018-09-23
 ### Fixed
 * Fix /version routing
@@ -16,7 +24,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [0.2.1] - 2018-09-22
 ### Fixed
-* Not allow users to send registered paths via POST method
+* Not allow users to send reserved paths via POST method
 
 ### Added
 * `piping-server` command
@@ -33,7 +41,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/nwtgck/piping-seraver/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/nwtgck/piping-seraver/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/nwtgck/piping-seraver/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/nwtgck/piping-seraver/compare/v0.2.0...v0.2.1

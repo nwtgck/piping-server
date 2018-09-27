@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "HTTP Piping Data Transfer Server",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -27,11 +27,13 @@
   "author": "Ryo Ota",
   "license": "MIT",
   "devDependencies": {
+    "@types/get-port": "^4.0.0",
     "@types/mocha": "^5.0.0",
-    "@types/node": "^10.10.0",
+    "@types/node": "^10.11.0",
     "@types/power-assert": "^1.5.0",
     "@types/yargs": "^12.0.0",
     "espower-typescript": "^9.0.0",
+    "get-port": "^4.0.0",
     "mocha": "^5.0.5",
     "power-assert": "^1.4.4",
     "then-request": "^6.0.0",

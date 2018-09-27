@@ -42,19 +42,39 @@ function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
   }
 }
 
-// Name to registered path
-const NAME_TO_REGISTERED_PATH = {
+/**
+ * Return a if a is number otherwise return b
+ * @param a
+ * @param b
+ */
+function nanOrElse<T>(a: number, b: number): number {
+  if(isNaN(a)) {
+    return b;
+  } else {
+    return a;
+  }
+}
+
+// Name to reserved path
+const NAME_TO_RESERVED_PATH = {
   index: "/",
   version: "/version"
 };
 
-// All registered paths
-const REGISTERED_PATHS: string[] =
-  Object.values(NAME_TO_REGISTERED_PATH);
+// All reserved paths
+const RESERVED_PATHS: string[] =
+  Object.values(NAME_TO_RESERVED_PATH);
 
 export class Server {
   readonly pathToConnected: {[path: string]: boolean} = {};
   readonly pathToUnconnectedPipe: {[path: string]: UnconnectedPipe} = {};
+
+  /**
+   *
+   * @param enableLog Enable logging
+   */
+  constructor(readonly enableLog: boolean){
+  }
 
   /**
    * Start data transfer
@@ -96,11 +116,11 @@ export class Server {
       sender.req.pipe(passThrough);
       passThrough.pipe(receiver.res);
       receiver.req.on("close", ()=>{
-        console.log("on-close");
+        if (this.enableLog) console.log("on-close");
         closeReceiver();
       });
       receiver.req.on("error", (err)=>{
-        console.log("on-error");
+        if (this.enableLog) console.log("on-error");
         closeReceiver();
       });
     }
@@ -127,25 +147,28 @@ export class Server {
           // Remove last "/"
           .replace(/\/$/, "")
       );
-    console.log(req.method, reqPath);
+    if (this.enableLog) console.log(req.method, reqPath);
 
     switch (req.method) {
       case "POST":
       case "PUT":
-        if(REGISTERED_PATHS.includes(reqPath)) {
+        if(RESERVED_PATHS.includes(reqPath)) {
           res.writeHead(400);
-          res.end(`[ERROR] Cannot send to a registered path '${reqPath}'. (e.g. '/mypath123')\n`);
+          res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
         } else {
           // Get query parameter
           const query = opt(optMap(url.parse, req.url, true).query);
           // The number receivers
-          const nReceivers: number = tryOpt(()=>parseInt((query as ParsedUrlQuery)['n'] as string) ) || 1;
+          const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery)['n'] as string), 1);
           // if the path have been used
-          if (reqPath in this.pathToConnected) {
+          if (nReceivers <= 0) {
+            res.writeHead(400);
+            res.end(`[ERROR] n should > 0, but n = ${nReceivers}\n`);
+          } else if (reqPath in this.pathToConnected) {
             res.writeHead(400);
             res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
           } else {
-            console.log(this.pathToUnconnectedPipe);
+            if (this.enableLog) console.log(this.pathToUnconnectedPipe);
             // If the path connection is connecting
             if (reqPath in this.pathToUnconnectedPipe) {
               // Get unconnected pipe
@@ -216,10 +239,10 @@ export class Server {
         }
         break;
       case "GET":
-        // request path is in registered paths
-        if(REGISTERED_PATHS.includes(reqPath)) {
+        // request path is in reserved paths
+        if(RESERVED_PATHS.includes(reqPath)) {
           switch (reqPath) {
-            case NAME_TO_REGISTERED_PATH.index:
+            case NAME_TO_RESERVED_PATH.index:
               res.end(
                 "<html>" +
                   "Piping server is running!\n<br>" +
@@ -229,7 +252,7 @@ export class Server {
                 "</html>"
               );
               break;
-            case NAME_TO_REGISTERED_PATH.version:
+            case NAME_TO_RESERVED_PATH.version:
               // (from: https://stackoverflow.com/a/22339262/2885946)
               res.end(module.exports.version+"\n");
               break;

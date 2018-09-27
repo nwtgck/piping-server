@@ -4,18 +4,22 @@
 [![Docker Automated build](https://img.shields.io/docker/automated/nwtgck/piping-server.svg)](https://hub.docker.com/r/nwtgck/piping-server/)
  [![](https://images.microbadger.com/badges/image/nwtgck/piping-server.svg)](https://microbadger.com/images/nwtgck/piping-server "Get your own image badge on microbadger.com") [![Greenkeeper badge](https://badges.greenkeeper.io/nwtgck/piping-server.svg)](https://greenkeeper.io/)
 
+ [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 HTTP Piping Data Transfer Server
 
 ![piping server transfer](demo_images/piping-server.gif)
 
 ## Transfer example
 
-Suppose a Piping server is running on <https://piping.glitch.me>. You can send "hello.txt" to a single receiver.
+Suppose a Piping server is running on <https://piping.glitch.me>. You can send "hello.txt" to a receiver.
 
 ```bash
 # Send
-cat hello.txt | curl -X POST https://piping.glitch.me/mysecret --data-binary @-
+cat hello.txt | curl -T - https://piping.glitch.me/mysecret
+```
 
+```bash
 # Get
 curl https://piping.glitch.me/mysecret > myhello.txt 
 ```
@@ -28,15 +32,19 @@ Piping server supports multiple receiver. The following moving image is an examp
 
 ## Run server
 
-### Install
+### Heroku deployment
 
-```bash
-npm install -g piping-server
-```
+Click the botton below to deploy a Piping server to Heroku.
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 
 ### Run server on localhost
 
 ```bash
+# Install
+npm install -g piping-server
+# Run a server
 piping-server
 ```
 Then, a Piping server is running on <http://localhost:8080>.
@@ -54,6 +62,7 @@ Options:
   --https-port    Port of HTTPS server
   --key-path      Private key path
   --crt-path      Certification path
+  --enable-log    Enable logging                       [boolean] [default: true]
 ```
 
 ### Run on Docker

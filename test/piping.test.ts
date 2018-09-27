@@ -3,6 +3,7 @@ import * as assert from 'power-assert';
 import * as http from "http";
 import thenRequest from "then-request";
 import * as pkginfo from "pkginfo";
+import * as getPort from "get-port";
 
 // Set module.exports.version
 pkginfo(module, 'version');
@@ -36,87 +37,71 @@ export function sleep(ms: number): Promise<any> {
 
 
 describe('piping.Server', () => {
-  it('should return index page', async () => {
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
+  let pipingServer: http.Server;
+  let pipingPort: number;
+  let pipingUrl: string;
 
+  beforeEach(async ()=>{
+    // Get available port
+    pipingPort = await getPort();
+    // Define Piping URL
+    pipingUrl = `http://localhost:${pipingPort}`;
+    // Create a Piping server
+    pipingServer = http.createServer(new piping.Server(false).handler);
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
+  });
 
-    // Get response
-    const res1 = await thenRequest("GET", `${pipingUrl}`);
-    const res2 = await thenRequest("GET", `${pipingUrl}/`);
-
-    // Body should be index page
-    assert.equal(res1.getBody("UTF-8").includes("Piping server is running"), true);
-    assert.equal(res2.getBody("UTF-8").includes("Piping server is running"), true);
-
+  afterEach(async ()=>{
     // Close the piping server
     await closePromise(pipingServer);
   });
 
-  it('should return version page', async () => {
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
+  context("In reserved path", ()=>{
+    it('should return index page', async () => {
+      // Get response
+      const res1 = await thenRequest("GET", `${pipingUrl}`);
+      const res2 = await thenRequest("GET", `${pipingUrl}/`);
 
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
-    // Get response
-    const res = await thenRequest("GET", `${pipingUrl}/version`);
-
-    // Body should be index page
-    // (from: https://stackoverflow.com/a/22339262/2885946)
-    assert.equal(res.getBody("UTF-8"), module.exports.version+"\n");
-
-    // Close the piping server
-    await closePromise(pipingServer);
-  });
-
-  it('should not allow user to send the registered paths', async () => {
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
-    // Send data to ""
-    const req1 = await thenRequest("POST", `${pipingUrl}`, {
-      body: "this is a content"
+      // Body should be index page
+      assert.equal(res1.getBody("UTF-8").includes("Piping server is running"), true);
+      assert.equal(res2.getBody("UTF-8").includes("Piping server is running"), true);
     });
-    // Should be failed
-    assert.equal(req1.statusCode, 400);
 
-    // Send data to "/"
-    const req2 = await thenRequest("POST", `${pipingUrl}/`, {
-      body: "this is a content"
+    it('should return version page', async () => {
+      // Get response
+      const res = await thenRequest("GET", `${pipingUrl}/version`);
+
+      // Body should be index page
+      // (from: https://stackoverflow.com/a/22339262/2885946)
+      assert.equal(res.getBody("UTF-8"), module.exports.version+"\n");
     });
-    // Should be failed
-    assert.equal(req2.statusCode, 400);
 
-    // Send data to "/version"
-    const req3 = await thenRequest("POST", `${pipingUrl}/`, {
-      body: "this is a content"
+    it('should not allow user to send the reserved paths', async () => {
+      // Send data to ""
+      const req1 = await thenRequest("POST", `${pipingUrl}`, {
+        body: "this is a content"
+      });
+      // Should be failed
+      assert.equal(req1.statusCode, 400);
+
+      // Send data to "/"
+      const req2 = await thenRequest("POST", `${pipingUrl}/`, {
+        body: "this is a content"
+      });
+      // Should be failed
+      assert.equal(req2.statusCode, 400);
+
+      // Send data to "/version"
+      const req3 = await thenRequest("POST", `${pipingUrl}/`, {
+        body: "this is a content"
+      });
+      // Should be failed
+      assert.equal(req3.statusCode, 400);
     });
-    // Should be failed
-    assert.equal(req3.statusCode, 400);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should allow a sender and a receiver to connect in this order', async () => {
-
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
     thenRequest("POST", `${pipingUrl}/mydataid`, {
@@ -130,19 +115,9 @@ describe('piping.Server', () => {
     assert.equal(data.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
     assert.equal(data.headers["content-length"], "this is a content".length);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should allow a receiver and a sender to connect in this order', async () => {
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
@@ -158,20 +133,9 @@ describe('piping.Server', () => {
     assert.equal(data.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
     assert.equal(data.headers["content-length"], "this is a content".length);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should be sent chunked data', async () => {
-
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Create a send request
     const sendReq = http.request({
       host: "localhost",
@@ -189,20 +153,9 @@ describe('piping.Server', () => {
 
     // Body should be the sent data
     assert.equal(data.getBody("UTF-8"), "this is a content");
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should be sent by PUT method', async () => {
-
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
     thenRequest("PUT", `${pipingUrl}/mydataid`, {
@@ -216,20 +169,9 @@ describe('piping.Server', () => {
     assert.equal(data.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
     assert.equal(data.headers["content-length"], "this is a content".length);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should allow a sender and multi receivers to connect in this order', async () => {
-
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Send data
     // (NOTE: Should NOT use `await` because of blocking GET requests)
     thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
@@ -251,20 +193,9 @@ describe('piping.Server', () => {
     assert.equal(data2.headers["content-length"], "this is a content".length);
     assert.equal(data3.getBody("UTF-8"), "this is a content");
     assert.equal(data3.headers["content-length"], "this is a content".length);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should not allow a sender and multi receivers to connect in this order if the number of receivers is over', async () => {
-
-    const pipingPort   = 8877;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Create send request
     const sendReq = http.request( {
       host: "localhost",
@@ -298,19 +229,9 @@ describe('piping.Server', () => {
 
     // Should be bad request
     assert.equal(data3.statusCode, 400);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should allow multi receivers and a sender to connect in this order', async () => {
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Get request promise
     const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
     const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
@@ -331,19 +252,9 @@ describe('piping.Server', () => {
     assert.equal(data2.headers["content-length"], "this is a content".length);
     assert.equal(data3.getBody("UTF-8"), "this is a content");
     assert.equal(data3.headers["content-length"], "this is a content".length);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
 
   it('should allow multi receivers and a sender to connect in this order if the number of receivers is over', async () => {
-    const pipingPort   = 8787;
-    const pipingServer = http.createServer(new piping.Server().handler);
-    const pipingUrl    = `http://localhost:${pipingPort}`;
-
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
-
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
     const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?tag=first`);
@@ -367,8 +278,28 @@ describe('piping.Server', () => {
 
     // Should be bad request
     assert.equal(data3.statusCode, 400);
-
-    // Close the piping server
-    await closePromise(pipingServer);
   });
+
+  context("If number of receivers <= 0", ()=>{
+    it('should not allow n=0', async () => {
+      // Send data
+      const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=0`, {
+        body: "this is a content"
+      });
+
+      // Should be rejected
+      assert.equal(res.statusCode, 400);
+    });
+
+    it('should not allow n=-1', async () => {
+      // Send data
+      const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=-1`, {
+        body: "this is a content"
+      });
+
+      // Should be rejected
+      assert.equal(res.statusCode, 400);
+    });
+  });
+
 });
