@@ -279,4 +279,27 @@ describe('piping.Server', () => {
     // Should be bad request
     assert.equal(data3.statusCode, 400);
   });
+
+  context("If number of receivers <= 0", ()=>{
+    it('should not allow n=0', async () => {
+      // Send data
+      const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=0`, {
+        body: "this is a content"
+      });
+
+      // Should be rejected
+      assert.equal(res.statusCode, 400);
+    });
+
+    it('should not allow n=-1', async () => {
+      // Send data
+      const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=-1`, {
+        body: "this is a content"
+      });
+
+      // Should be rejected
+      assert.equal(res.statusCode, 400);
+    });
+  });
+
 });

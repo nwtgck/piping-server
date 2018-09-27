@@ -42,6 +42,19 @@ function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
   }
 }
 
+/**
+ * Return a if a is number otherwise return b
+ * @param a
+ * @param b
+ */
+function nanOrElse<T>(a: number, b: number): number {
+  if(isNaN(a)) {
+    return b;
+  } else {
+    return a;
+  }
+}
+
 // Name to reserved path
 const NAME_TO_RESERVED_PATH = {
   index: "/",
@@ -146,9 +159,12 @@ export class Server {
           // Get query parameter
           const query = opt(optMap(url.parse, req.url, true).query);
           // The number receivers
-          const nReceivers: number = tryOpt(()=>parseInt((query as ParsedUrlQuery)['n'] as string) ) || 1;
+          const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery)['n'] as string), 1);
           // if the path have been used
-          if (reqPath in this.pathToConnected) {
+          if (nReceivers <= 0) {
+            res.writeHead(400);
+            res.end(`[ERROR] n should > 0, but n = ${nReceivers}\n`);
+          } else if (reqPath in this.pathToConnected) {
             res.writeHead(400);
             res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
           } else {
