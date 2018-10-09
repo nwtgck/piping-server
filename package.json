@@ -27,6 +27,7 @@
   "author": "Ryo Ota",
   "license": "MIT",
   "devDependencies": {
+    "@types/busboy": "^0.2.3",
     "@types/get-port": "^4.0.0",
     "@types/mocha": "^5.0.0",
     "@types/node": "^10.11.0",
@@ -41,6 +42,7 @@
     "typescript": "^3.0.1"
   },
   "dependencies": {
+    "busboy": "^0.2.14",
     "core-js": "^2.5.7",
     "pkginfo": "^0.4.1",
     "yargs": "^12.0.2"

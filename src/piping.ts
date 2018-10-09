@@ -4,6 +4,7 @@ import * as stream from "stream";
 import {ParsedUrlQuery} from "querystring";
 import 'core-js'; // NOTE: For use Object.values() under node 6 (lib: ["es2017"] is not enough)
 import * as pkginfo from "pkginfo";
+import * as Busboy from "busboy";
 
 import {opt, optMap, tryOpt} from "./utils";
 import * as path from "path";
@@ -82,7 +83,7 @@ export class Server {
    * @param path
    * @param pipe
    */
-  runPipe(path: string, pipe: Pipe): void {
+  async runPipe(path: string, pipe: Pipe): Promise<void> {
 
     // Set connected as true
     this.pathToConnected[path] = true;
@@ -91,12 +92,25 @@ export class Server {
 
     const {sender, receivers} = pipe;
 
+    const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
+    const senderData: NodeJS.ReadableStream = await (
+        isMultipart ?
+        await new Promise<NodeJS.ReadableStream>((resolve=>{
+          const busboy = new Busboy({headers: sender.req.headers});
+          busboy.on('file', (fieldname, file, encoding, mimetype)=>{
+            resolve(file);
+          });
+          sender.req.pipe(busboy);
+        })) :
+        Promise.resolve(sender.req)
+    );
+
     let closeCount: number = 0;
     for(const receiver of receivers) {
       // Close receiver
       const closeReceiver = (): void => {
         closeCount += 1;
-        sender.req.unpipe(passThrough);
+        senderData.unpipe(passThrough);
         // If close-count is # of receivers
         if(closeCount === receivers.length) {
           sender.res.end("[INFO] All receivers are closed halfway\n");
@@ -104,16 +118,19 @@ export class Server {
         }
       };
 
-      receiver.res.writeHead(200, {
-        // Add Content-Length if it exists
-        ...(
-          sender.req.headers["content-length"] === undefined ?
-          {}: {"Content-Length": sender.req.headers["content-length"]}
-        )
-      });
+      // TODO: Should add header when isMutipart
+      if(!isMultipart){
+        receiver.res.writeHead(200, {
+          // Add Content-Length if it exists
+          ...(
+            sender.req.headers["content-length"] === undefined ?
+            {}: {"Content-Length": sender.req.headers["content-length"]}
+          )
+        });
+      }
 
       const passThrough = new stream.PassThrough();
-      sender.req.pipe(passThrough);
+      senderData.pipe(passThrough);
       passThrough.pipe(receiver.res);
       receiver.req.on("close", ()=>{
         if (this.enableLog) console.log("on-close");
@@ -125,13 +142,13 @@ export class Server {
       });
     }
 
-    sender.req.on("end", ()=>{
+    senderData.on("end", ()=>{
       sender.res.end("[INFO] Sending Successful!\n");
       // Delete from connected
       delete this.pathToConnected[path];
     });
 
-    sender.req.on("error", (error)=>{
+    senderData.on("error", (error)=>{
       sender.res.end("[ERROR] Sending Failed.\n");
       // Delete from connected
       delete this.pathToConnected[path];
