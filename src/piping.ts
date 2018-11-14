@@ -266,20 +266,23 @@ export class Server {
               <head>
                 <title>Piping</title>
                 <meta name="viewport" content="width=device-width,initial-scale=1">
+                <style>
+                  h3 {
+                    margin-top: 2em;
+                    margin-bottom: 0.5em;
+                  }
+                </style>
               </head>
               <body>
                 <h1>Piping</h1>
                 Streaming file sending/receiving
-                <h2>Usage</h2>
-                <ol>
-                  <li>Write your secret path</li>
-                  <li>Choose a file</li>
-                  <li>Click the submit button</li>
-                </ol>
-                <hr>
                 <form method="POST" id="file_form" enctype="multipart/form-data">
-                  <input id="secret_path" placeholder="Secret path">
+                  <h3>Step 1: Choose a file</h3>
                   <input type="file" name="input_file"><br>
+                  <h3>Step 2: Write your secret path</h3>
+                  (e.g. "abcd1234", "mysecret.png?n=3")<br>                  
+                  <input id="secret_path" placeholder="Secret path" size="50"><br>
+                  <h3>Step 3: Click the submit button</h3>
                   <input type="submit">
                 </form>
                 <hr>
