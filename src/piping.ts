@@ -260,14 +260,40 @@ export class Server {
         if(RESERVED_PATHS.includes(reqPath)) {
           switch (reqPath) {
             case NAME_TO_RESERVED_PATH.index:
-              res.end(
-                "<html>" +
-                  "Piping server is running!\n<br>" +
-                  "Usage: <a href='https://github.com/nwtgck/piping-server#readme'>" +
-                    "https://github.com/nwtgck/piping-server#readme" +
-                  "</a>" +
-                "</html>"
-              );
+              // TODO: Write this html content as .html file
+              res.end(`
+              <html>
+              <head>
+                <title>Piping</title>
+                <meta name="viewport" content="width=device-width,initial-scale=1">
+              </head>
+              <body>
+                <h1>Piping</h1>
+                Streaming file sending/receiving
+                <h2>Usage</h2>
+                <ol>
+                  <li>Write your secret path</li>
+                  <li>Choose a file</li>
+                  <li>Click the submit button</li>
+                </ol>
+                <hr>
+                <form method="POST" id="file_form" enctype="multipart/form-data">
+                  <input id="secret_path" placeholder="Secret path">
+                  <input type="file" name="input_file"><br>
+                  <input type="submit">
+                </form>
+                <hr>
+                Command-line usage: <a href="https://github.com/nwtgck/piping-server#readme">https://github.com/nwtgck/piping-server#readme</a><br>
+                <script>
+                  var fileForm = document.getElementById("file_form");
+                  var secretPathInput = document.getElementById("secret_path");
+                  secretPathInput.onkeyup = function(){
+                    fileForm.action = "/" + secretPathInput.value;
+                  };
+                </script>
+              </body>
+              </html>
+              `);
               break;
             case NAME_TO_RESERVED_PATH.version:
               // (from: https://stackoverflow.com/a/22339262/2885946)
