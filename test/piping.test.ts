@@ -64,8 +64,8 @@ describe('piping.Server', () => {
       const res2 = await thenRequest("GET", `${pipingUrl}/`);
 
       // Body should be index page
-      assert.equal(res1.getBody("UTF-8").includes("Piping server is running"), true);
-      assert.equal(res2.getBody("UTF-8").includes("Piping server is running"), true);
+      assert.equal(res1.getBody("UTF-8").includes("Piping"), true);
+      assert.equal(res2.getBody("UTF-8").includes("Piping"), true);
     });
 
     it('should return version page', async () => {
