@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: node:10.12.0-alpine 
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm test
+      # Check whether "run build" is successful
+      - run: npm run build
