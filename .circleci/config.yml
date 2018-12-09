@@ -35,6 +35,8 @@ jobs:
           command: |
             # Run a server
             docker run -d -p 8080:8080 piping-server
+            # Wait for 1 second
+            sleep 1
             # Working test by Ruby script
             ruby <<EOS
             Thread.start{
