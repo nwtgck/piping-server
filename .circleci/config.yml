@@ -35,15 +35,13 @@ jobs:
           command: |
             # Run a server
             docker run -d -p 8080:8080 piping-server
-            # Wait for 1 second
+            # Wait for server running
             sleep 1
-            # Working test by Ruby script
-            ruby <<EOS
-            Thread.start{
-              system("curl --data-binary 'hello, world' localhost:8080/mypath")
-            }
-            system("curl localhost:8080/mypath")
-            EOS
+            # Send and wait for a reciever
+            curl --data-binary 'hello, world' localhost:8080/mypath &
+            # Get data
+            curl localhost:8080/mypath
+            
 workflows:
   version: 2
   node_tests:
