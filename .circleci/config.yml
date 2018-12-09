@@ -23,7 +23,25 @@ jobs:
     docker:
       - image: node:6-alpine 
     <<: *node_steps
-
+  
+  docker_test:
+    machine: true
+    steps:
+      - checkout
+      # Check whether "docker build" is succcessful or not
+      - run: docker build -t piping-server .
+      - run:
+          name: Working test with Docker image
+          command: |
+            # Run a server
+            docker run -d -p 8080:8080 piping-server
+            # Wait for server running
+            sleep 1
+            # Send and wait for a reciever
+            curl --data-binary 'hello, world' localhost:8080/mypath &
+            # Get data
+            curl localhost:8080/mypath
+            
 workflows:
   version: 2
   node_tests:
@@ -31,3 +49,4 @@ workflows:
       - node_10
       - node_8
       - node_6
+      - docker_test
