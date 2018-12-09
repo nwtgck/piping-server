@@ -1,6 +1,6 @@
 # piping-server
 [![npm](https://img.shields.io/npm/v/piping-server.svg)](https://www.npmjs.com/package/piping-server)
- [![Build Status](https://travis-ci.com/nwtgck/piping-server.svg?branch=develop)](https://travis-ci.com/nwtgck/piping-server) 
+ [![Build Status](https://travis-ci.com/nwtgck/piping-server.svg?branch=develop)](https://travis-ci.com/nwtgck/piping-server) [![CircleCI](https://circleci.com/gh/nwtgck/piping-server.svg?style=shield)](https://circleci.com/gh/nwtgck/piping-server) 
 [![Docker Automated build](https://img.shields.io/docker/automated/nwtgck/piping-server.svg)](https://hub.docker.com/r/nwtgck/piping-server/)
  [![](https://images.microbadger.com/badges/image/nwtgck/piping-server.svg)](https://microbadger.com/images/nwtgck/piping-server "Get your own image badge on microbadger.com") [![Greenkeeper badge](https://badges.greenkeeper.io/nwtgck/piping-server.svg)](https://greenkeeper.io/)
 
