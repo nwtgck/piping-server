@@ -23,6 +23,13 @@ jobs:
     docker:
       - image: node:6-alpine 
     <<: *node_steps
+  
+  docker_build:
+    machine: true
+    steps:
+      - checkout
+      # Check whether "docker build" is succcessful or not
+      - run: docker build -t piping-server .
 
 workflows:
   version: 2
@@ -31,3 +38,4 @@ workflows:
       - node_10
       - node_8
       - node_6
+      - docker_build
