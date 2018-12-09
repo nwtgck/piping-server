@@ -35,10 +35,8 @@ jobs:
           command: |
             # Run a server
             docker run -d -p 8080:8080 piping-server
-            # Send and wait for a reciever
-            curl --data-binary "hello, world" 0.0.0.0:8080/mypath & 
-            # Get
-            curl 0.0.0.0:8080/mypath
+            # Working test by Ruby script
+            ruby -e 'Thread.start{system("curl --data-binary \"hello, world\" localhost:8080/mypath")}; system("curl localhost:8080/mypath")'
 
 workflows:
   version: 2
