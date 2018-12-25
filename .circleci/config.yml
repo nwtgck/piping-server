@@ -19,11 +19,6 @@ jobs:
       - image: node:8-alpine 
     <<: *node_steps
   
-  node_6:
-    docker:
-      - image: node:6-alpine 
-    <<: *node_steps
-  
   docker_test:
     machine: true
     steps:
@@ -48,5 +43,4 @@ workflows:
     jobs:
       - node_10
       - node_8
-      - node_6
       - docker_test
