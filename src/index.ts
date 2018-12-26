@@ -37,9 +37,9 @@ const parser = yargs
 const args = parser.parse(process.argv);
 const httpPort: number = args['http-port'];
 const enableHttps: boolean = args['enable-https'];
-const httpsPort: number | undefined = args['https-port'];
-const serverKeyPath: string | undefined = args['key-path'];
-const serverCrtPath: string | undefined = args['crt-path'];
+const httpsPort: number | undefined = args['https-port'] as number | undefined;
+const serverKeyPath: string | undefined = args['key-path'] as string | undefined;
+const serverCrtPath: string | undefined = args['crt-path'] as string | undefined;
 const enableLog: boolean = args['enable-log'];
 
 // Create a piping server
