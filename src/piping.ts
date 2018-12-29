@@ -357,7 +357,7 @@ export class Server {
             }
           } else {
             res.writeHead(400);
-            res.end("Error: The number connection has reached limits\n");
+            res.end("Error: The number of connections has reached limits\n");
           }
         } else {
           res.writeHead(400);
