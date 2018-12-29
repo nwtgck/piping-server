@@ -342,7 +342,7 @@ describe('piping.Server', () => {
     sendReq.abort();
   });
 
-  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=3: X)', async () => {
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=2: X)', async () => {
     // Get data
     const getReq1 = request.get({
       url: `${pipingUrl}/mydataid?n=2`
@@ -353,6 +353,28 @@ describe('piping.Server', () => {
     const getReqPromise3: Promise<request.Response> = new Promise(resolve =>
       request.get({
         url: `${pipingUrl}/mydataid?n=2`
+      }, (err, response, body)=>{
+        resolve(response);
+      })
+    );
+    // Should be rejected
+    assert.equal((await getReqPromise3).statusCode, 400);
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=3: X)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReqPromise3: Promise<request.Response> = new Promise(resolve =>
+      request.get({
+        url: `${pipingUrl}/mydataid?n=3`
       }, (err, response, body)=>{
         resolve(response);
       })
