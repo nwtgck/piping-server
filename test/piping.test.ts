@@ -101,7 +101,7 @@ describe('piping.Server', () => {
     });
   });
 
-  it('should allow a sender and a receiver to connect in this order', async () => {
+  it('should allow connection (sender: O, receiver: O)', async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
     thenRequest("POST", `${pipingUrl}/mydataid`, {
@@ -117,7 +117,7 @@ describe('piping.Server', () => {
     assert.equal(data.headers["content-length"], "this is a content".length);
   });
 
-  it('should allow a receiver and a sender to connect in this order', async () => {
+  it('should allow connection (receiver O, sender: O)', async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
@@ -171,7 +171,7 @@ describe('piping.Server', () => {
     assert.equal(data.headers["content-length"], "this is a content".length);
   });
 
-  it('should allow a sender and multi receivers to connect in this order', async () => {
+  it('should handle multi receiver connection (sender?n=3: O, receiver?n=3: O, receiver?n=3: O, receiver?n=3: O)', async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking GET requests)
     thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
@@ -195,7 +195,7 @@ describe('piping.Server', () => {
     assert.equal(data3.headers["content-length"], "this is a content".length);
   });
 
-  it('should not allow a sender and multi receivers to connect in this order if the number of receivers is over', async () => {
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=2: O, receiver?n=2: O, receiver?n=2: X)', async () => {
     // Create send request
     const sendReq = http.request( {
       host: "localhost",
@@ -231,7 +231,7 @@ describe('piping.Server', () => {
     assert.equal(data3.statusCode, 400);
   });
 
-  it('should allow multi receivers and a sender to connect in this order', async () => {
+  it('should handle multi receiver connection (receiver?n=3: O, receiver?n=3: O, receiver?n=3: O, sender?n=3: O)', async () => {
     // Get request promise
     const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
     const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
@@ -254,7 +254,7 @@ describe('piping.Server', () => {
     assert.equal(data3.headers["content-length"], "this is a content".length);
   });
 
-  it('should allow multi receivers and a sender to connect in this order if the number of receivers is over', async () => {
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=2: X, sender?n=2: O)', async () => {
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
     const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=first`);
