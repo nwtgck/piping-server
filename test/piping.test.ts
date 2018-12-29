@@ -179,9 +179,9 @@ describe('piping.Server', () => {
     });
 
     // Get data
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
     // Await all data
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
@@ -210,11 +210,11 @@ describe('piping.Server', () => {
 
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
 
     // End send data
@@ -233,9 +233,9 @@ describe('piping.Server', () => {
 
   it('should allow multi receivers and a sender to connect in this order', async () => {
     // Get request promise
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
     // Send data
     thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
@@ -257,11 +257,11 @@ describe('piping.Server', () => {
   it('should allow multi receivers and a sender to connect in this order if the number of receivers is over', async () => {
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?tag=first`);
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=first`);
     await sleep(10);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?tag=second`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=second`);
     await sleep(10);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?tag=third`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=third`);
     await sleep(10);
 
     // Send data
