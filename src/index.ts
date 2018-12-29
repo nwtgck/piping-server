@@ -20,12 +20,15 @@ const parser = yargs
   })
   .option("https-port", {
     describe: 'Port of HTTPS server',
+    type: "number"
   })
   .option("key-path", {
     describe: 'Private key path',
+    type: "string"
   })
   .option("crt-path", {
     describe: 'Certification path',
+    type: "string"
   })
   .option("enable-log", {
     describe: 'Enable logging',
@@ -37,9 +40,9 @@ const parser = yargs
 const args = parser.parse(process.argv);
 const httpPort: number = args['http-port'];
 const enableHttps: boolean = args['enable-https'];
-const httpsPort: number | undefined = args['https-port'] as number | undefined;
-const serverKeyPath: string | undefined = args['key-path'] as string | undefined;
-const serverCrtPath: string | undefined = args['crt-path'] as string | undefined;
+const httpsPort: number | undefined = args['https-port'];
+const serverKeyPath: string | undefined = args['key-path'];
+const serverCrtPath: string | undefined = args['crt-path'];
 const enableLog: boolean = args['enable-log'];
 
 // Create a piping server
