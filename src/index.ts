@@ -20,12 +20,15 @@ const parser = yargs
   })
   .option("https-port", {
     describe: 'Port of HTTPS server',
+    type: "number"
   })
   .option("key-path", {
     describe: 'Private key path',
+    type: "string"
   })
   .option("crt-path", {
     describe: 'Certification path',
+    type: "string"
   })
   .option("enable-log", {
     describe: 'Enable logging',

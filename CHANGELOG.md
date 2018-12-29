@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.3.6] - 2018-12-29
+### Changed
+* Update some libraries versions
+* Update docker base image version
+* Refactor routing
+
 ## [0.3.5] - 2018-12-09
 ### Changed
 * Update some libraries versions
@@ -54,7 +60,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.3.5...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.3.6...HEAD
+[0.3.6]: https://github.com/nwtgck/piping-seraver/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/nwtgck/piping-seraver/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/nwtgck/piping-seraver/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/nwtgck/piping-seraver/compare/v0.3.2...v0.3.3

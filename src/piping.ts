@@ -70,6 +70,44 @@ export class Server {
   readonly pathToConnected: {[path: string]: boolean} = {};
   readonly pathToUnconnectedPipe: {[path: string]: UnconnectedPipe} = {};
 
+  // TODO: Write this html content as .html file
+  static readonly indexPage: string = `
+    <html>
+    <head>
+      <title>Piping</title>
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <style>
+        h3 {
+          margin-top: 2em;
+          margin-bottom: 0.5em;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Piping</h1>
+      Streaming file sending/receiving
+      <form method="POST" id="file_form" enctype="multipart/form-data">
+        <h3>Step 1: Choose a file</h3>
+        <input type="file" name="input_file"><br>
+        <h3>Step 2: Write your secret path</h3>
+        (e.g. "abcd1234", "mysecret.png?n=3")<br>                  
+        <input id="secret_path" placeholder="Secret path" size="50"><br>
+        <h3>Step 3: Click the submit button</h3>
+        <input type="submit">
+      </form>
+      <hr>
+      Command-line usage: <a href="https://github.com/nwtgck/piping-server#readme">https://github.com/nwtgck/piping-server#readme</a><br>
+      <script>
+        var fileForm = document.getElementById("file_form");
+        var secretPathInput = document.getElementById("secret_path");
+        secretPathInput.onkeyup = function(){
+          fileForm.action = "/" + secretPathInput.value;
+        };
+      </script>
+    </body>
+    </html>
+    `;
+
   /**
    *
    * @param enableLog Enable logging
@@ -185,166 +223,24 @@ export class Server {
             res.writeHead(400);
             res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
           } else {
-            if (this.enableLog) console.log(this.pathToUnconnectedPipe);
-            // If the path connection is connecting
-            if (reqPath in this.pathToUnconnectedPipe) {
-              // Get unconnected pipe
-              const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
-              // If a sender have not been registered yet
-              if (unconnectedPipe.sender === undefined) {
-                // Register the sender
-                unconnectedPipe.sender = {req: req, res: res};
-                // Set the number of receivers
-                unconnectedPipe.nReceivers = nReceivers;
-
-                // Get dropped receivers
-                // (NOTE: receivers can be empty array)
-                // (these receivers will be cancel to receive)
-                const droppedReceivers: ReqRes[] =
-                  unconnectedPipe
-                    .receivers
-                    .slice(nReceivers, unconnectedPipe.receivers.length);
-
-                // (NOTE: receivers can be empty array)
-                for(let droppedReceiver of droppedReceivers) {
-                  // Close dropped receiver
-                  droppedReceiver.res.writeHead(400);
-                  droppedReceiver.res.end("Error: The number connection has reached limits\n");
-                }
-
-                // Drop receivers if need
-                unconnectedPipe.receivers =
-                  unconnectedPipe
-                    .receivers
-                    .slice(0, nReceivers);
-
-                // Send waiting message
-                res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
-                // Send the number of receivers information
-                res.write(`[INFO] ${unconnectedPipe.receivers.length} receivers have been connected.\n`);
-                if (droppedReceivers.length > 0) {
-                  // Send the number of dropped receivers
-                  res.write(`[INFO] ${droppedReceivers.length} receivers have been dropped because of connection limits.\n`);
-                }
-
-                // Get pipeOpt if connected
-                const pipe: Pipe | undefined =
-                  getPipeIfConnected(unconnectedPipe);
-
-                if (pipe !== undefined) {
-                  // Emit message to sender
-                  res.write("Start sending!\n");
-                  // Start data transfer
-                  this.runPipe(reqPath, pipe)
-                }
-              } else {
-                res.writeHead(400);
-                res.end(`[ERROR] Other sender has been registered on '${reqPath}'\n`);
-              }
-            } else {
-              // Send waiting message
-              res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
-
-              // Register new unconnected pipe
-              this.pathToUnconnectedPipe[reqPath] = {
-                sender: {req: req, res: res},
-                receivers: [],
-                nReceivers: nReceivers
-              };
-            }
+            // Handle a sender
+            this.handleSender(req, res, reqPath, nReceivers);
           }
         }
         break;
       case "GET":
-        // request path is in reserved paths
-        if(RESERVED_PATHS.includes(reqPath)) {
-          switch (reqPath) {
-            case NAME_TO_RESERVED_PATH.index:
-              // TODO: Write this html content as .html file
-              res.end(`
-              <html>
-              <head>
-                <title>Piping</title>
-                <meta name="viewport" content="width=device-width,initial-scale=1">
-                <style>
-                  h3 {
-                    margin-top: 2em;
-                    margin-bottom: 0.5em;
-                  }
-                </style>
-              </head>
-              <body>
-                <h1>Piping</h1>
-                Streaming file sending/receiving
-                <form method="POST" id="file_form" enctype="multipart/form-data">
-                  <h3>Step 1: Choose a file</h3>
-                  <input type="file" name="input_file"><br>
-                  <h3>Step 2: Write your secret path</h3>
-                  (e.g. "abcd1234", "mysecret.png?n=3")<br>                  
-                  <input id="secret_path" placeholder="Secret path" size="50"><br>
-                  <h3>Step 3: Click the submit button</h3>
-                  <input type="submit">
-                </form>
-                <hr>
-                Command-line usage: <a href="https://github.com/nwtgck/piping-server#readme">https://github.com/nwtgck/piping-server#readme</a><br>
-                <script>
-                  var fileForm = document.getElementById("file_form");
-                  var secretPathInput = document.getElementById("secret_path");
-                  secretPathInput.onkeyup = function(){
-                    fileForm.action = "/" + secretPathInput.value;
-                  };
-                </script>
-              </body>
-              </html>
-              `);
-              break;
-            case NAME_TO_RESERVED_PATH.version:
-              // (from: https://stackoverflow.com/a/22339262/2885946)
-              res.end(module.exports.version+"\n");
-              break;
-            default:
-              console.error("Unexpected error", "reqPath:", reqPath);
-              break;
-          }
-        } else {
-          // If connection has been established
-          if (reqPath in this.pathToConnected) {
-            res.writeHead(400);
-            res.end(`Error: Connection on '${reqPath}' has been established already\n`);
-          } else {
-            if (reqPath in this.pathToUnconnectedPipe) {
-              // Get unconnectedPipe
-              const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
-              if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
-                // Append new receiver
-                unconnectedPipe.receivers.push({req: req, res: res});
-
-                if(unconnectedPipe.sender !== undefined) {
-                  // Send connection message to the sender
-                  unconnectedPipe.sender.res.write("[INFO] A receiver is connected.\n");
-                }
-
-                // Get pipeOpt if connected
-                const pipe: Pipe | undefined =
-                  getPipeIfConnected(unconnectedPipe);
-
-                if (pipe !== undefined) {
-                  // Emit message to sender
-                  pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receivers!\n`);
-                  // Start data transfer
-                  this.runPipe(reqPath, pipe)
-                }
-              } else {
-                res.writeHead(400);
-                res.end("Error: The number connection has reached limits\n");
-              }
-            } else {
-              // Set a receiver
-              this.pathToUnconnectedPipe[reqPath] = {
-                receivers: [{req: req, res: res}]
-              }
-            }
-          }
+        switch (reqPath) {
+          case NAME_TO_RESERVED_PATH.index:
+            res.end(Server.indexPage);
+            break;
+          case NAME_TO_RESERVED_PATH.version:
+            // (from: https://stackoverflow.com/a/22339262/2885946)
+            res.end(module.exports.version+"\n");
+            break;
+          default:
+            // Handle a receiver
+            this.handleReceiver(req, res, reqPath);
+            break;
         }
         break;
       default:
@@ -352,4 +248,128 @@ export class Server {
         break;
     }
   };
+
+  /**
+   * Handle a sender
+   * @param {"http".IncomingMessage} req
+   * @param {"http".ServerResponse} res
+   * @param {string} reqPath
+   * @param {number} nReceivers
+   */
+  private handleSender(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string, nReceivers: number): void {
+    if (this.enableLog) console.log(this.pathToUnconnectedPipe);
+    // If the path connection is connecting
+    if (reqPath in this.pathToUnconnectedPipe) {
+      // Get unconnected pipe
+      const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+      // If a sender have not been registered yet
+      if (unconnectedPipe.sender === undefined) {
+        // Register the sender
+        unconnectedPipe.sender = {req: req, res: res};
+        // Set the number of receivers
+        unconnectedPipe.nReceivers = nReceivers;
+
+        // Get dropped receivers
+        // (NOTE: receivers can be empty array)
+        // (these receivers will be cancel to receive)
+        const droppedReceivers: ReqRes[] =
+          unconnectedPipe
+            .receivers
+            .slice(nReceivers, unconnectedPipe.receivers.length);
+
+        // (NOTE: receivers can be empty array)
+        for(let droppedReceiver of droppedReceivers) {
+          // Close dropped receiver
+          droppedReceiver.res.writeHead(400);
+          droppedReceiver.res.end("Error: The number connection has reached limits\n");
+        }
+
+        // Drop receivers if need
+        unconnectedPipe.receivers =
+          unconnectedPipe
+            .receivers
+            .slice(0, nReceivers);
+
+        // Send waiting message
+        res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
+        // Send the number of receivers information
+        res.write(`[INFO] ${unconnectedPipe.receivers.length} receivers have been connected.\n`);
+        if (droppedReceivers.length > 0) {
+          // Send the number of dropped receivers
+          res.write(`[INFO] ${droppedReceivers.length} receivers have been dropped because of connection limits.\n`);
+        }
+
+        // Get pipeOpt if connected
+        const pipe: Pipe | undefined =
+          getPipeIfConnected(unconnectedPipe);
+
+        if (pipe !== undefined) {
+          // Emit message to sender
+          res.write("Start sending!\n");
+          // Start data transfer
+          this.runPipe(reqPath, pipe)
+        }
+      } else {
+        res.writeHead(400);
+        res.end(`[ERROR] Other sender has been registered on '${reqPath}'\n`);
+      }
+    } else {
+      // Send waiting message
+      res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
+
+      // Register new unconnected pipe
+      this.pathToUnconnectedPipe[reqPath] = {
+        sender: {req: req, res: res},
+        receivers: [],
+        nReceivers: nReceivers
+      };
+    }
+  }
+
+  /**
+   * Handle a receiver
+   * @param {"http".IncomingMessage} req
+   * @param {"http".ServerResponse} res
+   * @param {string} reqPath
+   */
+  private handleReceiver(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): void {
+    // If connection has been established
+    if (reqPath in this.pathToConnected) {
+      res.writeHead(400);
+      res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+    } else {
+      if (reqPath in this.pathToUnconnectedPipe) {
+        // Get unconnectedPipe
+        const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+        if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
+          // Append new receiver
+          unconnectedPipe.receivers.push({req: req, res: res});
+
+          if(unconnectedPipe.sender !== undefined) {
+            // Send connection message to the sender
+            unconnectedPipe.sender.res.write("[INFO] A receiver is connected.\n");
+          }
+
+          // Get pipeOpt if connected
+          const pipe: Pipe | undefined =
+            getPipeIfConnected(unconnectedPipe);
+
+          if (pipe !== undefined) {
+            // Emit message to sender
+            pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receivers!\n`);
+            // Start data transfer
+            this.runPipe(reqPath, pipe)
+          }
+        } else {
+          res.writeHead(400);
+          res.end("Error: The number connection has reached limits\n");
+        }
+      } else {
+        // Set a receiver
+        this.pathToUnconnectedPipe[reqPath] = {
+          receivers: [{req: req, res: res}]
+        }
+      }
+    }
+  }
 }
