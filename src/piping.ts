@@ -229,23 +229,18 @@ export class Server {
         }
         break;
       case "GET":
-        // request path is in reserved paths
-        if(RESERVED_PATHS.includes(reqPath)) {
-          switch (reqPath) {
-            case NAME_TO_RESERVED_PATH.index:
-              res.end(Server.indexPage);
-              break;
-            case NAME_TO_RESERVED_PATH.version:
-              // (from: https://stackoverflow.com/a/22339262/2885946)
-              res.end(module.exports.version+"\n");
-              break;
-            default:
-              console.error("Unexpected error", "reqPath:", reqPath);
-              break;
-          }
-        } else {
-          // Handle a receiver
-          this.handleReceiver(req, res, reqPath);
+        switch (reqPath) {
+          case NAME_TO_RESERVED_PATH.index:
+            res.end(Server.indexPage);
+            break;
+          case NAME_TO_RESERVED_PATH.version:
+            // (from: https://stackoverflow.com/a/22339262/2885946)
+            res.end(module.exports.version+"\n");
+            break;
+          default:
+            // Handle a receiver
+            this.handleReceiver(req, res, reqPath);
+            break;
         }
         break;
       default:
