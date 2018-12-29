@@ -223,73 +223,8 @@ export class Server {
             res.writeHead(400);
             res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
           } else {
-            if (this.enableLog) console.log(this.pathToUnconnectedPipe);
-            // If the path connection is connecting
-            if (reqPath in this.pathToUnconnectedPipe) {
-              // Get unconnected pipe
-              const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
-              // If a sender have not been registered yet
-              if (unconnectedPipe.sender === undefined) {
-                // Register the sender
-                unconnectedPipe.sender = {req: req, res: res};
-                // Set the number of receivers
-                unconnectedPipe.nReceivers = nReceivers;
-
-                // Get dropped receivers
-                // (NOTE: receivers can be empty array)
-                // (these receivers will be cancel to receive)
-                const droppedReceivers: ReqRes[] =
-                  unconnectedPipe
-                    .receivers
-                    .slice(nReceivers, unconnectedPipe.receivers.length);
-
-                // (NOTE: receivers can be empty array)
-                for(let droppedReceiver of droppedReceivers) {
-                  // Close dropped receiver
-                  droppedReceiver.res.writeHead(400);
-                  droppedReceiver.res.end("Error: The number connection has reached limits\n");
-                }
-
-                // Drop receivers if need
-                unconnectedPipe.receivers =
-                  unconnectedPipe
-                    .receivers
-                    .slice(0, nReceivers);
-
-                // Send waiting message
-                res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
-                // Send the number of receivers information
-                res.write(`[INFO] ${unconnectedPipe.receivers.length} receivers have been connected.\n`);
-                if (droppedReceivers.length > 0) {
-                  // Send the number of dropped receivers
-                  res.write(`[INFO] ${droppedReceivers.length} receivers have been dropped because of connection limits.\n`);
-                }
-
-                // Get pipeOpt if connected
-                const pipe: Pipe | undefined =
-                  getPipeIfConnected(unconnectedPipe);
-
-                if (pipe !== undefined) {
-                  // Emit message to sender
-                  res.write("Start sending!\n");
-                  // Start data transfer
-                  this.runPipe(reqPath, pipe)
-                }
-              } else {
-                res.writeHead(400);
-                res.end(`[ERROR] Other sender has been registered on '${reqPath}'\n`);
-              }
-            } else {
-              // Send waiting message
-              res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
-
-              // Register new unconnected pipe
-              this.pathToUnconnectedPipe[reqPath] = {
-                sender: {req: req, res: res},
-                receivers: [],
-                nReceivers: nReceivers
-              };
-            }
+            // Handle a sender
+            this.handleSender(req, res, reqPath, nReceivers);
           }
         }
         break;
@@ -309,44 +244,8 @@ export class Server {
               break;
           }
         } else {
-          // If connection has been established
-          if (reqPath in this.pathToConnected) {
-            res.writeHead(400);
-            res.end(`Error: Connection on '${reqPath}' has been established already\n`);
-          } else {
-            if (reqPath in this.pathToUnconnectedPipe) {
-              // Get unconnectedPipe
-              const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
-              if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
-                // Append new receiver
-                unconnectedPipe.receivers.push({req: req, res: res});
-
-                if(unconnectedPipe.sender !== undefined) {
-                  // Send connection message to the sender
-                  unconnectedPipe.sender.res.write("[INFO] A receiver is connected.\n");
-                }
-
-                // Get pipeOpt if connected
-                const pipe: Pipe | undefined =
-                  getPipeIfConnected(unconnectedPipe);
-
-                if (pipe !== undefined) {
-                  // Emit message to sender
-                  pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receivers!\n`);
-                  // Start data transfer
-                  this.runPipe(reqPath, pipe)
-                }
-              } else {
-                res.writeHead(400);
-                res.end("Error: The number connection has reached limits\n");
-              }
-            } else {
-              // Set a receiver
-              this.pathToUnconnectedPipe[reqPath] = {
-                receivers: [{req: req, res: res}]
-              }
-            }
-          }
+          // Handle a receiver
+          this.handleReceiver(req, res, reqPath);
         }
         break;
       default:
@@ -354,4 +253,128 @@ export class Server {
         break;
     }
   };
+
+  /**
+   * Handle a sender
+   * @param {"http".IncomingMessage} req
+   * @param {"http".ServerResponse} res
+   * @param {string} reqPath
+   * @param {number} nReceivers
+   */
+  private handleSender(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string, nReceivers: number): void {
+    if (this.enableLog) console.log(this.pathToUnconnectedPipe);
+    // If the path connection is connecting
+    if (reqPath in this.pathToUnconnectedPipe) {
+      // Get unconnected pipe
+      const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+      // If a sender have not been registered yet
+      if (unconnectedPipe.sender === undefined) {
+        // Register the sender
+        unconnectedPipe.sender = {req: req, res: res};
+        // Set the number of receivers
+        unconnectedPipe.nReceivers = nReceivers;
+
+        // Get dropped receivers
+        // (NOTE: receivers can be empty array)
+        // (these receivers will be cancel to receive)
+        const droppedReceivers: ReqRes[] =
+          unconnectedPipe
+            .receivers
+            .slice(nReceivers, unconnectedPipe.receivers.length);
+
+        // (NOTE: receivers can be empty array)
+        for(let droppedReceiver of droppedReceivers) {
+          // Close dropped receiver
+          droppedReceiver.res.writeHead(400);
+          droppedReceiver.res.end("Error: The number connection has reached limits\n");
+        }
+
+        // Drop receivers if need
+        unconnectedPipe.receivers =
+          unconnectedPipe
+            .receivers
+            .slice(0, nReceivers);
+
+        // Send waiting message
+        res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
+        // Send the number of receivers information
+        res.write(`[INFO] ${unconnectedPipe.receivers.length} receivers have been connected.\n`);
+        if (droppedReceivers.length > 0) {
+          // Send the number of dropped receivers
+          res.write(`[INFO] ${droppedReceivers.length} receivers have been dropped because of connection limits.\n`);
+        }
+
+        // Get pipeOpt if connected
+        const pipe: Pipe | undefined =
+          getPipeIfConnected(unconnectedPipe);
+
+        if (pipe !== undefined) {
+          // Emit message to sender
+          res.write("Start sending!\n");
+          // Start data transfer
+          this.runPipe(reqPath, pipe)
+        }
+      } else {
+        res.writeHead(400);
+        res.end(`[ERROR] Other sender has been registered on '${reqPath}'\n`);
+      }
+    } else {
+      // Send waiting message
+      res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
+
+      // Register new unconnected pipe
+      this.pathToUnconnectedPipe[reqPath] = {
+        sender: {req: req, res: res},
+        receivers: [],
+        nReceivers: nReceivers
+      };
+    }
+  }
+
+  /**
+   * Handle a receiver
+   * @param {"http".IncomingMessage} req
+   * @param {"http".ServerResponse} res
+   * @param {string} reqPath
+   */
+  private handleReceiver(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): void {
+    // If connection has been established
+    if (reqPath in this.pathToConnected) {
+      res.writeHead(400);
+      res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+    } else {
+      if (reqPath in this.pathToUnconnectedPipe) {
+        // Get unconnectedPipe
+        const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+        if (unconnectedPipe.nReceivers === undefined || unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
+          // Append new receiver
+          unconnectedPipe.receivers.push({req: req, res: res});
+
+          if(unconnectedPipe.sender !== undefined) {
+            // Send connection message to the sender
+            unconnectedPipe.sender.res.write("[INFO] A receiver is connected.\n");
+          }
+
+          // Get pipeOpt if connected
+          const pipe: Pipe | undefined =
+            getPipeIfConnected(unconnectedPipe);
+
+          if (pipe !== undefined) {
+            // Emit message to sender
+            pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receivers!\n`);
+            // Start data transfer
+            this.runPipe(reqPath, pipe)
+          }
+        } else {
+          res.writeHead(400);
+          res.end("Error: The number connection has reached limits\n");
+        }
+      } else {
+        // Set a receiver
+        this.pathToUnconnectedPipe[reqPath] = {
+          receivers: [{req: req, res: res}]
+        }
+      }
+    }
+  }
 }
