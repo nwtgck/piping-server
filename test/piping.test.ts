@@ -246,7 +246,7 @@ describe('piping.Server', () => {
     assert.equal(data3.headers["content-length"], "this is a content".length);
   });
 
-  it('should handle multi receiver connection (receiver?n=2: O, sender?n=1: X: because of too less n)', async () => {
+  it('should handle multi receiver connection (receiver?n=2: O, sender?n=1: X: because too less n)', async () => {
     // Get data
     const getReq1 = request.get( {
       url: `${pipingUrl}/mydataid?n=2`
@@ -262,11 +262,11 @@ describe('piping.Server', () => {
     // Should be rejected
     assert.equal(sendData.statusCode, 400);
 
-    // Quit send request
+    // Quit get request
     getReq1.abort();
   });
 
-  it('should handle multi receiver connection (receiver?n=2: O, sender?n=3: X: because of too much n)', async () => {
+  it('should handle multi receiver connection (receiver?n=2: O, sender?n=3: X: because too much n)', async () => {
     // Get data
     const getReq1 = request.get( {
       url: `${pipingUrl}/mydataid?n=2`
@@ -282,11 +282,11 @@ describe('piping.Server', () => {
     // Should be rejected
     assert.equal(sendData.statusCode, 400);
 
-    // Quit send request
+    // Quit get request
     getReq1.abort();
   });
 
-  it('should handle multi receiver connection (sender?n=2: O, receiver?n=1: X: because of too less n)', async () => {
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=1: X: because too less n)', async () => {
     // Create send request
     const sendReq = http.request( {
       host: "localhost",
@@ -314,7 +314,7 @@ describe('piping.Server', () => {
     sendReq.abort();
   });
 
-  it('should handle multi receiver connection (sender?n=2: O, receiver?n=3: X: because of too much n)', async () => {
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=3: X: because too much n)', async () => {
     // Create send request
     const sendReq = http.request( {
       host: "localhost",
@@ -338,6 +338,138 @@ describe('piping.Server', () => {
     // Should be rejected
     assert.equal(data1.statusCode, 400);
 
+    // Quit send request
+    sendReq.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=3: X)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReqPromise3: Promise<request.Response> = new Promise(resolve =>
+      request.get({
+        url: `${pipingUrl}/mydataid?n=2`
+      }, (err, response, body)=>{
+        resolve(response);
+      })
+    );
+    // Should be rejected
+    assert.equal((await getReqPromise3).statusCode, 400);
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, sender?n=1: X: because too less)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+
+    await sleep(10);
+
+    // Send data
+    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
+      body: "this is a content"
+    });
+
+    // Should be rejected
+    assert.equal(sendData.statusCode, 400);
+
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, sender?n=3: X: because too much)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+
+    await sleep(10);
+
+    // Send data
+    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+      body: "this is a content"
+    });
+
+    // Should be rejected
+    assert.equal(sendData.statusCode, 400);
+
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=3: X: because too much)', async () => {
+    // Create send request
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
+    });
+    // Send content-length
+    sendReq.setHeader("Content-Length", "this is a content".length);
+    // Send chunk of data
+    sendReq.end("this is a content");
+
+    await sleep(10);
+
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    await sleep(10);
+    const data2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+
+    // Should be rejected
+    assert.equal(data2.statusCode, 400);
+
+    // Quit get request
+    getReq1.abort();
+    // Quit send request
+    sendReq.abort();
+  });
+
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=1: X: because too less)', async () => {
+    // Create send request
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
+    });
+    // Send content-length
+    sendReq.setHeader("Content-Length", "this is a content".length);
+    // Send chunk of data
+    sendReq.end("this is a content");
+
+    await sleep(10);
+
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    await sleep(10);
+    const data2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
+
+    // Should be rejected
+    assert.equal(data2.statusCode, 400);
+
+    // Quit get request
+    getReq1.abort();
     // Quit send request
     sendReq.abort();
   });
