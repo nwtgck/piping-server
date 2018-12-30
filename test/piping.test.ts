@@ -2,6 +2,7 @@ import * as piping  from '../src/piping';
 import * as assert from 'power-assert';
 import * as http from "http";
 import thenRequest from "then-request";
+import * as request from "request";
 import * as pkginfo from "pkginfo";
 import * as getPort from "get-port";
 
@@ -101,23 +102,7 @@ describe('piping.Server', () => {
     });
   });
 
-  it('should allow a sender and a receiver to connect in this order', async () => {
-    // Send data
-    // (NOTE: Should NOT use `await` because of blocking a GET request)
-    thenRequest("POST", `${pipingUrl}/mydataid`, {
-      body: "this is a content"
-    });
-
-    // Get data
-    const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
-
-    // Body should be the sent data
-    assert.equal(data.getBody("UTF-8"), "this is a content");
-    // Content-length should be returned
-    assert.equal(data.headers["content-length"], "this is a content".length);
-  });
-
-  it('should allow a receiver and a sender to connect in this order', async () => {
+  it('should handle connection (receiver O, sender: O)', async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
@@ -128,6 +113,22 @@ describe('piping.Server', () => {
 
     // Get data
     const data = await reqPromise;
+
+    // Body should be the sent data
+    assert.equal(data.getBody("UTF-8"), "this is a content");
+    // Content-length should be returned
+    assert.equal(data.headers["content-length"], "this is a content".length);
+  });
+
+  it('should handle connection (sender: O, receiver: O)', async () => {
+    // Send data
+    // (NOTE: Should NOT use `await` because of blocking a GET request)
+    thenRequest("POST", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Body should be the sent data
     assert.equal(data.getBody("UTF-8"), "this is a content");
@@ -171,17 +172,16 @@ describe('piping.Server', () => {
     assert.equal(data.headers["content-length"], "this is a content".length);
   });
 
-  it('should allow a sender and multi receivers to connect in this order', async () => {
+  it('should handle multi receiver connection (receiver?n=3: O, receiver?n=3: O, receiver?n=3: O, sender?n=3: O)', async () => {
+    // Get request promise
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+
     // Send data
-    // (NOTE: Should NOT use `await` because of blocking GET requests)
     thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
       body: "this is a content"
     });
-
-    // Get data
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Await all data
     const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
@@ -195,7 +195,308 @@ describe('piping.Server', () => {
     assert.equal(data3.headers["content-length"], "this is a content".length);
   });
 
-  it('should not allow a sender and multi receivers to connect in this order if the number of receivers is over', async () => {
+  it('should handle multi receiver connection (sender?n=3: O, receiver?n=3: O, receiver?n=3: O, receiver?n=3: O)', async () => {
+    // Send data
+    // (NOTE: Should NOT use `await` because of blocking GET requests)
+    thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+      body: "this is a content"
+    });
+
+    // Get data
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+
+    // Await all data
+    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+
+    // Body should be the sent data and content-length should be returned
+    assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data1.headers["content-length"], "this is a content".length);
+    assert.equal(data2.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.headers["content-length"], "this is a content".length);
+    assert.equal(data3.getBody("UTF-8"), "this is a content");
+    assert.equal(data3.headers["content-length"], "this is a content".length);
+  });
+
+  it('should handle multi receiver connection (receiver?n=3: O, sender?n=3: O, receiver?n=3: O, receiver?n=3: O)', async () => {
+
+    // Get data
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+
+    // Send data
+    // (NOTE: Should NOT use `await` because of blocking GET requests)
+    thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+      body: "this is a content"
+    });
+
+    // Get data
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+
+    // Await all data
+    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+
+    // Body should be the sent data and content-length should be returned
+    assert.equal(data1.getBody("UTF-8"), "this is a content");
+    assert.equal(data1.headers["content-length"], "this is a content".length);
+    assert.equal(data2.getBody("UTF-8"), "this is a content");
+    assert.equal(data2.headers["content-length"], "this is a content".length);
+    assert.equal(data3.getBody("UTF-8"), "this is a content");
+    assert.equal(data3.headers["content-length"], "this is a content".length);
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, sender?n=1: X: because too less n)', async () => {
+    // Get data
+    const getReq1 = request.get( {
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+
+    await sleep(10);
+
+    // Send data
+    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
+      body: "this is a content"
+    });
+
+    // Should be rejected
+    assert.equal(sendData.statusCode, 400);
+
+    // Quit get request
+    getReq1.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, sender?n=3: X: because too much n)', async () => {
+    // Get data
+    const getReq1 = request.get( {
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+
+    await sleep(10);
+
+    // Send data
+    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+      body: "this is a content"
+    });
+
+    // Should be rejected
+    assert.equal(sendData.statusCode, 400);
+
+    // Quit get request
+    getReq1.abort();
+  });
+
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=1: X: because too less n)', async () => {
+    // Create send request
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
+    });
+    // Send content-length
+    sendReq.setHeader("Content-Length", "this is a content".length);
+    // Send chunk of data
+    sendReq.end("this is a content");
+
+    await sleep(10);
+
+    // Get data
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
+
+    // Await data
+    const data1 = await dataPromise1;
+
+    // Should be rejected
+    assert.equal(data1.statusCode, 400);
+
+    // Quit send request
+    sendReq.abort();
+  });
+
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=3: X: because too much n)', async () => {
+    // Create send request
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
+    });
+    // Send content-length
+    sendReq.setHeader("Content-Length", "this is a content".length);
+    // Send chunk of data
+    sendReq.end("this is a content");
+
+    await sleep(10);
+
+    // Get data
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+
+    // Await data
+    const data1 = await dataPromise1;
+
+    // Should be rejected
+    assert.equal(data1.statusCode, 400);
+
+    // Quit send request
+    sendReq.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=2: X)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReqPromise3: Promise<request.Response> = new Promise(resolve =>
+      request.get({
+        url: `${pipingUrl}/mydataid?n=2`
+      }, (err, response, body)=>{
+        resolve(response);
+      })
+    );
+    // Should be rejected
+    assert.equal((await getReqPromise3).statusCode, 400);
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=3: X)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReqPromise3: Promise<request.Response> = new Promise(resolve =>
+      request.get({
+        url: `${pipingUrl}/mydataid?n=3`
+      }, (err, response, body)=>{
+        resolve(response);
+      })
+    );
+    // Should be rejected
+    assert.equal((await getReqPromise3).statusCode, 400);
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, sender?n=1: X: because too less)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+
+    await sleep(10);
+
+    // Send data
+    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
+      body: "this is a content"
+    });
+
+    // Should be rejected
+    assert.equal(sendData.statusCode, 400);
+
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, sender?n=3: X: because too much)', async () => {
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    const getReq2 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+
+    await sleep(10);
+
+    // Send data
+    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+      body: "this is a content"
+    });
+
+    // Should be rejected
+    assert.equal(sendData.statusCode, 400);
+
+    // Quit get requests
+    getReq1.abort();
+    getReq2.abort();
+  });
+
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=3: X: because too much)', async () => {
+    // Create send request
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
+    });
+    // Send content-length
+    sendReq.setHeader("Content-Length", "this is a content".length);
+    // Send chunk of data
+    sendReq.end("this is a content");
+
+    await sleep(10);
+
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    await sleep(10);
+    const data2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+
+    // Should be rejected
+    assert.equal(data2.statusCode, 400);
+
+    // Quit get request
+    getReq1.abort();
+    // Quit send request
+    sendReq.abort();
+  });
+
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=1: X: because too less)', async () => {
+    // Create send request
+    const sendReq = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid?n=2`
+    });
+    // Send content-length
+    sendReq.setHeader("Content-Length", "this is a content".length);
+    // Send chunk of data
+    sendReq.end("this is a content");
+
+    await sleep(10);
+
+    // Get data
+    const getReq1 = request.get({
+      url: `${pipingUrl}/mydataid?n=2`
+    });
+    await sleep(10);
+    const data2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
+
+    // Should be rejected
+    assert.equal(data2.statusCode, 400);
+
+    // Quit get request
+    getReq1.abort();
+    // Quit send request
+    sendReq.abort();
+  });
+
+  it('should handle multi receiver connection (sender?n=2: O, receiver?n=2: O, receiver?n=2: O, receiver?n=2: X) to ensure gradual sending', async () => {
     // Create send request
     const sendReq = http.request( {
       host: "localhost",
@@ -210,11 +511,11 @@ describe('piping.Server', () => {
 
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
 
     // End send data
@@ -231,37 +532,14 @@ describe('piping.Server', () => {
     assert.equal(data3.statusCode, 400);
   });
 
-  it('should allow multi receivers and a sender to connect in this order', async () => {
-    // Get request promise
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid`);
-
-    // Send data
-    thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
-      body: "this is a content"
-    });
-
-    // Await all data
-    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
-
-    // Body should be the sent data and content-length should be returned
-    assert.equal(data1.getBody("UTF-8"), "this is a content");
-    assert.equal(data1.headers["content-length"], "this is a content".length);
-    assert.equal(data2.getBody("UTF-8"), "this is a content");
-    assert.equal(data2.headers["content-length"], "this is a content".length);
-    assert.equal(data3.getBody("UTF-8"), "this is a content");
-    assert.equal(data3.headers["content-length"], "this is a content".length);
-  });
-
-  it('should allow multi receivers and a sender to connect in this order if the number of receivers is over', async () => {
+  it('should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=2: X, sender?n=2: O)', async () => {
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?tag=first`);
+    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=first`);
     await sleep(10);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?tag=second`);
+    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=second`);
     await sleep(10);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?tag=third`);
+    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=third`);
     await sleep(10);
 
     // Send data
