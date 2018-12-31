@@ -53,10 +53,21 @@ workflows:
   version: 2
   node_tests:
     jobs:
-      - node_10
-      - node_8
+      - node_10:
+          filters:
+            tags:
+              only: /.*/
+      - node_8:
+          filters:
+            tags:
+              only: /.*/
       - docker_test
       - npm_publish:
           requires:
             - node_10
             - node_8
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
