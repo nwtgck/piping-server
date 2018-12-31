@@ -22,17 +22,17 @@ interface Pipe {
   readonly receivers: ReqRes[];
 }
 
-interface UnconnectedPipe {
+interface UnestablishedPipe {
   sender?: ReqRes;
   receivers: ReqRes[];
   nReceivers: number;
 }
 
 /**
- * Convert unconnected pipe to pipe if it is connected
+ * Convert unestablished pipe to pipe if it is established
  * @param p
  */
-function getPipeIfConnected(p: UnconnectedPipe): Pipe | undefined {
+function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
   if(p.sender !== undefined && p.receivers.length === p.nReceivers) {
     return {
       sender: p.sender,
@@ -67,8 +67,8 @@ const RESERVED_PATHS: string[] =
   Object.values(NAME_TO_RESERVED_PATH);
 
 export class Server {
-  readonly pathToConnected: {[path: string]: boolean} = {};
-  readonly pathToUnconnectedPipe: {[path: string]: UnconnectedPipe} = {};
+  readonly pathToEstablished: {[path: string]: boolean} = {};
+  readonly pathToUnestablishedPipe: {[path: string]: UnestablishedPipe} = {};
 
   // TODO: Write this html content as .html file
   static readonly indexPage: string = `
@@ -123,10 +123,10 @@ export class Server {
    */
   async runPipe(path: string, pipe: Pipe): Promise<void> {
 
-    // Set connected as true
-    this.pathToConnected[path] = true;
-    // Delete unconnected pipe
-    delete this.pathToUnconnectedPipe[path];
+    // Set established as true
+    this.pathToEstablished[path] = true;
+    // Delete unestablished pipe
+    delete this.pathToUnestablishedPipe[path];
 
     const {sender, receivers} = pipe;
 
@@ -152,7 +152,7 @@ export class Server {
         // If close-count is # of receivers
         if(closeCount === receivers.length) {
           sender.res.end("[INFO] All receivers are closed halfway\n");
-          delete this.pathToConnected[path];
+          delete this.pathToEstablished[path];
         }
       };
 
@@ -182,14 +182,14 @@ export class Server {
 
     senderData.on("end", ()=>{
       sender.res.end("[INFO] Sending Successful!\n");
-      // Delete from connected
-      delete this.pathToConnected[path];
+      // Delete from established
+      delete this.pathToEstablished[path];
     });
 
     senderData.on("error", (error)=>{
       sender.res.end("[ERROR] Sending Failed.\n");
-      // Delete from connected
-      delete this.pathToConnected[path];
+      // Delete from established
+      delete this.pathToEstablished[path];
     });
   }
 
@@ -261,28 +261,28 @@ export class Server {
     if (nReceivers <= 0) {
       res.writeHead(400);
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}\n`);
-    } else if (reqPath in this.pathToConnected) {
+    } else if (reqPath in this.pathToEstablished) {
       res.writeHead(400);
       res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
     } else {
-      if (this.enableLog) console.log(this.pathToUnconnectedPipe);
+      if (this.enableLog) console.log(this.pathToUnestablishedPipe);
       // If the path connection is connecting
-      if (reqPath in this.pathToUnconnectedPipe) {
-        // Get unconnected pipe
-        const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+      if (reqPath in this.pathToUnestablishedPipe) {
+        // Get unestablished pipe
+        const unestablishedPipe: UnestablishedPipe = this.pathToUnestablishedPipe[reqPath];
         // If a sender have not been registered yet
-        if (unconnectedPipe.sender === undefined) {
+        if (unestablishedPipe.sender === undefined) {
           // If the number of receivers is the same size as connecting pipe's one
-          if (nReceivers === unconnectedPipe.nReceivers) {
+          if (nReceivers === unestablishedPipe.nReceivers) {
             // Register the sender
-            unconnectedPipe.sender = {req: req, res: res};
+            unestablishedPipe.sender = {req: req, res: res};
             // Send waiting message
             res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
             // Send the number of receivers information
-            res.write(`[INFO] ${unconnectedPipe.receivers.length} receivers have been connected.\n`);
-            // Get pipeOpt if connected
+            res.write(`[INFO] ${unestablishedPipe.receivers.length} receivers have been established.\n`);
+            // Get pipeOpt if established
             const pipe: Pipe | undefined =
-              getPipeIfConnected(unconnectedPipe);
+              getPipeIfEstablished(unestablishedPipe);
 
             if (pipe !== undefined) {
               // Emit message to sender
@@ -292,7 +292,7 @@ export class Server {
             }
           } else {
             res.writeHead(400);
-            res.end(`Error: The number of receivers should be ${unconnectedPipe.nReceivers} but ${nReceivers}\n`);
+            res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}\n`);
           }
         } else {
           res.writeHead(400);
@@ -302,8 +302,8 @@ export class Server {
         // Send waiting message
         res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
 
-        // Register new unconnected pipe
-        this.pathToUnconnectedPipe[reqPath] = {
+        // Register new unestablished pipe
+        this.pathToUnestablishedPipe[reqPath] = {
           sender: {req: req, res: res},
           receivers: [],
           nReceivers: nReceivers
@@ -325,29 +325,29 @@ export class Server {
     if (nReceivers <= 0) {
       res.writeHead(400);
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}\n`);
-    } else if (reqPath in this.pathToConnected) {
+    } else if (reqPath in this.pathToEstablished) {
       res.writeHead(400);
       res.end(`Error: Connection on '${reqPath}' has been established already\n`);
     } else {
       // If the path connection is connecting
-      if (reqPath in this.pathToUnconnectedPipe) {
-        // Get unconnectedPipe
-        const unconnectedPipe: UnconnectedPipe = this.pathToUnconnectedPipe[reqPath];
+      if (reqPath in this.pathToUnestablishedPipe) {
+        // Get unestablishedPipe
+        const unestablishedPipe: UnestablishedPipe = this.pathToUnestablishedPipe[reqPath];
         // If the number of receivers is the same size as connecting pipe's one
-        if (nReceivers === unconnectedPipe.nReceivers) {
+        if (nReceivers === unestablishedPipe.nReceivers) {
           // If more receivers can connect
-          if (unconnectedPipe.receivers.length < unconnectedPipe.nReceivers) {
+          if (unestablishedPipe.receivers.length < unestablishedPipe.nReceivers) {
             // Append new receiver
-            unconnectedPipe.receivers.push({req: req, res: res});
+            unestablishedPipe.receivers.push({req: req, res: res});
 
-            if(unconnectedPipe.sender !== undefined) {
+            if(unestablishedPipe.sender !== undefined) {
               // Send connection message to the sender
-              unconnectedPipe.sender.res.write("[INFO] A receiver is connected.\n");
+              unestablishedPipe.sender.res.write("[INFO] A receiver is established.\n");
             }
 
-            // Get pipeOpt if connected
+            // Get pipeOpt if established
             const pipe: Pipe | undefined =
-              getPipeIfConnected(unconnectedPipe);
+              getPipeIfEstablished(unestablishedPipe);
 
             if (pipe !== undefined) {
               // Emit message to sender
@@ -361,11 +361,11 @@ export class Server {
           }
         } else {
           res.writeHead(400);
-          res.end(`Error: The number of receivers should be ${unconnectedPipe.nReceivers} but ${nReceivers}\n`);
+          res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}\n`);
         }
       } else {
         // Set a receiver
-        this.pathToUnconnectedPipe[reqPath] = {
+        this.pathToUnestablishedPipe[reqPath] = {
           receivers: [{req: req, res: res}],
           nReceivers: nReceivers
         }
