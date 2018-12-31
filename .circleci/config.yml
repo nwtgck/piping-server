@@ -1,6 +1,7 @@
 ANCHORS:
  node_steps: &node_steps
    steps:
+     - run: apk add git openssh-client
      - checkout
      - run: npm install
      - run: npm test
@@ -36,11 +37,39 @@ jobs:
             curl --data-binary 'hello, world' localhost:8080/mypath &
             # Get data
             curl localhost:8080/mypath
-            
+
+  # (from: https://circleci.com/blog/publishing-npm-packages-using-circleci-2-0/)
+  npm_publish:
+    docker:
+    - image: node:10-alpine
+    steps:
+      - run: apk add git openssh-client
+      - checkout
+      - run: npm install
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > /root/.npmrc
+      - run: npm publish
+
 workflows:
   version: 2
   node_tests:
     jobs:
-      - node_10
-      - node_8
+      - node_10:
+          filters:
+            tags:
+              only: /.*/
+      - node_8:
+          filters:
+            tags:
+              only: /.*/
       - docker_test
+      - npm_publish:
+          requires:
+            - node_10
+            - node_8
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
