@@ -1,6 +1,7 @@
 ANCHORS:
  node_steps: &node_steps
    steps:
+     - run: apk add git openssh-client
      - checkout
      - run: npm install
      - run: npm test
@@ -42,6 +43,7 @@ jobs:
     docker:
     - image: node:10-alpine
     steps:
+      - run: apk add git openssh-client
       - checkout
       - run: npm install
       - run:
