@@ -285,7 +285,7 @@ export class Server {
           // If the number of receivers is the same size as connecting pipe's one
           if (nReceivers === unestablishedPipe.nReceivers) {
             // Register the sender
-            unestablishedPipe.sender = this.createSender(req, res, reqPath);
+            unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
             // Send waiting message
             res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
             // Send the number of receivers information
@@ -312,7 +312,7 @@ export class Server {
         // Send waiting message
         res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
         // Create a sender
-        const sender = this.createSender(req, res, reqPath);
+        const sender = this.createSenderOrReceiver("sender", req, res, reqPath);
         // Register new unestablished pipe
         this.pathToUnestablishedPipe[reqPath] = {
           sender: sender,
@@ -320,40 +320,6 @@ export class Server {
           nReceivers: nReceivers
         };
       }
-    }
-  }
-
-  private createSender(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): ReqResAndUnsubscribe {
-    // Create receiver req&res
-    const receiverReqRes: ReqRes = {req: req, res: res};
-    // Define on-close handler
-    const closeListener = ()=>{
-      // If reqPath is registered
-      if (reqPath in this.pathToUnestablishedPipe) {
-        // Get unestablished pipe
-        const unestablishedPipe = this.pathToUnestablishedPipe[reqPath];
-        // If sender is defined
-        if(unestablishedPipe.sender !== undefined) {
-          // Remove sender
-          unestablishedPipe.sender = undefined;
-          // If unestablished pipe has no sender and no receivers
-          if(unestablishedPipe.receivers.length === 0) {
-            // Remove unestablished pipe
-            delete this.pathToUnestablishedPipe[reqPath];
-            if(this.enableLog) console.log(`${reqPath} removed`);
-          }
-        }
-      }
-    };
-    // Disconnect if it close
-    req.once("close", closeListener);
-    // Unsubscribe "close"
-    const unsubscribeCloseListener = ()=>{
-      req.off("close", closeListener);
-    };
-    return {
-      reqRes: receiverReqRes,
-      unsubscribeCloseListener: unsubscribeCloseListener
     }
   }
 
@@ -383,7 +349,7 @@ export class Server {
           // If more receivers can connect
           if (unestablishedPipe.receivers.length < unestablishedPipe.nReceivers) {
             // Create a receiver
-            const receiver = this.createReceiver(req, res, reqPath);
+            const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
             // Append new receiver
             unestablishedPipe.receivers.push(receiver);
 
@@ -412,7 +378,7 @@ export class Server {
         }
       } else {
         // Create a receiver
-        const receiver = this.createReceiver(req, res, reqPath);
+        const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
         // Set a receiver
         this.pathToUnestablishedPipe[reqPath] = {
           receivers: [receiver],
@@ -422,7 +388,17 @@ export class Server {
     }
   }
 
-  private createReceiver(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): ReqResAndUnsubscribe {
+  /**
+   * Create a sender or receiver
+   *
+   * Main purpose of this method is creating sender/receiver which unregisters unestablished pipe before establish
+   *
+   * @param removerType
+   * @param req
+   * @param res
+   * @param reqPath
+   */
+  private createSenderOrReceiver(removerType: "sender" | "receiver", req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): ReqResAndUnsubscribe {
     // Create receiver req&res
     const receiverReqRes: ReqRes = {req: req, res: res};
     // Define on-close handler
@@ -431,16 +407,37 @@ export class Server {
       if (reqPath in this.pathToUnestablishedPipe) {
         // Get unestablished pipe
         const unestablishedPipe = this.pathToUnestablishedPipe[reqPath];
-        // Get receivers
-        const receivers = unestablishedPipe.receivers;
-        // Find receiver's index
-        const idx = receivers.findIndex(r => r.reqRes === receiverReqRes);
-        // If receiver is found
-        if(idx !== -1) {
-          // Delete the receiver from the receivers
-          receivers.splice(idx, 1);
+        // Get sender/receiver remover
+        const remover =
+          removerType === "sender" ?
+            (): boolean=>{
+              // If sender is defined
+              if(unestablishedPipe.sender !== undefined) {
+                // Remove sender
+                unestablishedPipe.sender = undefined;
+                return true;
+              }
+              return false;
+            } :
+            (): boolean => {
+              // Get receivers
+              const receivers = unestablishedPipe.receivers;
+              // Find receiver's index
+              const idx = receivers.findIndex(r => r.reqRes === receiverReqRes);
+              // If receiver is found
+              if(idx !== -1) {
+                // Delete the receiver from the receivers
+                receivers.splice(idx, 1);
+                return true;
+              }
+              return false;
+            };
+        // Remove a sender or receiver
+        const removed: boolean = remover();
+        // If removed
+        if(removed){
           // If unestablished pipe has no sender and no receivers
-          if(receivers.length === 0 && unestablishedPipe.sender === undefined) {
+          if(unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
             // Remove unestablished pipe
             delete this.pathToUnestablishedPipe[reqPath];
             if(this.enableLog) console.log(`${reqPath} removed`);
