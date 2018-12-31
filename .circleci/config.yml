@@ -36,7 +36,19 @@ jobs:
             curl --data-binary 'hello, world' localhost:8080/mypath &
             # Get data
             curl localhost:8080/mypath
-            
+
+  # (from: https://circleci.com/blog/publishing-npm-packages-using-circleci-2-0/)
+  npm_publish:
+    docker:
+    - image: node:10-alpine
+    steps:
+      - checkout
+      - run: npm install
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > /root/.npmrc
+      - run: npm publish
+
 workflows:
   version: 2
   node_tests:
@@ -44,3 +56,7 @@ workflows:
       - node_10
       - node_8
       - docker_test
+      - npm_publish:
+          requires:
+            - node_10
+            - node_8
