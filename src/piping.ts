@@ -449,7 +449,7 @@ export class Server {
     req.once("close", closeListener);
     // Unsubscribe "close"
     const unsubscribeCloseListener = ()=>{
-      req.off("close", closeListener);
+      req.removeListener("close", closeListener);
     };
     return {
       reqRes: receiverReqRes,
