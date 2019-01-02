@@ -558,6 +558,60 @@ describe('piping.Server', () => {
     assert.equal(data3.statusCode, 400);
   });
 
+  it('should unregister a sender before establishing', async () => {
+    // Send data
+    const sedReq1 = request.post( {
+      url: `${pipingUrl}/mydataid`,
+      body: "dummy content"
+    });
+    await sleep(10);
+    // Quit send request
+    sedReq1.abort();
+
+    await sleep(10);
+
+    // Send data
+    const sendPromise1 = thenRequest("POST", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    const get1 = await thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    const sendData = await sendPromise1;
+
+    // Should be sent
+    assert.equal(sendData.statusCode, 200);
+
+    // Get-response should be 200
+    assert.equal(get1.statusCode, 200);
+  });
+
+  it('should unregister a receiver before establishing', async () => {
+    // Get data
+    const getReq1 = request.get( {
+      url: `${pipingUrl}/mydataid`
+    });
+    await sleep(10);
+    // Quit get request
+    getReq1.abort();
+
+    await sleep(10);
+
+    const getPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    // Should be sent
+    assert.equal(sendData.statusCode, 200);
+
+    // 2nd-get response should be 200
+    const get2 = await getPromise2;
+    assert.equal(get2.statusCode, 200);
+  });
+
   context("If number of receivers <= 0", ()=>{
     it('should not allow n=0', async () => {
       // Send data
