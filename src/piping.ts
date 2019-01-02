@@ -22,9 +22,14 @@ interface Pipe {
   readonly receivers: ReqRes[];
 }
 
+type ReqResAndUnsubscribe = {
+  reqRes: ReqRes,
+  unsubscribeCloseListener: ()=>void
+}
+
 interface UnestablishedPipe {
-  sender?: ReqRes;
-  receivers: ReqRes[];
+  sender?: ReqResAndUnsubscribe;
+  receivers: ReqResAndUnsubscribe[];
   nReceivers: number;
 }
 
@@ -35,8 +40,13 @@ interface UnestablishedPipe {
 function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
   if(p.sender !== undefined && p.receivers.length === p.nReceivers) {
     return {
-      sender: p.sender,
-      receivers: p.receivers,
+      sender: p.sender.reqRes,
+      receivers: p.receivers.map(r => {
+        // Unsubscribe on-close handlers
+        // NOTE: this operation has side-effect
+        r.unsubscribeCloseListener();
+        return r.reqRes
+      }),
     }
   } else {
     return undefined;
@@ -132,7 +142,7 @@ export class Server {
 
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
     const senderData: NodeJS.ReadableStream = await (
-        isMultipart ?
+      isMultipart ?
         await new Promise<NodeJS.ReadableStream>((resolve=>{
           const busboy = new Busboy({headers: sender.req.headers});
           busboy.on('file', (fieldname, file, encoding, mimetype)=>{
@@ -162,7 +172,7 @@ export class Server {
           // Add Content-Length if it exists
           ...(
             sender.req.headers["content-length"] === undefined ?
-            {}: {"Content-Length": sender.req.headers["content-length"]}
+              {}: {"Content-Length": sender.req.headers["content-length"]}
           )
         });
       }
@@ -199,7 +209,7 @@ export class Server {
       path.resolve(
         "/",
         opt(optMap(url.parse, opt(req.url)).pathname)
-          // Remove last "/"
+        // Remove last "/"
           .replace(/\/$/, "")
       );
     if (this.enableLog) console.log(req.method, reqPath);
@@ -275,7 +285,7 @@ export class Server {
           // If the number of receivers is the same size as connecting pipe's one
           if (nReceivers === unestablishedPipe.nReceivers) {
             // Register the sender
-            unestablishedPipe.sender = {req: req, res: res};
+            unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
             // Send waiting message
             res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
             // Send the number of receivers information
@@ -301,10 +311,11 @@ export class Server {
       } else {
         // Send waiting message
         res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
-
+        // Create a sender
+        const sender = this.createSenderOrReceiver("sender", req, res, reqPath);
         // Register new unestablished pipe
         this.pathToUnestablishedPipe[reqPath] = {
-          sender: {req: req, res: res},
+          sender: sender,
           receivers: [],
           nReceivers: nReceivers
         };
@@ -337,12 +348,14 @@ export class Server {
         if (nReceivers === unestablishedPipe.nReceivers) {
           // If more receivers can connect
           if (unestablishedPipe.receivers.length < unestablishedPipe.nReceivers) {
+            // Create a receiver
+            const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
             // Append new receiver
-            unestablishedPipe.receivers.push({req: req, res: res});
+            unestablishedPipe.receivers.push(receiver);
 
             if(unestablishedPipe.sender !== undefined) {
               // Send connection message to the sender
-              unestablishedPipe.sender.res.write("[INFO] A receiver is established.\n");
+              unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver is established.\n");
             }
 
             // Get pipeOpt if established
@@ -364,12 +377,83 @@ export class Server {
           res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}\n`);
         }
       } else {
+        // Create a receiver
+        const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
         // Set a receiver
         this.pathToUnestablishedPipe[reqPath] = {
-          receivers: [{req: req, res: res}],
+          receivers: [receiver],
           nReceivers: nReceivers
         }
       }
+    }
+  }
+
+  /**
+   * Create a sender or receiver
+   *
+   * Main purpose of this method is creating sender/receiver which unregisters unestablished pipe before establish
+   *
+   * @param removerType
+   * @param req
+   * @param res
+   * @param reqPath
+   */
+  private createSenderOrReceiver(removerType: "sender" | "receiver", req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): ReqResAndUnsubscribe {
+    // Create receiver req&res
+    const receiverReqRes: ReqRes = {req: req, res: res};
+    // Define on-close handler
+    const closeListener = ()=>{
+      // If reqPath is registered
+      if (reqPath in this.pathToUnestablishedPipe) {
+        // Get unestablished pipe
+        const unestablishedPipe = this.pathToUnestablishedPipe[reqPath];
+        // Get sender/receiver remover
+        const remover =
+          removerType === "sender" ?
+            (): boolean=>{
+              // If sender is defined
+              if(unestablishedPipe.sender !== undefined) {
+                // Remove sender
+                unestablishedPipe.sender = undefined;
+                return true;
+              }
+              return false;
+            } :
+            (): boolean => {
+              // Get receivers
+              const receivers = unestablishedPipe.receivers;
+              // Find receiver's index
+              const idx = receivers.findIndex(r => r.reqRes === receiverReqRes);
+              // If receiver is found
+              if(idx !== -1) {
+                // Delete the receiver from the receivers
+                receivers.splice(idx, 1);
+                return true;
+              }
+              return false;
+            };
+        // Remove a sender or receiver
+        const removed: boolean = remover();
+        // If removed
+        if(removed){
+          // If unestablished pipe has no sender and no receivers
+          if(unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
+            // Remove unestablished pipe
+            delete this.pathToUnestablishedPipe[reqPath];
+            if(this.enableLog) console.log(`${reqPath} removed`);
+          }
+        }
+      }
+    };
+    // Disconnect if it close
+    req.once("close", closeListener);
+    // Unsubscribe "close"
+    const unsubscribeCloseListener = ()=>{
+      req.removeListener("close", closeListener);
+    };
+    return {
+      reqRes: receiverReqRes,
+      unsubscribeCloseListener: unsubscribeCloseListener
     }
   }
 }
