@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "HTTP Piping Data Transfer Server",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/src/index.js",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts"
   },
   "keywords": [
