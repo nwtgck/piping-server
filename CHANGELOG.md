@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.5.1] - 2019-01-03
+### Fixed
+* Fix npm auto release on CircleCI
+
 ## [0.5.0] - 2019-01-02
 ### Changed
 * Change the structures of data types
@@ -69,7 +73,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/nwtgck/piping-seraver/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/nwtgck/piping-seraver/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/nwtgck/piping-seraver/compare/v0.3.6...v0.4.0
 [0.3.6]: https://github.com/nwtgck/piping-seraver/compare/v0.3.5...v0.3.6
