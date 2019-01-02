@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/src/index.js",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts"
   },
   "keywords": [
