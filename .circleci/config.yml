@@ -23,7 +23,7 @@ jobs:
     machine: true
     steps:
       - checkout
-      # Check whether "docker build" is succcessful or not
+      # Check whether "docker build" is successful or not
       - run: docker build -t piping-server .
       - run:
           name: Working test with Docker image
