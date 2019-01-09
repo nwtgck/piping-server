@@ -78,6 +78,14 @@ describe('piping.Server', () => {
       assert.equal(res.getBody("UTF-8"), module.exports.version+"\n");
     });
 
+    it('should return help page', async () => {
+      // Get response
+      const res = await thenRequest("GET", `${pipingUrl}/help`);
+
+      // Status should be OK
+      assert.equal(res.statusCode, 200);
+    });
+
     it('should not allow user to send the reserved paths', async () => {
       // Send data to ""
       const req1 = await thenRequest("POST", `${pipingUrl}`, {
