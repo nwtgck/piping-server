@@ -48,7 +48,7 @@ const enableLog: boolean = args['enable-log'];
 // Create a piping server
 const pipingServer = new piping.Server(enableLog);
 
-http.createServer(pipingServer.handler)
+http.createServer(pipingServer.generateHandler(false))
   .listen(httpPort, ()=>{
     console.log(`Listen HTTP on ${httpPort}...`);
   });
@@ -62,7 +62,7 @@ if (enableHttps && httpsPort !== undefined) {
         key: fs.readFileSync(serverKeyPath),
         cert: fs.readFileSync(serverCrtPath)
       },
-      pipingServer.handler
+      pipingServer.generateHandler(true)
     ).listen(httpsPort, ()=>{
       console.log(`Listen HTTPS on ${httpsPort}...`);
     });

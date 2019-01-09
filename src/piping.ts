@@ -6,11 +6,14 @@ import 'core-js'; // NOTE: For use Object.values() under node 6 (lib: ["es2017"]
 import * as pkginfo from "pkginfo";
 import * as Busboy from "busboy";
 
-import {opt, optMap, tryOpt} from "./utils";
+import {opt, optMap} from "./utils";
 import * as path from "path";
 
 // Set module.exports.version
 pkginfo(module, 'version');
+
+// Get version
+const VERSION: string = module.exports.version;
 
 type ReqRes = {
   readonly req: http.IncomingMessage,
@@ -69,7 +72,8 @@ function nanOrElse<T>(a: number, b: number): number {
 // Name to reserved path
 const NAME_TO_RESERVED_PATH = {
   index: "/",
-  version: "/version"
+  version: "/version",
+  help: "/help"
 };
 
 // All reserved paths
@@ -117,6 +121,39 @@ export class Server {
     </body>
     </html>
     `;
+
+  /**
+   * Generate help page
+   * @param {string} url
+   * @returns {string}
+   */
+  static generateHelpPage(url: string): string {
+    return `Help for piping-server ${VERSION}
+(Repository: https://github.com/nwtgck/piping-server)
+
+======= Get  =======
+curl ${url}/mypath
+
+======= Send =======
+# Send a file
+curl -T myfile ${url}/mypath
+
+# Send a text
+echo 'hello!' | curl -T - ${url}/mypath
+
+# Send a directory (zip)
+zip -q -r - ./mydir | curl -T - ${url}/mypath
+
+# Send a directory (tar.gz)
+tar zfcp - ./mydir | curl -T - ${url}/mypath
+
+# Encryption
+## Send
+cat myfile | openssl aes-256-cbc | curl -T - ${url}/mypath
+## Get
+curl ${url}/mypath | openssl aes-256-cbc -d
+`
+  }
 
   /**
    *
@@ -203,48 +240,63 @@ export class Server {
     });
   }
 
-  readonly handler = (req: http.IncomingMessage, res: http.ServerResponse)=>{
-    // Get path name
-    const reqPath: string =
-      path.resolve(
-        "/",
-        opt(optMap(url.parse, opt(req.url)).pathname)
-        // Remove last "/"
-          .replace(/\/$/, "")
-      );
-    if (this.enableLog) console.log(req.method, reqPath);
+  generateHandler(useHttps: boolean): (req: http.IncomingMessage, res: http.ServerResponse) => void {
+    return (req: http.IncomingMessage, res: http.ServerResponse)=>{
+      // Get path name
+      const reqPath: string =
+          path.resolve(
+              "/",
+              opt(optMap(url.parse, opt(req.url)).pathname)
+              // Remove last "/"
+              .replace(/\/$/, "")
+          );
+      if (this.enableLog) console.log(req.method, reqPath);
 
-    switch (req.method) {
-      case "POST":
-      case "PUT":
-        if(RESERVED_PATHS.includes(reqPath)) {
-          res.writeHead(400);
-          res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
-        } else {
-          // Handle a sender
-          this.handleSender(req, res, reqPath);
-        }
-        break;
-      case "GET":
-        switch (reqPath) {
-          case NAME_TO_RESERVED_PATH.index:
-            res.end(Server.indexPage);
-            break;
-          case NAME_TO_RESERVED_PATH.version:
-            // (from: https://stackoverflow.com/a/22339262/2885946)
-            res.end(module.exports.version+"\n");
-            break;
-          default:
-            // Handle a receiver
-            this.handleReceiver(req, res, reqPath);
-            break;
-        }
-        break;
-      default:
-        res.end(`Error: Unsupported method: ${req.method}\n`);
-        break;
-    }
-  };
+      switch (req.method) {
+        case "POST":
+        case "PUT":
+          if(RESERVED_PATHS.includes(reqPath)) {
+            res.writeHead(400);
+            res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
+          } else {
+            // Handle a sender
+            this.handleSender(req, res, reqPath);
+          }
+          break;
+        case "GET":
+          switch (reqPath) {
+            case NAME_TO_RESERVED_PATH.index:
+              res.end(Server.indexPage);
+              break;
+            case NAME_TO_RESERVED_PATH.version:
+              // (from: https://stackoverflow.com/a/22339262/2885946)
+              res.end(VERSION+"\n");
+              break;
+            case NAME_TO_RESERVED_PATH.help:
+              // x-forwarded-proto is https or not
+              const xForwardedProtoIsHttps: boolean = (()=>{
+                const proto = req.headers["x-forwarded-proto"];
+                // NOTE: includes() is for supporting Glitch
+                return proto !== undefined && proto.includes("https")
+              })();
+              const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
+              // NOTE: req.headers.host contains port number
+              const hostname: string = req.headers.host || "hostname";
+              const url = `${scheme}://${hostname}`;
+              res.end(Server.generateHelpPage(url));
+              break;
+            default:
+              // Handle a receiver
+              this.handleReceiver(req, res, reqPath);
+              break;
+          }
+          break;
+        default:
+          res.end(`Error: Unsupported method: ${req.method}\n`);
+          break;
+      }
+    };
+  }
 
   /** Get the number of receivers
    * @param {string | undefined} reqUrl
