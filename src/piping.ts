@@ -6,7 +6,7 @@ import 'core-js'; // NOTE: For use Object.values() under node 6 (lib: ["es2017"]
 import * as pkginfo from "pkginfo";
 import * as Busboy from "busboy";
 
-import {opt, optMap, tryOpt} from "./utils";
+import {opt, optMap} from "./utils";
 import * as path from "path";
 
 // Set module.exports.version
@@ -273,8 +273,13 @@ curl ${url}/mypath | openssl aes-256-cbc -d
               res.end(VERSION+"\n");
               break;
             case NAME_TO_RESERVED_PATH.help:
-              // TODO: Support X-Forwarded-Proto
-              const scheme: string = useHttps ? "https" : "http";
+              // x-forwarded-proto is https or not
+              const xForwardedProtoIsHttps: boolean = (()=>{
+                const proto = req.headers["x-forwarded-proto"];
+                // NOTE: includes() is for supporting Glitch
+                return proto !== undefined && proto.includes("https")
+              })();
+              const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
               // NOTE: req.headers.host contains port number
               const hostname: string = req.headers.host || "hostname";
               const url = `${scheme}://${hostname}`;
