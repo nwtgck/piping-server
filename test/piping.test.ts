@@ -48,7 +48,7 @@ describe('piping.Server', () => {
     // Define Piping URL
     pipingUrl = `http://localhost:${pipingPort}`;
     // Create a Piping server
-    pipingServer = http.createServer(new piping.Server(false).handler);
+    pipingServer = http.createServer(new piping.Server(false).generateHandler(false));
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
   });
@@ -76,6 +76,14 @@ describe('piping.Server', () => {
       // Body should be index page
       // (from: https://stackoverflow.com/a/22339262/2885946)
       assert.equal(res.getBody("UTF-8"), module.exports.version+"\n");
+    });
+
+    it('should return help page', async () => {
+      // Get response
+      const res = await thenRequest("GET", `${pipingUrl}/help`);
+
+      // Status should be OK
+      assert.equal(res.statusCode, 200);
     });
 
     it('should not allow user to send the reserved paths', async () => {
