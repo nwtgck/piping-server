@@ -48,7 +48,7 @@ describe('piping.Server', () => {
     // Define Piping URL
     pipingUrl = `http://localhost:${pipingPort}`;
     // Create a Piping server
-    pipingServer = http.createServer(new piping.Server(false).handler);
+    pipingServer = http.createServer(new piping.Server(false).generateHandler(false));
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
   });
