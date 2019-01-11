@@ -30,6 +30,18 @@ Piping server supports multiple receiver. The following moving image is an examp
 
 ![Piping server multiple transfer](demo_images/piping-server-multi-transfer.gif)
 
+## Engineer Friendly Help
+
+You can get help and version only with `curl`!
+
+```bash
+curl piping.ml/help
+```
+
+```bash
+curl piping.ml/version
+```
+
 ## Run server
 
 ### Heroku deployment
