@@ -44,7 +44,7 @@
     "typescript": "^3.0.1"
   },
   "dependencies": {
-    "busboy": "^0.2.14",
+    "busboy": "^0.3.0",
     "core-js": "^2.5.7",
     "pkginfo": "^0.4.1",
     "yargs": "^12.0.2"
