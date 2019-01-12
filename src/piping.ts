@@ -306,7 +306,7 @@ curl ${url}/mypath | openssl aes-256-cbc -d
     // Get query parameter
     const query = opt(optMap(url.parse, reqUrl, true).query);
     // The number receivers
-    const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery)['n'] as string), 1);
+    const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery)['n'] as string, 10), 1);
     return nReceivers
   }
 
