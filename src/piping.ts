@@ -104,7 +104,7 @@ export class Server {
         <h3>Step 1: Choose a file</h3>
         <input type="file" name="input_file"><br>
         <h3>Step 2: Write your secret path</h3>
-        (e.g. "abcd1234", "mysecret.png?n=3")<br>                  
+        (e.g. "abcd1234", "mysecret.png?n=3")<br>
         <input id="secret_path" placeholder="Secret path" size="50"><br>
         <h3>Step 3: Click the submit button</h3>
         <input type="submit">
