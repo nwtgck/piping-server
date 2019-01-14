@@ -227,6 +227,14 @@ curl ${url}/mypath | openssl aes-256-cbc -d
       });
     }
 
+    senderData.on("close", ()=>{
+      if (this.enableLog) console.log("sender on-close");
+      for(const receiver of receivers) {
+        // Close a receiver
+        receiver.res.connection.destroy();
+      }
+    });
+
     senderData.on("end", ()=>{
       sender.res.end("[INFO] Sending Successful!\n");
       // Delete from established
