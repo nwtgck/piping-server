@@ -13,6 +13,7 @@ import * as path from "path";
 pkginfo(module, 'version');
 
 // Get version
+// (from: https://stackoverflow.com/a/22339262/2885946)
 const VERSION: string = module.exports.version;
 
 type ReqRes = {
@@ -277,7 +278,6 @@ curl ${url}/mypath | openssl aes-256-cbc -d
               res.end(Server.indexPage);
               break;
             case NAME_TO_RESERVED_PATH.version:
-              // (from: https://stackoverflow.com/a/22339262/2885946)
               res.end(VERSION+"\n");
               break;
             case NAME_TO_RESERVED_PATH.help:
