@@ -198,7 +198,7 @@ curl ${url}/mypath | openssl aes-256-cbc -d
         senderData.unpipe(passThrough);
         // If close-count is # of receivers
         if(closeCount === receivers.length) {
-          sender.res.end("[INFO] All receivers are closed halfway\n");
+          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
           delete this.pathToEstablished[path];
         }
       };
@@ -330,10 +330,10 @@ curl ${url}/mypath | openssl aes-256-cbc -d
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400);
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}\n`);
+      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
     } else if (reqPath in this.pathToEstablished) {
       res.writeHead(400);
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already\n`);
+      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
     } else {
       if (this.enableLog) console.log(this.pathToUnestablishedPipe);
       // If the path connection is connecting
@@ -347,9 +347,9 @@ curl ${url}/mypath | openssl aes-256-cbc -d
             // Register the sender
             unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
             // Send waiting message
-            res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
+            res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
             // Send the number of receivers information
-            res.write(`[INFO] ${unestablishedPipe.receivers.length} receivers have been established.\n`);
+            res.write(`[INFO] ${unestablishedPipe.receivers.length} receiver(s) has/have been connected.\n`);
             // Get pipeOpt if established
             const pipe: Pipe | undefined =
               getPipeIfEstablished(unestablishedPipe);
@@ -362,15 +362,15 @@ curl ${url}/mypath | openssl aes-256-cbc -d
             }
           } else {
             res.writeHead(400);
-            res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}\n`);
+            res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
           }
         } else {
           res.writeHead(400);
-          res.end(`[ERROR] Other sender has been registered on '${reqPath}'\n`);
+          res.end(`[ERROR] Another sender has been registered on '${reqPath}'.\n`);
         }
       } else {
         // Send waiting message
-        res.write(`[INFO] Waiting for ${nReceivers} receivers...\n`);
+        res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
         // Create a sender
         const sender = this.createSenderOrReceiver("sender", req, res, reqPath);
         // Register new unestablished pipe
@@ -395,10 +395,10 @@ curl ${url}/mypath | openssl aes-256-cbc -d
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400);
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}\n`);
+      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
     } else if (reqPath in this.pathToEstablished) {
       res.writeHead(400);
-      res.end(`Error: Connection on '${reqPath}' has been established already\n`);
+      res.end(`Error: Connection on '${reqPath}' has been established already.\n`);
     } else {
       // If the path connection is connecting
       if (reqPath in this.pathToUnestablishedPipe) {
@@ -415,7 +415,7 @@ curl ${url}/mypath | openssl aes-256-cbc -d
 
             if(unestablishedPipe.sender !== undefined) {
               // Send connection message to the sender
-              unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver is established.\n");
+              unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
             }
 
             // Get pipeOpt if established
@@ -424,17 +424,17 @@ curl ${url}/mypath | openssl aes-256-cbc -d
 
             if (pipe !== undefined) {
               // Emit message to sender
-              pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receivers!\n`);
+              pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receiver(s)!\n`);
               // Start data transfer
               this.runPipe(reqPath, pipe)
             }
           } else {
             res.writeHead(400);
-            res.end("Error: The number of connections has reached limits\n");
+            res.end("Error: The number of receivers has reached limits.\n");
           }
         } else {
           res.writeHead(400);
-          res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}\n`);
+          res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
         }
       } else {
         // Create a receiver
