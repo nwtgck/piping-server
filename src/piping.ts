@@ -201,6 +201,8 @@ curl ${url}/mypath | openssl aes-256-cbc -d
         if(closeCount === receivers.length) {
           sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
           delete this.pathToEstablished[path];
+          // Close sender
+          sender.req.connection.destroy();
         }
       };
 
