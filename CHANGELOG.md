@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.7.1] - 2019-01-17
+### Fixed
+* Close sender if all receivers close
+
 ## [0.7.0] - 2019-01-15
 ### Fixed
 * Close receivers if a sender closes
@@ -87,7 +91,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/nwtgck/piping-seraver/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/nwtgck/piping-seraver/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/nwtgck/piping-seraver/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/nwtgck/piping-seraver/compare/v0.5.1...v0.6.0

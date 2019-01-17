@@ -358,6 +358,9 @@ describe('piping.Server', () => {
     const getReq2 = request.get({
       url: `${pipingUrl}/mydataid?n=2`
     });
+
+    await sleep(10);
+
     const getReqPromise3: Promise<request.Response> = new Promise(resolve =>
       request.get({
         url: `${pipingUrl}/mydataid?n=2`
@@ -380,6 +383,9 @@ describe('piping.Server', () => {
     const getReq2 = request.get({
       url: `${pipingUrl}/mydataid?n=2`
     });
+
+    await sleep(10);
+
     const getReqPromise3: Promise<request.Response> = new Promise(resolve =>
       request.get({
         url: `${pipingUrl}/mydataid?n=3`

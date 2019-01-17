@@ -2,7 +2,6 @@ import * as http from "http";
 import * as url from "url";
 import * as stream from "stream";
 import {ParsedUrlQuery} from "querystring";
-import 'core-js'; // NOTE: For use Object.values() under node 6 (lib: ["es2017"] is not enough)
 import * as pkginfo from "pkginfo";
 import * as Busboy from "busboy";
 
@@ -201,6 +200,8 @@ curl ${url}/mypath | openssl aes-256-cbc -d
         if(closeCount === receivers.length) {
           sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
           delete this.pathToEstablished[path];
+          // Close sender
+          sender.req.connection.destroy();
         }
       };
 
