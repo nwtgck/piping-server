@@ -19,7 +19,9 @@ export function opt<T>(obj: T | null | undefined): OptionalProperty<T> {
  * @param obj
  * @param args
  */
-export function optMap<T, S>(f: (p: T, ...args: any[]) => S, obj: T | null | undefined, ...args: any[]): OptionalProperty<S> {
+export function optMap<T, S>(
+    f: (p: T, ...args: any[]) => S, obj: T | null | undefined, ...args: any[]
+): OptionalProperty<S> {
   if (obj === null || obj === undefined) {
     return {} as OptionalProperty<S>;
   } else {
@@ -31,7 +33,7 @@ export function optMap<T, S>(f: (p: T, ...args: any[]) => S, obj: T | null | und
  * Try
  * @param f
  */
-export function tryOpt<T>(f: ()=>T): T | undefined {
+export function tryOpt<T>(f: () => T): T | undefined {
   try {
     return f();
   } catch {

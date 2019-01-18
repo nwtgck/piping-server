@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/src/index.js",
+    "lint": "tslint 'src/**/*.ts' && tslint 'test/**/*.ts'",
     "prepare": "npm run build",
     "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts"
   },
@@ -41,6 +42,7 @@
     "request": "^2.88.0",
     "then-request": "^6.0.0",
     "ts-node": "^7.0.1",
+    "tslint": "^5.12.1",
     "typescript": "^3.0.1"
   },
   "dependencies": {
