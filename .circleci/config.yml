@@ -3,6 +3,7 @@ ANCHORS:
    steps:
      - checkout
      - run: npm install
+     - run: npm run lint
      - run: npm test
      # Check whether "run build" is successful
      - run: npm run build
