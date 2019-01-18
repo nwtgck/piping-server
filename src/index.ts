@@ -12,28 +12,28 @@ import * as piping from "./piping";
 const parser = yargs
   .option("http-port", {
     describe: "Port of HTTP server",
-    default: 8080,
+    default: 8080
   })
   .option("enable-https", {
     describe: "Enable HTTPS",
-    default: false,
+    default: false
   })
   .option("https-port", {
     describe: "Port of HTTPS server",
-    type: "number",
+    type: "number"
   })
   .option("key-path", {
     describe: "Private key path",
-    type: "string",
+    type: "string"
   })
   .option("crt-path", {
     describe: "Certification path",
-    type: "string",
+    type: "string"
   })
   .option("enable-log", {
     describe: "Enable logging",
     type: "boolean",
-    default: true,
+    default: true
   });
 
 // Parse arguments
@@ -60,9 +60,9 @@ if (enableHttps && httpsPort !== undefined) {
     https.createServer(
       {
         key: fs.readFileSync(serverKeyPath),
-        cert: fs.readFileSync(serverCrtPath),
+        cert: fs.readFileSync(serverCrtPath)
       },
-      pipingServer.generateHandler(true),
+      pipingServer.generateHandler(true)
     ).listen(httpsPort, () => {
       console.log(`Listen HTTPS on ${httpsPort}...`);
     });
