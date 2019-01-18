@@ -1,15 +1,15 @@
-import * as http from "http";
-import * as url from "url";
-import * as stream from "stream";
-import {ParsedUrlQuery} from "querystring";
-import * as pkginfo from "pkginfo";
 import * as Busboy from "busboy";
+import * as http from "http";
+import * as pkginfo from "pkginfo";
+import {ParsedUrlQuery} from "querystring";
+import * as stream from "stream";
+import * as url from "url";
 
-import {opt, optMap} from "./utils";
 import * as path from "path";
+import {opt, optMap} from "./utils";
 
 // Set module.exports.version
-pkginfo(module, 'version');
+pkginfo(module, "version");
 
 // Get version
 // (from: https://stackoverflow.com/a/22339262/2885946)
@@ -18,39 +18,39 @@ const VERSION: string = module.exports.version;
 type ReqRes = {
   readonly req: http.IncomingMessage,
   readonly res: http.ServerResponse
-}
+};
 
-interface Pipe {
+type Pipe = {
   readonly sender: ReqRes;
   readonly receivers: ReqRes[];
-}
+};
 
 type ReqResAndUnsubscribe = {
   reqRes: ReqRes,
-  unsubscribeCloseListener: ()=>void
-}
+  unsubscribeCloseListener: () => void
+};
 
-interface UnestablishedPipe {
+type UnestablishedPipe = {
   sender?: ReqResAndUnsubscribe;
   receivers: ReqResAndUnsubscribe[];
   nReceivers: number;
-}
+};
 
 /**
  * Convert unestablished pipe to pipe if it is established
  * @param p
  */
 function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
-  if(p.sender !== undefined && p.receivers.length === p.nReceivers) {
+  if (p.sender !== undefined && p.receivers.length === p.nReceivers) {
     return {
       sender: p.sender.reqRes,
-      receivers: p.receivers.map(r => {
+      receivers: p.receivers.map((r) => {
         // Unsubscribe on-close handlers
         // NOTE: this operation has side-effect
         r.unsubscribeCloseListener();
-        return r.reqRes
-      }),
-    }
+        return r.reqRes;
+      })
+    };
   } else {
     return undefined;
   }
@@ -62,7 +62,7 @@ function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
  * @param b
  */
 function nanOrElse<T>(a: number, b: number): number {
-  if(isNaN(a)) {
+  if (isNaN(a)) {
     return b;
   } else {
     return a;
@@ -76,59 +76,54 @@ const NAME_TO_RESERVED_PATH = {
   help: "/help"
 };
 
-// All reserved paths
-const RESERVED_PATHS: string[] =
-  Object.values(NAME_TO_RESERVED_PATH);
+const indexPage: string =
+`<html>
+<head>
+  <title>Piping</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    h3 {
+      margin-top: 2em;
+      margin-bottom: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Piping</h1>
+  Streaming file sending/receiving
+  <form method="POST" id="file_form" enctype="multipart/form-data">
+    <h3>Step 1: Choose a file</h3>
+    <input type="file" name="input_file"><br>
+    <h3>Step 2: Write your secret path</h3>
+    (e.g. "abcd1234", "mysecret.png?n=3")<br>
+    <input id="secret_path" placeholder="Secret path" size="50"><br>
+    <h3>Step 3: Click the submit button</h3>
+    <input type="submit">
+  </form>
+  <hr>
+  Command-line usage:
+  <a href="https://github.com/nwtgck/piping-server#readme">
+    https://github.com/nwtgck/piping-server#readme
+  </a><br>
+  <script>
+    var fileForm = document.getElementById("file_form");
+    var secretPathInput = document.getElementById("secret_path");
+    secretPathInput.onkeyup = function(){
+      fileForm.action = "/" + secretPathInput.value;
+    };
+  </script>
+</body>
+</html>`;
 
-export class Server {
-  readonly pathToEstablished: {[path: string]: boolean} = {};
-  readonly pathToUnestablishedPipe: {[path: string]: UnestablishedPipe} = {};
-
-  // TODO: Write this html content as .html file
-  static readonly indexPage: string = `
-    <html>
-    <head>
-      <title>Piping</title>
-      <meta name="viewport" content="width=device-width,initial-scale=1">
-      <style>
-        h3 {
-          margin-top: 2em;
-          margin-bottom: 0.5em;
-        }
-      </style>
-    </head>
-    <body>
-      <h1>Piping</h1>
-      Streaming file sending/receiving
-      <form method="POST" id="file_form" enctype="multipart/form-data">
-        <h3>Step 1: Choose a file</h3>
-        <input type="file" name="input_file"><br>
-        <h3>Step 2: Write your secret path</h3>
-        (e.g. "abcd1234", "mysecret.png?n=3")<br>
-        <input id="secret_path" placeholder="Secret path" size="50"><br>
-        <h3>Step 3: Click the submit button</h3>
-        <input type="submit">
-      </form>
-      <hr>
-      Command-line usage: <a href="https://github.com/nwtgck/piping-server#readme">https://github.com/nwtgck/piping-server#readme</a><br>
-      <script>
-        var fileForm = document.getElementById("file_form");
-        var secretPathInput = document.getElementById("secret_path");
-        secretPathInput.onkeyup = function(){
-          fileForm.action = "/" + secretPathInput.value;
-        };
-      </script>
-    </body>
-    </html>
-    `;
-
-  /**
-   * Generate help page
-   * @param {string} url
-   * @returns {string}
-   */
-  static generateHelpPage(url: string): string {
-    return `Help for piping-server ${VERSION}
+/**
+ * Generate help page
+ * @param {string} url
+ * @returns {string}
+ */
+// tslint:disable-next-line:no-shadowed-variable
+function generateHelpPage(url: string): string {
+  return (
+`Help for piping-server ${VERSION}
 (Repository: https://github.com/nwtgck/piping-server)
 
 ======= Get  =======
@@ -152,106 +147,38 @@ tar zfcp - ./mydir | curl -T - ${url}/mypath
 cat myfile | openssl aes-256-cbc | curl -T - ${url}/mypath
 ## Get
 curl ${url}/mypath | openssl aes-256-cbc -d
-`
+`);
+}
+
+// All reserved paths
+const RESERVED_PATHS: string[] =
+  Object.values(NAME_TO_RESERVED_PATH);
+
+export class Server {
+
+  /** Get the number of receivers
+   * @param {string | undefined} reqUrl
+   * @returns {number}
+   */
+  private static getNReceivers(reqUrl: string | undefined): number {
+    // Get query parameter
+    const query = opt(optMap(url.parse, reqUrl, true).query);
+    // The number receivers
+    const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery).n as string, 10), 1);
+    return nReceivers;
   }
+  private readonly pathToEstablished: {[path: string]: boolean} = {};
+  private readonly pathToUnestablishedPipe: {[path: string]: UnestablishedPipe} = {};
 
   /**
    *
    * @param enableLog Enable logging
    */
-  constructor(readonly enableLog: boolean){
+  constructor(readonly enableLog: boolean) {
   }
 
-  /**
-   * Start data transfer
-   *
-   * @param path
-   * @param pipe
-   */
-  async runPipe(path: string, pipe: Pipe): Promise<void> {
-
-    // Set established as true
-    this.pathToEstablished[path] = true;
-    // Delete unestablished pipe
-    delete this.pathToUnestablishedPipe[path];
-
-    const {sender, receivers} = pipe;
-
-    const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
-    const senderData: NodeJS.ReadableStream = await (
-      isMultipart ?
-        await new Promise<NodeJS.ReadableStream>((resolve=>{
-          const busboy = new Busboy({headers: sender.req.headers});
-          busboy.on('file', (fieldname, file, encoding, mimetype)=>{
-            resolve(file);
-          });
-          sender.req.pipe(busboy);
-        })) :
-        Promise.resolve(sender.req)
-    );
-
-    let closeCount: number = 0;
-    for(const receiver of receivers) {
-      // Close receiver
-      const closeReceiver = (): void => {
-        closeCount += 1;
-        senderData.unpipe(passThrough);
-        // If close-count is # of receivers
-        if(closeCount === receivers.length) {
-          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
-          delete this.pathToEstablished[path];
-          // Close sender
-          sender.req.connection.destroy();
-        }
-      };
-
-      // TODO: Should add header when isMutipart
-      if(!isMultipart){
-        receiver.res.writeHead(200, {
-          // Add Content-Length if it exists
-          ...(
-            sender.req.headers["content-length"] === undefined ?
-              {}: {"Content-Length": sender.req.headers["content-length"]}
-          )
-        });
-      }
-
-      const passThrough = new stream.PassThrough();
-      senderData.pipe(passThrough);
-      passThrough.pipe(receiver.res);
-      receiver.req.on("close", ()=>{
-        if (this.enableLog) console.log("on-close");
-        closeReceiver();
-      });
-      receiver.req.on("error", (err)=>{
-        if (this.enableLog) console.log("on-error");
-        closeReceiver();
-      });
-    }
-
-    senderData.on("close", ()=>{
-      if (this.enableLog) console.log("sender on-close");
-      for(const receiver of receivers) {
-        // Close a receiver
-        receiver.res.connection.destroy();
-      }
-    });
-
-    senderData.on("end", ()=>{
-      sender.res.end("[INFO] Sending Successful!\n");
-      // Delete from established
-      delete this.pathToEstablished[path];
-    });
-
-    senderData.on("error", (error)=>{
-      sender.res.end("[ERROR] Sending Failed.\n");
-      // Delete from established
-      delete this.pathToEstablished[path];
-    });
-  }
-
-  generateHandler(useHttps: boolean): (req: http.IncomingMessage, res: http.ServerResponse) => void {
-    return (req: http.IncomingMessage, res: http.ServerResponse)=>{
+  public generateHandler(useHttps: boolean): (req: http.IncomingMessage, res: http.ServerResponse) => void {
+    return (req: http.IncomingMessage, res: http.ServerResponse) => {
       // Get path name
       const reqPath: string =
           path.resolve(
@@ -260,12 +187,14 @@ curl ${url}/mypath | openssl aes-256-cbc -d
               // Remove last "/"
               .replace(/\/$/, "")
           );
-      if (this.enableLog) console.log(req.method, reqPath);
+      if (this.enableLog) {
+        console.log(req.method, reqPath);
+      }
 
       switch (req.method) {
         case "POST":
         case "PUT":
-          if(RESERVED_PATHS.includes(reqPath)) {
+          if (RESERVED_PATHS.includes(reqPath)) {
             res.writeHead(400);
             res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
           } else {
@@ -276,23 +205,24 @@ curl ${url}/mypath | openssl aes-256-cbc -d
         case "GET":
           switch (reqPath) {
             case NAME_TO_RESERVED_PATH.index:
-              res.end(Server.indexPage);
+              res.end(indexPage);
               break;
             case NAME_TO_RESERVED_PATH.version:
-              res.end(VERSION+"\n");
+              res.end(VERSION + "\n");
               break;
             case NAME_TO_RESERVED_PATH.help:
               // x-forwarded-proto is https or not
-              const xForwardedProtoIsHttps: boolean = (()=>{
+              const xForwardedProtoIsHttps: boolean = (() => {
                 const proto = req.headers["x-forwarded-proto"];
                 // NOTE: includes() is for supporting Glitch
-                return proto !== undefined && proto.includes("https")
+                return proto !== undefined && proto.includes("https");
               })();
               const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
               // NOTE: req.headers.host contains port number
               const hostname: string = req.headers.host || "hostname";
+              // tslint:disable-next-line:no-shadowed-variable
               const url = `${scheme}://${hostname}`;
-              res.end(Server.generateHelpPage(url));
+              res.end(generateHelpPage(url));
               break;
             default:
               // Handle a receiver
@@ -307,16 +237,98 @@ curl ${url}/mypath | openssl aes-256-cbc -d
     };
   }
 
-  /** Get the number of receivers
-   * @param {string | undefined} reqUrl
-   * @returns {number}
+  /**
+   * Start data transfer
+   *
+   * @param path
+   * @param pipe
    */
-  private static getNReceivers(reqUrl: string | undefined): number {
-    // Get query parameter
-    const query = opt(optMap(url.parse, reqUrl, true).query);
-    // The number receivers
-    const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery)['n'] as string, 10), 1);
-    return nReceivers
+  // tslint:disable-next-line:no-shadowed-variable
+  private async runPipe(path: string, pipe: Pipe): Promise<void> {
+    // Set established as true
+    this.pathToEstablished[path] = true;
+    // Delete unestablished pipe
+    delete this.pathToUnestablishedPipe[path];
+
+    const {sender, receivers} = pipe;
+
+    const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
+    const senderData: NodeJS.ReadableStream = await (
+      isMultipart ?
+        await new Promise<NodeJS.ReadableStream>(((resolve) => {
+          const busboy = new Busboy({headers: sender.req.headers});
+          busboy.on("file", (fieldname, file, encoding, mimetype) => {
+            resolve(file);
+          });
+          sender.req.pipe(busboy);
+        })) :
+        Promise.resolve(sender.req)
+    );
+
+    let closeCount: number = 0;
+    for (const receiver of receivers) {
+      // Close receiver
+      const closeReceiver = (): void => {
+        closeCount += 1;
+        senderData.unpipe(passThrough);
+        // If close-count is # of receivers
+        if (closeCount === receivers.length) {
+          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
+          delete this.pathToEstablished[path];
+          // Close sender
+          sender.req.connection.destroy();
+        }
+      };
+
+      // TODO: Should add header when isMutipart
+      if (!isMultipart) {
+        receiver.res.writeHead(200, {
+          // Add Content-Length if it exists
+          ...(
+            sender.req.headers["content-length"] === undefined ?
+              {} : {"Content-Length": sender.req.headers["content-length"]}
+          )
+        });
+      }
+
+      const passThrough = new stream.PassThrough();
+      senderData.pipe(passThrough);
+      passThrough.pipe(receiver.res);
+      receiver.req.on("close", () => {
+        if (this.enableLog) {
+          console.log("on-close");
+        }
+        closeReceiver();
+      });
+      receiver.req.on("error", (err) => {
+        if (this.enableLog) {
+          console.log("on-error");
+        }
+        closeReceiver();
+      });
+    }
+
+    senderData.on("close", () => {
+      if (this.enableLog) {
+        console.log("sender on-close");
+      }
+      for (const receiver of receivers) {
+        // Close a receiver
+        receiver.res.connection.destroy();
+      }
+    });
+
+    senderData.on("end", () => {
+      sender.res.end("[INFO] Sending Successful!\n");
+      // Delete from established
+      delete this.pathToEstablished[path];
+    });
+
+    senderData.on("error", (error) => {
+      sender.res.end("[ERROR] Sending Failed.\n");
+      // Delete from established
+      delete this.pathToEstablished[path];
+    });
   }
 
   /**
@@ -336,7 +348,9 @@ curl ${url}/mypath | openssl aes-256-cbc -d
       res.writeHead(400);
       res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
     } else {
-      if (this.enableLog) console.log(this.pathToUnestablishedPipe);
+      if (this.enableLog) {
+        console.log(this.pathToUnestablishedPipe);
+      }
       // If the path connection is connecting
       if (reqPath in this.pathToUnestablishedPipe) {
         // Get unestablished pipe
@@ -359,7 +373,7 @@ curl ${url}/mypath | openssl aes-256-cbc -d
               // Emit message to sender
               res.write("Start sending!\n");
               // Start data transfer
-              this.runPipe(reqPath, pipe)
+              this.runPipe(reqPath, pipe);
             }
           } else {
             res.writeHead(400);
@@ -414,7 +428,7 @@ curl ${url}/mypath | openssl aes-256-cbc -d
             // Append new receiver
             unestablishedPipe.receivers.push(receiver);
 
-            if(unestablishedPipe.sender !== undefined) {
+            if (unestablishedPipe.sender !== undefined) {
               // Send connection message to the sender
               unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
             }
@@ -427,7 +441,7 @@ curl ${url}/mypath | openssl aes-256-cbc -d
               // Emit message to sender
               pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receiver(s)!\n`);
               // Start data transfer
-              this.runPipe(reqPath, pipe)
+              this.runPipe(reqPath, pipe);
             }
           } else {
             res.writeHead(400);
@@ -444,7 +458,7 @@ curl ${url}/mypath | openssl aes-256-cbc -d
         this.pathToUnestablishedPipe[reqPath] = {
           receivers: [receiver],
           nReceivers: nReceivers
-        }
+        };
       }
     }
   }
@@ -459,11 +473,16 @@ curl ${url}/mypath | openssl aes-256-cbc -d
    * @param res
    * @param reqPath
    */
-  private createSenderOrReceiver(removerType: "sender" | "receiver", req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): ReqResAndUnsubscribe {
+  private createSenderOrReceiver(
+    removerType: "sender" | "receiver",
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    reqPath: string
+  ): ReqResAndUnsubscribe {
     // Create receiver req&res
     const receiverReqRes: ReqRes = {req: req, res: res};
     // Define on-close handler
-    const closeListener = ()=>{
+    const closeListener = () => {
       // If reqPath is registered
       if (reqPath in this.pathToUnestablishedPipe) {
         // Get unestablished pipe
@@ -471,9 +490,9 @@ curl ${url}/mypath | openssl aes-256-cbc -d
         // Get sender/receiver remover
         const remover =
           removerType === "sender" ?
-            (): boolean=>{
+            (): boolean => {
               // If sender is defined
-              if(unestablishedPipe.sender !== undefined) {
+              if (unestablishedPipe.sender !== undefined) {
                 // Remove sender
                 unestablishedPipe.sender = undefined;
                 return true;
@@ -484,9 +503,9 @@ curl ${url}/mypath | openssl aes-256-cbc -d
               // Get receivers
               const receivers = unestablishedPipe.receivers;
               // Find receiver's index
-              const idx = receivers.findIndex(r => r.reqRes === receiverReqRes);
+              const idx = receivers.findIndex((r) => r.reqRes === receiverReqRes);
               // If receiver is found
-              if(idx !== -1) {
+              if (idx !== -1) {
                 // Delete the receiver from the receivers
                 receivers.splice(idx, 1);
                 return true;
@@ -496,12 +515,14 @@ curl ${url}/mypath | openssl aes-256-cbc -d
         // Remove a sender or receiver
         const removed: boolean = remover();
         // If removed
-        if(removed){
+        if (removed) {
           // If unestablished pipe has no sender and no receivers
-          if(unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
+          if (unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
             // Remove unestablished pipe
             delete this.pathToUnestablishedPipe[reqPath];
-            if(this.enableLog) console.log(`${reqPath} removed`);
+            if (this.enableLog) {
+              console.log(`${reqPath} removed`);
+            }
           }
         }
       }
@@ -509,12 +530,12 @@ curl ${url}/mypath | openssl aes-256-cbc -d
     // Disconnect if it close
     req.once("close", closeListener);
     // Unsubscribe "close"
-    const unsubscribeCloseListener = ()=>{
+    const unsubscribeCloseListener = () => {
       req.removeListener("close", closeListener);
     };
     return {
       reqRes: receiverReqRes,
       unsubscribeCloseListener: unsubscribeCloseListener
-    }
+    };
   }
 }
