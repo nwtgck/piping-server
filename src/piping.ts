@@ -1,9 +1,9 @@
-import * as http from "http";
-import * as url from "url";
-import * as stream from "stream";
-import {ParsedUrlQuery} from "querystring";
-import * as pkginfo from "pkginfo";
 import * as Busboy from "busboy";
+import * as http from "http";
+import * as pkginfo from "pkginfo";
+import {ParsedUrlQuery} from "querystring";
+import * as stream from "stream";
+import * as url from "url";
 
 import * as path from "path";
 import {opt, optMap} from "./utils";
@@ -20,22 +20,21 @@ type ReqRes = {
   readonly res: http.ServerResponse
 };
 
-// TODO: Change it to type
-interface Pipe {
+type Pipe = {
   readonly sender: ReqRes;
   readonly receivers: ReqRes[];
-}
+};
 
 type ReqResAndUnsubscribe = {
   reqRes: ReqRes,
   unsubscribeCloseListener: () => void
 };
 
-interface UnestablishedPipe {
+type UnestablishedPipe = {
   sender?: ReqResAndUnsubscribe;
   receivers: ReqResAndUnsubscribe[];
   nReceivers: number;
-}
+};
 
 /**
  * Convert unestablished pipe to pipe if it is established
@@ -63,7 +62,7 @@ function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
  * @param b
  */
 function nanOrElse<T>(a: number, b: number): number {
-  if(isNaN(a)) {
+  if (isNaN(a)) {
     return b;
   } else {
     return a;
@@ -156,6 +155,18 @@ const RESERVED_PATHS: string[] =
   Object.values(NAME_TO_RESERVED_PATH);
 
 export class Server {
+
+  /** Get the number of receivers
+   * @param {string | undefined} reqUrl
+   * @returns {number}
+   */
+  private static getNReceivers(reqUrl: string | undefined): number {
+    // Get query parameter
+    const query = opt(optMap(url.parse, reqUrl, true).query);
+    // The number receivers
+    const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery).n as string, 10), 1);
+    return nReceivers;
+  }
   private readonly pathToEstablished: {[path: string]: boolean} = {};
   private readonly pathToUnestablishedPipe: {[path: string]: UnestablishedPipe} = {};
 
@@ -163,7 +174,67 @@ export class Server {
    *
    * @param enableLog Enable logging
    */
-  constructor(readonly enableLog: boolean){
+  constructor(readonly enableLog: boolean) {
+  }
+
+  public generateHandler(useHttps: boolean): (req: http.IncomingMessage, res: http.ServerResponse) => void {
+    return (req: http.IncomingMessage, res: http.ServerResponse) => {
+      // Get path name
+      const reqPath: string =
+          path.resolve(
+              "/",
+              opt(optMap(url.parse, opt(req.url)).pathname)
+              // Remove last "/"
+              .replace(/\/$/, "")
+          );
+      if (this.enableLog) {
+        console.log(req.method, reqPath);
+      }
+
+      switch (req.method) {
+        case "POST":
+        case "PUT":
+          if (RESERVED_PATHS.includes(reqPath)) {
+            res.writeHead(400);
+            res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
+          } else {
+            // Handle a sender
+            this.handleSender(req, res, reqPath);
+          }
+          break;
+        case "GET":
+          switch (reqPath) {
+            case NAME_TO_RESERVED_PATH.index:
+              res.end(indexPage);
+              break;
+            case NAME_TO_RESERVED_PATH.version:
+              res.end(VERSION + "\n");
+              break;
+            case NAME_TO_RESERVED_PATH.help:
+              // x-forwarded-proto is https or not
+              const xForwardedProtoIsHttps: boolean = (() => {
+                const proto = req.headers["x-forwarded-proto"];
+                // NOTE: includes() is for supporting Glitch
+                return proto !== undefined && proto.includes("https");
+              })();
+              const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
+              // NOTE: req.headers.host contains port number
+              const hostname: string = req.headers.host || "hostname";
+              // tslint:disable-next-line:no-shadowed-variable
+              const url = `${scheme}://${hostname}`;
+              res.end(generateHelpPage(url));
+              break;
+            default:
+              // Handle a receiver
+              this.handleReceiver(req, res, reqPath);
+              break;
+          }
+          break;
+        default:
+          res.end(`Error: Unsupported method: ${req.method}\n`);
+          break;
+      }
+    };
   }
 
   /**
@@ -184,7 +255,7 @@ export class Server {
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
     const senderData: NodeJS.ReadableStream = await (
       isMultipart ?
-        await new Promise<NodeJS.ReadableStream>((resolve=>{
+        await new Promise<NodeJS.ReadableStream>(((resolve) => {
           const busboy = new Busboy({headers: sender.req.headers});
           busboy.on("file", (fieldname, file, encoding, mimetype) => {
             resolve(file);
@@ -195,7 +266,7 @@ export class Server {
     );
 
     let closeCount: number = 0;
-    for(const receiver of receivers) {
+    for (const receiver of receivers) {
       // Close receiver
       const closeReceiver = (): void => {
         closeCount += 1;
@@ -215,7 +286,7 @@ export class Server {
           // Add Content-Length if it exists
           ...(
             sender.req.headers["content-length"] === undefined ?
-              {}: {"Content-Length": sender.req.headers["content-length"]}
+              {} : {"Content-Length": sender.req.headers["content-length"]}
           )
         });
       }
@@ -260,78 +331,6 @@ export class Server {
     });
   }
 
-  public generateHandler(useHttps: boolean): (req: http.IncomingMessage, res: http.ServerResponse) => void {
-    return (req: http.IncomingMessage, res: http.ServerResponse) => {
-      // Get path name
-      const reqPath: string =
-          path.resolve(
-              "/",
-              opt(optMap(url.parse, opt(req.url)).pathname)
-              // Remove last "/"
-              .replace(/\/$/, "")
-          );
-      if (this.enableLog) {
-        console.log(req.method, reqPath);
-      }
-
-      switch (req.method) {
-        case "POST":
-        case "PUT":
-          if (RESERVED_PATHS.includes(reqPath)) {
-            res.writeHead(400);
-            res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
-          } else {
-            // Handle a sender
-            this.handleSender(req, res, reqPath);
-          }
-          break;
-        case "GET":
-          switch (reqPath) {
-            case NAME_TO_RESERVED_PATH.index:
-              res.end(indexPage);
-              break;
-            case NAME_TO_RESERVED_PATH.version:
-              res.end(VERSION+"\n");
-              break;
-            case NAME_TO_RESERVED_PATH.help:
-              // x-forwarded-proto is https or not
-              const xForwardedProtoIsHttps: boolean = (()=>{
-                const proto = req.headers["x-forwarded-proto"];
-                // NOTE: includes() is for supporting Glitch
-                return proto !== undefined && proto.includes("https");
-              })();
-              const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
-              // NOTE: req.headers.host contains port number
-              const hostname: string = req.headers.host || "hostname";
-              // tslint:disable-next-line:no-shadowed-variable
-              const url = `${scheme}://${hostname}`;
-              res.end(generateHelpPage(url));
-              break;
-            default:
-              // Handle a receiver
-              this.handleReceiver(req, res, reqPath);
-              break;
-          }
-          break;
-        default:
-          res.end(`Error: Unsupported method: ${req.method}\n`);
-          break;
-      }
-    };
-  }
-
-  /** Get the number of receivers
-   * @param {string | undefined} reqUrl
-   * @returns {number}
-   */
-  private static getNReceivers(reqUrl: string | undefined): number {
-    // Get query parameter
-    const query = opt(optMap(url.parse, reqUrl, true).query);
-    // The number receivers
-    const nReceivers: number = nanOrElse(parseInt((query as ParsedUrlQuery)['n'] as string, 10), 1);
-    return nReceivers;
-  }
-
   /**
    * Handle a sender
    * @param {"http".IncomingMessage} req
@@ -374,7 +373,7 @@ export class Server {
               // Emit message to sender
               res.write("Start sending!\n");
               // Start data transfer
-              this.runPipe(reqPath, pipe)
+              this.runPipe(reqPath, pipe);
             }
           } else {
             res.writeHead(400);
@@ -429,7 +428,7 @@ export class Server {
             // Append new receiver
             unestablishedPipe.receivers.push(receiver);
 
-            if(unestablishedPipe.sender !== undefined) {
+            if (unestablishedPipe.sender !== undefined) {
               // Send connection message to the sender
               unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
             }
@@ -442,7 +441,7 @@ export class Server {
               // Emit message to sender
               pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receiver(s)!\n`);
               // Start data transfer
-              this.runPipe(reqPath, pipe)
+              this.runPipe(reqPath, pipe);
             }
           } else {
             res.writeHead(400);
@@ -491,9 +490,9 @@ export class Server {
         // Get sender/receiver remover
         const remover =
           removerType === "sender" ?
-            (): boolean=>{
+            (): boolean => {
               // If sender is defined
-              if(unestablishedPipe.sender !== undefined) {
+              if (unestablishedPipe.sender !== undefined) {
                 // Remove sender
                 unestablishedPipe.sender = undefined;
                 return true;
@@ -504,9 +503,9 @@ export class Server {
               // Get receivers
               const receivers = unestablishedPipe.receivers;
               // Find receiver's index
-              const idx = receivers.findIndex(r => r.reqRes === receiverReqRes);
+              const idx = receivers.findIndex((r) => r.reqRes === receiverReqRes);
               // If receiver is found
-              if(idx !== -1) {
+              if (idx !== -1) {
                 // Delete the receiver from the receivers
                 receivers.splice(idx, 1);
                 return true;
