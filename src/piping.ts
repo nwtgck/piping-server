@@ -76,8 +76,8 @@ const NAME_TO_RESERVED_PATH = {
   help: "/help"
 };
 
-const indexPage: string = `
-<html>
+const indexPage: string =
+`<html>
 <head>
   <title>Piping</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -113,8 +113,7 @@ const indexPage: string = `
     };
   </script>
 </body>
-</html>
-`;
+</html>`;
 
 /**
  * Generate help page
@@ -123,7 +122,8 @@ const indexPage: string = `
  */
 // tslint:disable-next-line:no-shadowed-variable
 function generateHelpPage(url: string): string {
-  return `Help for piping-server ${VERSION}
+  return (
+`Help for piping-server ${VERSION}
 (Repository: https://github.com/nwtgck/piping-server)
 
 ======= Get  =======
@@ -147,7 +147,7 @@ tar zfcp - ./mydir | curl -T - ${url}/mypath
 cat myfile | openssl aes-256-cbc | curl -T - ${url}/mypath
 ## Get
 curl ${url}/mypath | openssl aes-256-cbc -d
-`;
+`);
 }
 
 // All reserved paths
