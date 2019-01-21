@@ -5,8 +5,8 @@
   "bin": {
     "piping-server": "dist/src/index.js"
   },
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/src/piping.js",
+  "types": "dist/src/piping.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/src/index.js",
