@@ -287,6 +287,11 @@ export class Server {
           ...(
             sender.req.headers["content-length"] === undefined ?
               {} : {"Content-Length": sender.req.headers["content-length"]}
+          ),
+          // Add Content-Type if it exists
+          ...(
+            sender.req.headers["content-type"] === undefined ?
+              {} : {"Content-Type": sender.req.headers["content-type"]}
           )
         });
       }
