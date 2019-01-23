@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.8.2] - 2019-01-23
+### Added
+* Pass sender's Content-Type to receivers' one
+
 ## [0.8.1] - 2019-01-21
 ### Fixed
 * Fix "main" and "types" in package.json to be imported as a library
@@ -99,7 +103,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.2...HEAD
+[0.8.2]: https://github.com/nwtgck/piping-seraver/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/nwtgck/piping-seraver/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/nwtgck/piping-seraver/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/nwtgck/piping-seraver/compare/v0.7.0...v0.7.1
