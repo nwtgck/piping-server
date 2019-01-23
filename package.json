@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "HTTP Piping Data Transfer Server",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -41,7 +41,7 @@
     "power-assert": "^1.4.4",
     "request": "^2.88.0",
     "then-request": "^6.0.0",
-    "ts-node": "^7.0.1",
+    "ts-node": "^8.0.1",
     "tslint": "^5.12.1",
     "typescript": "^3.0.1"
   },
