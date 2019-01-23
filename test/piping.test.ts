@@ -127,6 +127,25 @@ describe("piping.Server", () => {
     assert.equal(data.headers["content-length"], "this is a content".length);
   });
 
+  it("should pass sender's Content-Type to receivers' one", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      headers: {
+        "content-type": "text/plain"
+      },
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await reqPromise;
+
+    // Content-Type should be returned
+    assert.equal(data.headers["content-type"], "text/plain");
+  });
+
   it("should handle connection (sender: O, receiver: O)", async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
