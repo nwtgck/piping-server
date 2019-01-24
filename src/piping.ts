@@ -284,21 +284,30 @@ export class Server {
         }
       };
 
-      // TODO: Should add header when isMutipart
-      if (!isMultipart) {
-        receiver.res.writeHead(200, {
-          // Add Content-Length if it exists
-          ...(
-            sender.req.headers["content-length"] === undefined ?
-              {} : {"Content-Length": sender.req.headers["content-length"]}
-          ),
-          // Add Content-Type if it exists
-          ...(
-            sender.req.headers["content-type"] === undefined ?
-              {} : {"Content-Type": sender.req.headers["content-type"]}
-          )
-        });
-      }
+      const headers: http.OutgoingHttpHeaders =
+        // If not multi-part sending
+        part === undefined ?
+          {
+            // Add Content-Length if it exists
+            ...(
+              sender.req.headers["content-length"] === undefined ?
+                {} : {"Content-Length": sender.req.headers["content-length"]}
+            ),
+            // Add Content-Type if it exists
+            ...(
+              sender.req.headers["content-type"] === undefined ?
+                {} : {"Content-Type": sender.req.headers["content-type"]}
+            )
+          } :
+          {
+            // // TODO: Don't use any after DefinitelyTyped is up to date
+            "Content-Length": (part as any).byteCount,
+            // TODO: Don't use any after DefinitelyTyped is up to date
+            "Content-Type": (part as any).headers["content-type"]
+          };
+
+      // Write headers to a receiver
+      receiver.res.writeHead(200, headers);
 
       const passThrough = new stream.PassThrough();
       senderData.pipe(passThrough);
