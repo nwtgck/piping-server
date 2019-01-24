@@ -1,5 +1,5 @@
-import * as Busboy from "busboy";
 import * as http from "http";
+import * as multiparty from "multiparty";
 import * as pkginfo from "pkginfo";
 import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
@@ -253,17 +253,21 @@ export class Server {
     const {sender, receivers} = pipe;
 
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
-    const senderData: NodeJS.ReadableStream = await (
+
+    // TODO: Use type of `Part | undefined` after DefinitelyTyped is up to date
+    const part: stream.Readable | undefined =
       isMultipart ?
-        await new Promise<NodeJS.ReadableStream>(((resolve) => {
-          const busboy = new Busboy({headers: sender.req.headers});
-          busboy.on("file", (fieldname, file, encoding, mimetype) => {
-            resolve(file);
+        await new Promise((resolve, reject) => {
+          const form = new multiparty.Form();
+          form.once("part", (p) => {
+            resolve(p);
           });
-          sender.req.pipe(busboy);
-        })) :
-        Promise.resolve(sender.req)
-    );
+          form.parse(sender.req);
+        }) :
+        undefined;
+
+    const senderData: NodeJS.ReadableStream =
+      part === undefined ? sender.req : part;
 
     let closeCount: number = 0;
     for (const receiver of receivers) {
