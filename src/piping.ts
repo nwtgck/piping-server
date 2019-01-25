@@ -254,12 +254,11 @@ export class Server {
 
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
 
-    // TODO: Use type of `Part | undefined` after DefinitelyTyped is up to date
-    const part: stream.Readable | undefined =
+    const part: multiparty.Part | undefined =
       isMultipart ?
         await new Promise((resolve, reject) => {
           const form = new multiparty.Form();
-          form.once("part", (p) => {
+          form.once("part", (p: multiparty.Part) => {
             resolve(p);
           });
           form.parse(sender.req);
@@ -300,10 +299,12 @@ export class Server {
             )
           } :
           {
-            // // TODO: Don't use any after DefinitelyTyped is up to date
-            "Content-Length": (part as any).byteCount,
-            // TODO: Don't use any after DefinitelyTyped is up to date
-            "Content-Type": (part as any).headers["content-type"]
+            // Add Content-Length if it exists
+            ...(
+              part.byteCount === undefined ?
+                {} : {"Content-Length": part.byteCount}
+            ),
+            "Content-Type": part.headers["content-type"]
           };
 
       // Write headers to a receiver
