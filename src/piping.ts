@@ -1,5 +1,5 @@
-import * as Busboy from "busboy";
 import * as http from "http";
+import * as multiparty from "multiparty";
 import * as pkginfo from "pkginfo";
 import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
@@ -253,17 +253,20 @@ export class Server {
     const {sender, receivers} = pipe;
 
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
-    const senderData: NodeJS.ReadableStream = await (
+
+    const part: multiparty.Part | undefined =
       isMultipart ?
-        await new Promise<NodeJS.ReadableStream>(((resolve) => {
-          const busboy = new Busboy({headers: sender.req.headers});
-          busboy.on("file", (fieldname, file, encoding, mimetype) => {
-            resolve(file);
+        await new Promise((resolve, reject) => {
+          const form = new multiparty.Form();
+          form.once("part", (p: multiparty.Part) => {
+            resolve(p);
           });
-          sender.req.pipe(busboy);
-        })) :
-        Promise.resolve(sender.req)
-    );
+          form.parse(sender.req);
+        }) :
+        undefined;
+
+    const senderData: NodeJS.ReadableStream =
+      part === undefined ? sender.req : part;
 
     let closeCount: number = 0;
     for (const receiver of receivers) {
@@ -280,21 +283,32 @@ export class Server {
         }
       };
 
-      // TODO: Should add header when isMutipart
-      if (!isMultipart) {
-        receiver.res.writeHead(200, {
-          // Add Content-Length if it exists
-          ...(
-            sender.req.headers["content-length"] === undefined ?
-              {} : {"Content-Length": sender.req.headers["content-length"]}
-          ),
-          // Add Content-Type if it exists
-          ...(
-            sender.req.headers["content-type"] === undefined ?
-              {} : {"Content-Type": sender.req.headers["content-type"]}
-          )
-        });
-      }
+      const headers: http.OutgoingHttpHeaders =
+        // If not multi-part sending
+        part === undefined ?
+          {
+            // Add Content-Length if it exists
+            ...(
+              sender.req.headers["content-length"] === undefined ?
+                {} : {"Content-Length": sender.req.headers["content-length"]}
+            ),
+            // Add Content-Type if it exists
+            ...(
+              sender.req.headers["content-type"] === undefined ?
+                {} : {"Content-Type": sender.req.headers["content-type"]}
+            )
+          } :
+          {
+            // Add Content-Length if it exists
+            ...(
+              part.byteCount === undefined ?
+                {} : {"Content-Length": part.byteCount}
+            ),
+            "Content-Type": part.headers["content-type"]
+          };
+
+      // Write headers to a receiver
+      receiver.res.writeHead(200, headers);
 
       const passThrough = new stream.PassThrough();
       senderData.pipe(passThrough);
