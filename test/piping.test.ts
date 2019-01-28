@@ -675,4 +675,44 @@ describe("piping.Server", () => {
     });
   });
 
+  context("By multipart/data-form", () => {
+    it("should allow sender to send data via multipart without multipart content-type", async () => {
+      const formData = {
+        "dummy form name": "this is a content"
+      };
+
+      // Send data
+      request.post({url: `${pipingUrl}/mydataid`, formData: formData});
+
+      await sleep(10);
+
+      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+      const getData1 = await getPromise1;
+      assert.equal(getData1.statusCode, 200);
+      assert.equal(getData1.getBody("UTF-8"), "this is a content");
+    });
+
+    it("should pass sender's Content-Type to receivers' one", async () => {
+      const formData = {
+        "dummy form name": {
+          value: "this is a content",
+          options: {
+            contentType: "text/plain"
+          }
+        }
+      };
+
+      // Send data
+      request.post({url: `${pipingUrl}/mydataid`, formData: formData});
+
+      await sleep(10);
+
+      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+      const getData1 = await getPromise1;
+      assert.equal(getData1.statusCode, 200);
+      assert.equal(getData1.headers["content-type"], "text/plain");
+    });
+  });
 });

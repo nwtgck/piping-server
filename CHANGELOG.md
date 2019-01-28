@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.8.4] - 2019-01-28
+### Fixed
+* Fix not to pass "undefined" if content-type in multipart is not present
+### Added
+* Add a functionality of text input in web client
+
 ## [0.8.3] - 2019-01-25
 ### Added
 * Pass the sender's headers in multipart
@@ -107,7 +113,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.3...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.4...HEAD
+[0.8.4]: https://github.com/nwtgck/piping-seraver/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/nwtgck/piping-seraver/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/nwtgck/piping-seraver/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/nwtgck/piping-seraver/compare/v0.8.0...v0.8.1
