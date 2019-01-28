@@ -304,7 +304,10 @@ export class Server {
               part.byteCount === undefined ?
                 {} : {"Content-Length": part.byteCount}
             ),
-            "Content-Type": part.headers["content-type"]
+            ...(
+              part.headers["content-type"] === undefined ?
+                {} : {"Content-Type": part.headers["content-type"]}
+            )
           };
 
       // Write headers to a receiver
