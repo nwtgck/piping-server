@@ -90,7 +90,7 @@ const indexPage: string =
 </head>
 <body>
   <h1>Piping</h1>
-  Streaming file sending/receiving
+  Streaming Data Transfer Server over HTTP/HTTPS
   <form method="POST" id="file_form" enctype="multipart/form-data">
     <h3>Step 1: Choose a file or text</h3>
 

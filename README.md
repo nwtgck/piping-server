@@ -6,9 +6,26 @@
  
  [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-HTTP Piping Data Transfer Server
+Streaming Data Transfer Server over HTTP/HTTPS
 
 ![piping server transfer](demo_images/piping-server.gif)
+
+## Design Philosophy
+
+Piping server is designed to realize the following three ideas. 
+
+1. Account-free
+1. Install-free
+1. Engineer friendly
+
+Usually, when you want to send data to someone, you need to have an account in the common service among you and his/her.
+In addition, the service may require you to install specific software to share the data.
+
+
+Piping server is designed to solve the problems above.
+Piping server allows you to use without any account and frees you from additional software installation because the server is available with Web browsers, `curl` and `wget` commands, which are widely pre-installed in Unix-like OS.
+Because of HTTP/HTTPS, users can send data across different devices such as Windows, macOS, Unix, Linux, iOS, Android and any device which uses HTTP. 
+Furthermore, pipe in Unix-like OS allows you to send data in a more efficient and secure way.
 
 ## Transfer example
 
