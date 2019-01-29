@@ -1,19 +1,12 @@
 import * as http from "http";
 import * as multiparty from "multiparty";
-import * as pkginfo from "pkginfo";
 import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
 import * as url from "url";
 
 import * as path from "path";
 import {opt, optMap} from "./utils";
-
-// Set module.exports.version
-pkginfo(module, "version");
-
-// Get version
-// (from: https://stackoverflow.com/a/22339262/2885946)
-const VERSION: string = module.exports.version;
+import {VERSION} from "./version";
 
 type ReqRes = {
   readonly req: http.IncomingMessage,
