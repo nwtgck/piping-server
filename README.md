@@ -1,14 +1,30 @@
 # piping-server
-[![npm](https://img.shields.io/npm/v/piping-server.svg)](https://www.npmjs.com/package/piping-server) [![CodeFactor](https://www.codefactor.io/repository/github/nwtgck/piping-server/badge)](https://www.codefactor.io/repository/github/nwtgck/piping-server) 
- [![Build Status](https://travis-ci.com/nwtgck/piping-server.svg?branch=develop)](https://travis-ci.com/nwtgck/piping-server) [![CircleCI](https://circleci.com/gh/nwtgck/piping-server.svg?style=shield)](https://circleci.com/gh/nwtgck/piping-server) 
+[![npm](https://img.shields.io/npm/v/piping-server.svg)](https://www.npmjs.com/package/piping-server) [![CodeFactor](https://www.codefactor.io/repository/github/nwtgck/piping-server/badge)](https://www.codefactor.io/repository/github/nwtgck/piping-server) [![CircleCI](https://circleci.com/gh/nwtgck/piping-server.svg?style=shield)](https://circleci.com/gh/nwtgck/piping-server) 
 [![Docker Automated build](https://img.shields.io/docker/automated/nwtgck/piping-server.svg)](https://hub.docker.com/r/nwtgck/piping-server/)
  [![](https://images.microbadger.com/badges/image/nwtgck/piping-server.svg)](https://microbadger.com/images/nwtgck/piping-server "Get your own image badge on microbadger.com") [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=nwtgck/piping-server)](https://dependabot.com)
  
  [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-HTTP Piping Data Transfer Server
+Streaming Data Transfer Server over HTTP/HTTPS
 
 ![piping server transfer](demo_images/piping-server.gif)
+
+## Design Philosophy
+
+Piping server is designed to realize the following three ideas. 
+
+1. Account-free
+1. Install-free
+1. Engineer friendly
+
+Usually, when you want to send data to someone, you need to have an account in the common service among you and his/her.
+In addition, the service may require you to install specific software to share the data.
+
+
+Piping server is designed to solve the problems above.
+Piping server allows you to use without any account and frees you from additional software installation because the server is available with Web browsers, `curl` and `wget` commands, which are widely pre-installed in Unix-like OS.
+Because of HTTP/HTTPS, users can send data across different devices such as Windows, macOS, Unix, Linux, iOS, Android and any device which uses HTTP. 
+Furthermore, pipe in Unix-like OS allows you to send data in a more efficient and secure way.
 
 ## Transfer example
 

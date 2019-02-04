@@ -1,19 +1,12 @@
 import * as http from "http";
 import * as multiparty from "multiparty";
-import * as pkginfo from "pkginfo";
 import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
 import * as url from "url";
 
 import * as path from "path";
 import {opt, optMap} from "./utils";
-
-// Set module.exports.version
-pkginfo(module, "version");
-
-// Get version
-// (from: https://stackoverflow.com/a/22339262/2885946)
-const VERSION: string = module.exports.version;
+import {VERSION} from "./version";
 
 type ReqRes = {
   readonly req: http.IncomingMessage,
@@ -90,7 +83,7 @@ const indexPage: string =
 </head>
 <body>
   <h1>Piping</h1>
-  Streaming file sending/receiving
+  Streaming Data Transfer Server over HTTP/HTTPS
   <form method="POST" id="file_form" enctype="multipart/form-data">
     <h3>Step 1: Choose a file or text</h3>
 
