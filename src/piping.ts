@@ -123,10 +123,10 @@ const indexPage: string =
 
       // Set inputs' functionality and visibility
       function setInputs() {
-        activeInput.disabled = false;
-        activeInput.style.display = null;
+        activeInput.removeAttribute("disabled");
+        activeInput.style.removeProperty("display");
 
-        deactivatedInput.disabled = true;
+        deactivatedInput.setAttribute("disabled", "");
         deactivatedInput.style.display = "none";
       }
       setInputs();
