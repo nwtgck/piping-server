@@ -127,7 +127,7 @@ const indexPage: string =
         activeInput.style.removeProperty("display");
 
         deactivatedInput.setAttribute("disabled", "");
-        deactivatedInput.style.display = "none";        
+        deactivatedInput.style.display = "none";
       }
       setInputs();
 
