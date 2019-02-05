@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.8.6] - 2019-02-05
+### Fixed
+* Fix web client to run on IE11
+
 ## [0.8.5] - 2019-02-04
 ### Changed
 * Update dependencies
@@ -117,7 +121,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.5...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.6...HEAD
+[0.8.6]: https://github.com/nwtgck/piping-seraver/compare/v0.8.5...v0.8.6
 [0.8.5]: https://github.com/nwtgck/piping-seraver/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/nwtgck/piping-seraver/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/nwtgck/piping-seraver/compare/v0.8.2...v0.8.3
