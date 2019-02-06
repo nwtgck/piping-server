@@ -146,6 +146,25 @@ describe("piping.Server", () => {
     assert.equal(data.headers["content-type"], "text/plain");
   });
 
+  it("should have Access-Control-Allow-Origin headers in GET/POST response", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    // Headers of POST response should have Access-Control-Allow-Origin
+    assert.equal(postRes.headers["access-control-allow-origin"], "*");
+
+    // Get data
+    const data = await reqPromise;
+
+    // Headers of GET response should have Access-Control-Allow-Origin
+    assert.equal(data.headers["access-control-allow-origin"], "*");
+  });
+
   it("should handle connection (sender: O, receiver: O)", async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
