@@ -66,7 +66,8 @@ function nanOrElse<T>(a: number, b: number): number {
 const NAME_TO_RESERVED_PATH = {
   index: "/",
   version: "/version",
-  help: "/help"
+  help: "/help",
+  faviconIco: "/favicon.ico"
 };
 
 const indexPage: string =
@@ -254,6 +255,11 @@ export class Server {
               // tslint:disable-next-line:no-shadowed-variable
               const url = `${scheme}://${hostname}`;
               res.end(generateHelpPage(url));
+              break;
+            case NAME_TO_RESERVED_PATH.faviconIco:
+              // (from: https://stackoverflow.com/a/35408810/2885946)
+              res.writeHead(204);
+              res.end();
               break;
             default:
               // Handle a receiver

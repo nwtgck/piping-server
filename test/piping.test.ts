@@ -85,6 +85,14 @@ describe("piping.Server", () => {
       assert.equal(res.statusCode, 200);
     });
 
+    it("should return no favicon", async () => {
+      // Get response
+      const res = await thenRequest("GET", `${pipingUrl}/favicon.ico`);
+
+      // Status should be No Content
+      assert.equal(res.statusCode, 204);
+    });
+
     it("should not allow user to send the reserved paths", async () => {
       // Send data to ""
       const req1 = await thenRequest("POST", `${pipingUrl}`, {
