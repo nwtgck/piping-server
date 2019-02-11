@@ -94,26 +94,16 @@ describe("piping.Server", () => {
     });
 
     it("should not allow user to send the reserved paths", async () => {
-      // Send data to ""
-      const req1 = await thenRequest("POST", `${pipingUrl}`, {
-        body: "this is a content"
-      });
-      // Should be failed
-      assert.equal(req1.statusCode, 400);
+      const reservedPaths = ["", "/", "/version", "/help", "/favicon.ico"];
 
-      // Send data to "/"
-      const req2 = await thenRequest("POST", `${pipingUrl}/`, {
-        body: "this is a content"
-      });
-      // Should be failed
-      assert.equal(req2.statusCode, 400);
-
-      // Send data to "/version"
-      const req3 = await thenRequest("POST", `${pipingUrl}/`, {
-        body: "this is a content"
-      });
-      // Should be failed
-      assert.equal(req3.statusCode, 400);
+      for (const reservedPath of reservedPaths) {
+        // Send data to ""
+        const req = await thenRequest("POST", `${pipingUrl}${reservedPath}`, {
+          body: "this is a content"
+        });
+        // Should be failed
+        assert.equal(req.statusCode, 400);
+      }
     });
   });
 
