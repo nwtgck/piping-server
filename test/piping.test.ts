@@ -144,6 +144,25 @@ describe("piping.Server", () => {
     assert.equal(data.headers["content-type"], "text/plain");
   });
 
+  it("should pass sender's Content-Disposition to receivers' one", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      headers: {
+        "content-disposition": "attachment; filename=\"myfile.txt\""
+      },
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await reqPromise;
+
+    // Content-Disposition should be returned
+    assert.equal(data.headers["content-disposition"], "attachment; filename=\"myfile.txt\"");
+  });
+
   it("should have Access-Control-Allow-Origin headers in GET/POST response", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
