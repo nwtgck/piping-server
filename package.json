@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -37,7 +37,7 @@
     "@types/yargs": "^12.0.0",
     "espower-typescript": "^9.0.0",
     "get-port": "^4.0.0",
-    "mocha": "^5.0.5",
+    "mocha": "^6.0.0",
     "pkginfo": "^0.4.1",
     "power-assert": "^1.4.4",
     "request": "^2.88.0",

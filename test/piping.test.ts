@@ -144,6 +144,25 @@ describe("piping.Server", () => {
     assert.equal(data.headers["content-type"], "text/plain");
   });
 
+  it("should pass sender's Content-Disposition to receivers' one", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      headers: {
+        "content-disposition": "attachment; filename=\"myfile.txt\""
+      },
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await reqPromise;
+
+    // Content-Disposition should be returned
+    assert.equal(data.headers["content-disposition"], "attachment; filename=\"myfile.txt\"");
+  });
+
   it("should have Access-Control-Allow-Origin headers in GET/POST response", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
@@ -730,6 +749,29 @@ describe("piping.Server", () => {
       const getData1 = await getPromise1;
       assert.equal(getData1.statusCode, 200);
       assert.equal(getData1.headers["content-type"], "text/plain");
+    });
+
+    it("should pass sender's Content-Disposition to receivers' one", async () => {
+      const formData = {
+        "dummy form name": {
+          value: "this is a content",
+          options: {
+            filename: "myfile.txt"
+          }
+        }
+      };
+
+      // Send data
+      request.post({url: `${pipingUrl}/mydataid`, formData: formData});
+
+      await sleep(10);
+
+      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+      const getData1 = await getPromise1;
+      assert.equal(getData1.statusCode, 200);
+      const contentDisposition = "form-data; name=\"dummy form name\"; filename=\"myfile.txt\"";
+      assert.equal(getData1.headers["content-disposition"], contentDisposition);
     });
   });
 });
