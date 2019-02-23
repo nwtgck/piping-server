@@ -339,6 +339,11 @@ export class Server {
             ...(
               sender.req.headers["content-type"] === undefined ?
                 {} : {"Content-Type": sender.req.headers["content-type"]}
+            ),
+            // Add Content-Disposition if it exists
+            ...(
+              sender.req.headers["content-disposition"] === undefined ?
+                {} : {"Content-Disposition": sender.req.headers["content-disposition"]}
             )
           } :
           {
@@ -351,6 +356,11 @@ export class Server {
             ...(
               part.headers["content-type"] === undefined ?
                 {} : {"Content-Type": part.headers["content-type"]}
+            )
+            ,
+            ...(
+              part.headers["content-disposition"] === undefined ?
+                {} : {"Content-Disposition": part.headers["content-disposition"]}
             )
           };
 
