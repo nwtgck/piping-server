@@ -67,7 +67,8 @@ const NAME_TO_RESERVED_PATH = {
   index: "/",
   version: "/version",
   help: "/help",
-  faviconIco: "/favicon.ico"
+  faviconIco: "/favicon.ico",
+  robotsTxt: "/robots.txt"
 };
 
 const indexPage: string =
@@ -261,6 +262,9 @@ export class Server {
               res.writeHead(204);
               res.end();
               break;
+            case NAME_TO_RESERVED_PATH.robotsTxt:
+              res.writeHead(404);
+              res.end();
             default:
               // Handle a receiver
               this.handleReceiver(req, res, reqPath);
