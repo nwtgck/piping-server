@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.8.10] - 2019-02-24
+### Changed
+* Not to allow user to send "/robots.txt" and return 404 when user access to "/rebots.txt"
+
 ## [0.8.9] - 2019-02-23
 ### Added
 * Pass sender's Content-Disposition to receivers' one in both POST/PUT and multipart
@@ -134,7 +138,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.9...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.10...HEAD
+[0.8.10]: https://github.com/nwtgck/piping-seraver/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/nwtgck/piping-seraver/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/nwtgck/piping-seraver/compare/v0.8.7...v0.8.8
 [0.8.7]: https://github.com/nwtgck/piping-seraver/compare/v0.8.6...v0.8.7
