@@ -93,8 +93,16 @@ describe("piping.Server", () => {
       assert.equal(res.statusCode, 204);
     });
 
+    it("should return no robots.txt", async () => {
+      // Get response
+      const res = await thenRequest("GET", `${pipingUrl}/robots.txt`);
+
+      // Status should not be found
+      assert.equal(res.statusCode, 404);
+    });
+
     it("should not allow user to send the reserved paths", async () => {
-      const reservedPaths = ["", "/", "/version", "/help", "/favicon.ico"];
+      const reservedPaths = ["", "/", "/version", "/help", "/favicon.ico", "/robots.txt"];
 
       for (const reservedPath of reservedPaths) {
         // Send data to ""
