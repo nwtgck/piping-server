@@ -324,16 +324,10 @@ export class Server {
         }
       };
 
-      // Common headers for receivers
-      const commonHeaders: http.OutgoingHttpHeaders = {
-        "Access-Control-Allow-Origin": "*"
-      };
-
       const headers: http.OutgoingHttpHeaders =
         // If not multi-part sending
         part === undefined ?
           {
-            ...commonHeaders,
             // Add Content-Length if it exists
             ...(
               sender.req.headers["content-length"] === undefined ?
@@ -351,7 +345,6 @@ export class Server {
             )
           } :
           {
-            ...commonHeaders,
             // Add Content-Length if it exists
             ...(
               part.byteCount === undefined ?
@@ -369,7 +362,12 @@ export class Server {
           };
 
       // Write headers to a receiver
-      receiver.res.writeHead(200, headers);
+      receiver.res.writeHead(200, {
+        ...{
+          "Access-Control-Allow-Origin": "*"
+        },
+        ...headers
+      });
 
       const passThrough = new stream.PassThrough();
       senderData.pipe(passThrough);
