@@ -175,6 +175,8 @@ describe("piping.Server", () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
+    await sleep(10);
+
     // Send data
     const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, {
       body: "this is a content"
