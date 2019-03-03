@@ -15,7 +15,7 @@ type ReqRes = {
 
 type Pipe = {
   readonly sender: ReqRes;
-  readonly receivers: ReqRes[];
+  readonly receivers: ReadonlyArray<ReqRes>;
 };
 
 type ReqResAndUnsubscribe = {
