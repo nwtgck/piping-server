@@ -272,7 +272,7 @@ export class Server {
           }
           break;
         default:
-          res.end(`Error: Unsupported method: ${req.method}\n`);
+          res.end(`[ERROR] Unsupported method: ${req.method}.\n`);
           break;
       }
     };
@@ -292,6 +292,9 @@ export class Server {
     delete this.pathToUnestablishedPipe[path];
 
     const {sender, receivers} = pipe;
+
+    // Emit message to sender
+    sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receiver(s)!\n`);
 
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
 
@@ -397,13 +400,13 @@ export class Server {
     });
 
     senderData.on("end", () => {
-      sender.res.end("[INFO] Sending Successful!\n");
+      sender.res.end("[INFO] Sending successful!\n");
       // Delete from established
       delete this.pathToEstablished[path];
     });
 
     senderData.on("error", (error) => {
-      sender.res.end("[ERROR] Sending Failed.\n");
+      sender.res.end("[ERROR] Sending failed.\n");
       // Delete from established
       delete this.pathToEstablished[path];
     });
@@ -452,14 +455,12 @@ export class Server {
               getPipeIfEstablished(unestablishedPipe);
 
             if (pipe !== undefined) {
-              // Emit message to sender
-              res.write("Start sending!\n");
               // Start data transfer
               this.runPipe(reqPath, pipe);
             }
           } else {
             res.writeHead(400);
-            res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+            res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
           }
         } else {
           res.writeHead(400);
@@ -495,7 +496,7 @@ export class Server {
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
     } else if (reqPath in this.pathToEstablished) {
       res.writeHead(400);
-      res.end(`Error: Connection on '${reqPath}' has been established already.\n`);
+      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
     } else {
       // If the path connection is connecting
       if (reqPath in this.pathToUnestablishedPipe) {
@@ -520,18 +521,16 @@ export class Server {
               getPipeIfEstablished(unestablishedPipe);
 
             if (pipe !== undefined) {
-              // Emit message to sender
-              pipe.sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receiver(s)!\n`);
               // Start data transfer
               this.runPipe(reqPath, pipe);
             }
           } else {
             res.writeHead(400);
-            res.end("Error: The number of receivers has reached limits.\n");
+            res.end("[ERROR] The number of receivers has reached limits.\n");
           }
         } else {
           res.writeHead(400);
-          res.end(`Error: The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+          res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
         }
       } else {
         // Create a receiver
