@@ -1,13 +1,10 @@
 import * as getPort from "get-port";
 import * as http from "http";
-import * as pkginfo from "pkginfo";
 import * as assert from "power-assert";
 import * as request from "request";
 import thenRequest from "then-request";
 import * as piping from "../src/piping";
-
-// Set module.exports.version
-pkginfo(module, "version");
+import {VERSION} from "../src/version";
 
 /**
  * Listen on the specify port
@@ -74,7 +71,7 @@ describe("piping.Server", () => {
 
       // Body should be index page
       // (from: https://stackoverflow.com/a/22339262/2885946)
-      assert.equal(res.getBody("UTF-8"), module.exports.version + "\n");
+      assert.equal(res.getBody("UTF-8"), VERSION + "\n");
     });
 
     it("should return help page", async () => {
