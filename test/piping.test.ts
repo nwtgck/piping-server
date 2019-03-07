@@ -26,7 +26,7 @@ function listenPromise(server: http.Server, port: number): Promise<void> {
  */
 function closePromise(server: http.Server): Promise<void> {
   return new Promise<void>((resolve) => {
-    server.close(resolve);
+    server.close(() => resolve());
   });
 }
 
