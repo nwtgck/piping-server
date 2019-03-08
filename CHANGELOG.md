@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.9.0] - 2019-03-08
+### Changed
+* Make logs for sender consistent
+* Update dependencies
+
 ## [0.8.10] - 2019-02-24
 ### Changed
 * Not to allow user to send "/robots.txt" and return 404 when user access to "/rebots.txt"
@@ -138,7 +143,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.8.10...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/nwtgck/piping-seraver/compare/v0.8.10...v0.9.0
 [0.8.10]: https://github.com/nwtgck/piping-seraver/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/nwtgck/piping-seraver/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/nwtgck/piping-seraver/compare/v0.8.7...v0.8.8
