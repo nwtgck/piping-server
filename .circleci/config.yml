@@ -29,14 +29,21 @@ jobs:
       - run:
           name: Working test with Docker image
           command: |
+            set -x
             # Run a server
             docker run -d -p 8080:8080 piping-server
             # Wait for server running
             sleep 1
+            # Create a file to send
+            echo 'hello, world' > /tmp/hello.txt
             # Send and wait for a reciever
-            curl --data-binary 'hello, world' localhost:8080/mypath &
-            # Get data
-            curl localhost:8080/mypath
+            curl -T /tmp/hello.txt localhost:8080/mypath &
+            # Get data as a file
+            curl localhost:8080/mypath > /tmp/download.txt
+            # Print downloaded file
+            cat  /tmp/download.txt
+            # Test the equality
+            diff /tmp/hello.txt /tmp/download.txt
 
   # (from: https://circleci.com/blog/publishing-npm-packages-using-circleci-2-0/)
   npm_publish:

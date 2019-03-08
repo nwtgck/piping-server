@@ -1,13 +1,10 @@
 import * as getPort from "get-port";
 import * as http from "http";
-import * as pkginfo from "pkginfo";
 import * as assert from "power-assert";
 import * as request from "request";
 import thenRequest from "then-request";
 import * as piping from "../src/piping";
-
-// Set module.exports.version
-pkginfo(module, "version");
+import {VERSION} from "../src/version";
 
 /**
  * Listen on the specify port
@@ -26,7 +23,7 @@ function listenPromise(server: http.Server, port: number): Promise<void> {
  */
 function closePromise(server: http.Server): Promise<void> {
   return new Promise<void>((resolve) => {
-    server.close(resolve);
+    server.close(() => resolve());
   });
 }
 
@@ -74,7 +71,7 @@ describe("piping.Server", () => {
 
       // Body should be index page
       // (from: https://stackoverflow.com/a/22339262/2885946)
-      assert.equal(res.getBody("UTF-8"), module.exports.version + "\n");
+      assert.equal(res.getBody("UTF-8"), VERSION + "\n");
     });
 
     it("should return help page", async () => {
@@ -174,6 +171,8 @@ describe("piping.Server", () => {
   it("should have Access-Control-Allow-Origin headers in GET/POST response", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    await sleep(10);
 
     // Send data
     const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, {
