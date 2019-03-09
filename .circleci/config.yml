@@ -31,7 +31,7 @@ jobs:
           command: |
             set -x
             # Run a server
-            docker run -d -p 8080:8080 piping-server
+            docker run -d -p 8080:80 piping-server --http-port=80
             # Wait for server running
             sleep 1
             # Create a file to send
