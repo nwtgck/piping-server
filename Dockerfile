@@ -2,6 +2,8 @@ FROM node:10.15-alpine
 
 LABEL maintainer="Ryo Ota <nwtgck@gmail.com>"
 
+RUN apk add --no-cache tini
+
 COPY . /app
 
 # Move to /app
@@ -13,5 +15,5 @@ RUN npm install && \
     npm run build && \
     npm prune --production
 
-# Run entry (Run the server)
-ENTRYPOINT ["node", "dist/src/index.js"]
+# Run a server
+ENTRYPOINT [ "tini", "--", "node", "dist/src/index.js" ]
