@@ -98,12 +98,17 @@ Options:
 Run a Piping server on <http://localhost:8181> by the following command.
 
 ```bash
-docker run -it -p 8181:8080 nwtgck/piping-server
+docker run -p 8181:8080 nwtgck/piping-server
 ```
 
-You can also specify options like the following.
+You can also specify an option like the following.
 
 ```bash
-docker run -it -p 8181:80 nwtgck/piping-server --http-port=80
+docker run -p 8181:80 nwtgck/piping-server --http-port=80
 ```
 
+You can run a server in background and it automatically always restarts.
+
+```bash
+docker run -p 8181:80 -d --restart=always nwtgck/piping-server --http-port=80
+```
