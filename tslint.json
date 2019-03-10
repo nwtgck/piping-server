@@ -15,7 +15,8 @@
                 "singleline": "never"
             }
         ],
-        "object-literal-shorthand": false
+        "object-literal-shorthand": false,
+        "triple-equals": true
     },
     "rulesDirectory": []
 }

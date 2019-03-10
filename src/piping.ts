@@ -238,10 +238,19 @@ export class Server {
         case "GET":
           switch (reqPath) {
             case NAME_TO_RESERVED_PATH.index:
+              res.writeHead(200, {
+                "Content-Length": Buffer.byteLength(indexPage),
+                "Content-Type": "text/html"
+              });
               res.end(indexPage);
               break;
             case NAME_TO_RESERVED_PATH.version:
-              res.end(VERSION + "\n");
+              const versionPage: string = VERSION + "\n";
+              res.writeHead(200, {
+                "Content-Length": Buffer.byteLength(versionPage),
+                "Content-Type": "text/plain"
+              });
+              res.end(versionPage);
               break;
             case NAME_TO_RESERVED_PATH.help:
               // x-forwarded-proto is https or not
@@ -255,7 +264,13 @@ export class Server {
               const hostname: string = req.headers.host || "hostname";
               // tslint:disable-next-line:no-shadowed-variable
               const url = `${scheme}://${hostname}`;
-              res.end(generateHelpPage(url));
+
+              const helpPage: string = generateHelpPage(url);
+              res.writeHead(200, {
+                "Content-Length": Buffer.byteLength(helpPage),
+                "Content-Type": "text/plain"
+              });
+              res.end(helpPage);
               break;
             case NAME_TO_RESERVED_PATH.faviconIco:
               // (from: https://stackoverflow.com/a/35408810/2885946)
