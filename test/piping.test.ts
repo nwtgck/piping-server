@@ -63,6 +63,14 @@ describe("piping.Server", () => {
       // Body should be index page
       assert.equal(res1.getBody("UTF-8").includes("Piping"), true);
       assert.equal(res2.getBody("UTF-8").includes("Piping"), true);
+
+      // Should have "Content-Length"
+      assert.strictEqual(res1.headers["content-length"], Buffer.byteLength(res1.getBody("UTF-8")).toString());
+      assert.strictEqual(res2.headers["content-length"], Buffer.byteLength(res2.getBody("UTF-8")).toString());
+
+      // Should have "Content-Type"
+      assert.strictEqual(res1.headers["content-type"], "text/html");
+      assert.strictEqual(res2.headers["content-type"], "text/html");
     });
 
     it("should return version page", async () => {
@@ -72,11 +80,21 @@ describe("piping.Server", () => {
       // Body should be index page
       // (from: https://stackoverflow.com/a/22339262/2885946)
       assert.equal(res.getBody("UTF-8"), VERSION + "\n");
+
+      // Should have "Content-Length"
+      assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
+      // Should have "Content-Type"
+      assert.strictEqual(res.headers["content-type"], "text/plain");
     });
 
     it("should return help page", async () => {
       // Get response
       const res = await thenRequest("GET", `${pipingUrl}/help`);
+
+      // Should have "Content-Length"
+      assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
+      // Should have "Content-Type"
+      assert.strictEqual(res.headers["content-type"], "text/plain");
 
       // Status should be OK
       assert.equal(res.statusCode, 200);
