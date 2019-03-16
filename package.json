@@ -8,7 +8,7 @@
   "main": "dist/src/piping.js",
   "types": "dist/src/piping.d.ts",
   "scripts": {
-    "generate-version": "echo \"export const VERSION = \\\"$npm_package_version\\\";\" > src/version.ts",
+    "generate-version": "cross-var echo \"export const VERSION = \\\"$npm_package_version\\\";\" > src/version.ts",
     "build": "npm run generate-version && tsc",
     "start": "npm run build && node dist/src/index.js",
     "lint": "tslint 'src/**/*.ts' && tslint 'test/**/*.ts'",
@@ -35,6 +35,7 @@
     "@types/power-assert": "^1.5.0",
     "@types/request": "^2.48.1",
     "@types/yargs": "^12.0.0",
+    "cross-var": "^1.1.0",
     "espower-typescript": "^9.0.0",
     "get-port": "^4.0.0",
     "mocha": "^6.0.0",
