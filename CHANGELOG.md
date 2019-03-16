@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.9.2] - 2019-03-16
+### Fixed
+* Fix for running server on Windows
+
 ## [0.9.1] - 2019-03-10
 ### Fixed
 * Allow user to ctrl-c to terminate piping-server docker container
@@ -149,7 +153,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/nwtgck/piping-seraver/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/nwtgck/piping-seraver/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/nwtgck/piping-seraver/compare/v0.8.10...v0.9.0
 [0.8.10]: https://github.com/nwtgck/piping-seraver/compare/v0.8.9...v0.8.10
