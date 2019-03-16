@@ -214,7 +214,7 @@ export class Server {
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
       // Get path name
       const reqPath: string =
-          path.resolve(
+          url.resolve(
               "/",
               opt(optMap(url.parse, opt(req.url)).pathname)
               // Remove last "/"
