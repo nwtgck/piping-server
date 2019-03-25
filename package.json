@@ -29,7 +29,6 @@
   "author": "Ryo Ota",
   "license": "MIT",
   "devDependencies": {
-    "@types/get-port": "4.0.0",
     "@types/mocha": "^5.0.0",
     "@types/node": "^10.12.21",
     "@types/power-assert": "^1.5.0",
