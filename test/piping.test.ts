@@ -1,4 +1,4 @@
-import * as getPort from "get-port";
+import getPort from "get-port";
 import * as http from "http";
 import * as assert from "power-assert";
 import * as request from "request";
@@ -205,6 +205,27 @@ describe("piping.Server", () => {
 
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(data.headers["access-control-allow-origin"], "*");
+  });
+
+  it("should have Access-Control-Allow-Origin headers in POST/GET response", async () => {
+    // Send data
+    const postResPromise = thenRequest("POST", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    await sleep(10);
+
+    // Get request promise
+    const getRes = await thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Headers of GET response should have Access-Control-Allow-Origin
+    assert.strictEqual(getRes.headers["access-control-allow-origin"], "*");
+
+    // Get response
+    const postRes = await postResPromise;
+
+    // Headers of POST response should have Access-Control-Allow-Origin
+    assert.strictEqual(postRes.headers["access-control-allow-origin"], "*");
   });
 
   it("should handle connection (sender: O, receiver: O)", async () => {
