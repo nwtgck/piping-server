@@ -482,6 +482,10 @@ export class Server {
           res.end(`[ERROR] Another sender has been registered on '${reqPath}'.\n`);
         }
       } else {
+        // Add headers
+        res.writeHead(200, {
+          "Access-Control-Allow-Origin": "*"
+        });
         // Send waiting message
         res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
         // Create a sender
