@@ -130,6 +130,19 @@ describe("piping.Server", () => {
     });
   });
 
+  it("should support Preflight request", async () => {
+    const res = await thenRequest("OPTIONS", `${pipingUrl}/mydataid`);
+
+    assert.strictEqual(res.statusCode, 200);
+
+    const headers = res.headers;
+    assert.strictEqual(headers["access-control-allow-origin"], "*");
+    assert.strictEqual(headers["access-control-allow-methods"], "GET, HEAD, POST, PUT, OPTIONS");
+    assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition");
+    assert.strictEqual(headers["access-control-max-age"], "86400");
+    assert.strictEqual(headers["content-length"], "0");
+  });
+
   it("should handle connection (receiver O, sender: O)", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
