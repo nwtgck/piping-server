@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -26,7 +26,7 @@
     "type": "git",
     "url": "https://github.com/nwtgck/piping-server"
   },
-  "author": "Ryo Ota",
+  "author": "Ryo Ota <nwtgck@gmail.com> (https://github.com/nwtgck)",
   "license": "MIT",
   "devDependencies": {
     "@types/mocha": "^5.0.0",
