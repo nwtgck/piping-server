@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.9.4] - 2019-04-05
+### Changed
+* Support Preflight request
+
 ## [0.9.3] - 2019-03-31
 ### Fixed
 * Fix sender's header to have "Access-Control-Allow-Origin: *" when an access order is "sender => receiver"
@@ -157,7 +161,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.9.3...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.9.4...HEAD
+[0.9.4]: https://github.com/nwtgck/piping-server/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/nwtgck/piping-server/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/nwtgck/piping-server/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/nwtgck/piping-server/compare/v0.9.0...v0.9.1
