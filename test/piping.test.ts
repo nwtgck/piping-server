@@ -1,4 +1,4 @@
-import getPort from "get-port";
+import * as getPort from "get-port";
 import * as http from "http";
 import * as assert from "power-assert";
 import * as request from "request";
