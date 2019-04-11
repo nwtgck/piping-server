@@ -3,7 +3,7 @@
 
 import * as fs from "fs";
 import * as http from "http";
-import * as http2 from 'http2';
+import * as http2 from "http2";
 import * as yargs from "yargs";
 
 import * as piping from "./piping";

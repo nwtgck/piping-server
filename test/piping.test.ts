@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import * as getPort from "get-port";
 import * as http from "http";
 import * as http2 from "http2";
@@ -6,7 +7,6 @@ import * as request from "request";
 import thenRequest from "then-request";
 import * as piping from "../src/piping";
 import {VERSION} from "../src/version";
-import * as fs from "fs";
 
 /**
  * Listen on the specify port
@@ -165,21 +165,21 @@ describe("piping.Server", () => {
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
     // Get available port
-    const pipingPort = await getPort();
+    const http2PipingPort = await getPort();
     // Define Piping URL
-    const pipingUrl = `http://localhost:${pipingPort}`;
+    const http2PipingUrl = `http://localhost:${http2PipingPort}`;
     // Create a Piping server on HTTP/2
-    const pipingServer = http2.createServer(new piping.Server(false).generateHandler(false));
+    const http2PipingServer = http2.createServer(new piping.Server(false).generateHandler(false));
     const sessions: http2.Http2Session[] = [];
-    pipingServer.on('session', session => sessions.push(session));
-    await listenPromise(pipingServer, pipingPort);
+    http2PipingServer.on("session", (session) => sessions.push(session));
+    await listenPromise(http2PipingServer, http2PipingPort);
 
     // Get request
-    const getReq = http2.connect(`${pipingUrl}`)
+    const getReq = http2.connect(`${http2PipingUrl}`)
       .request({
         [http2.constants.HTTP2_HEADER_SCHEME]: "http",
         [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_GET,
-        [http2.constants.HTTP2_HEADER_PATH]: `/mydataid`,
+        [http2.constants.HTTP2_HEADER_PATH]: `/mydataid`
       });
 
     await sleep(10);
@@ -187,21 +187,21 @@ describe("piping.Server", () => {
     // Post data
     const bodyBuffer = Buffer.from("this is a content");
     // (base: https://stackoverflow.com/a/48705842/2885946)
-    const postReq = http2.connect(`${pipingUrl}`)
+    const postReq = http2.connect(`${http2PipingUrl}`)
       .request({
         [http2.constants.HTTP2_HEADER_SCHEME]: "http",
         [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_POST,
         [http2.constants.HTTP2_HEADER_PATH]: `/mydataid`,
-        "Content-Length": bodyBuffer.length,
+        "Content-Length": bodyBuffer.length
       });
     postReq.write(bodyBuffer);
     postReq.end();
 
     // Get data
-    const getBody = await new Promise(resolve => {
+    const getBody = await new Promise((resolve) => {
       const chunks: Buffer[] = [];
-      getReq.on("data", (data)=> chunks.push(data));
-      getReq.on("end", ()=> resolve(Buffer.concat(chunks)));
+      getReq.on("data", (data) => chunks.push(data));
+      getReq.on("end", () => resolve(Buffer.concat(chunks)));
     });
 
     // // Body should be the sent data
@@ -211,7 +211,7 @@ describe("piping.Server", () => {
     for (const session of sessions) {
       session.destroy();
     }
-    await closePromise(pipingServer);
+    await closePromise(http2PipingServer);
   });
 
   it("should pass sender's Content-Type to receivers' one", async () => {

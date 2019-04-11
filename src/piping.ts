@@ -494,7 +494,9 @@ export class Server {
             }
           } else {
             res.writeHead(400);
-            res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any);
+            res.end(
+              `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
+            );
           }
         } else {
           res.writeHead(400);
@@ -568,7 +570,9 @@ export class Server {
           }
         } else {
           res.writeHead(400);
-          res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any);
+          res.end(
+            `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
+          );
         }
       } else {
         // Create a receiver
