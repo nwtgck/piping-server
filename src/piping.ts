@@ -1,4 +1,5 @@
 import * as http from "http";
+import * as http2 from "http2";
 import * as multiparty from "multiparty";
 import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
@@ -8,9 +9,12 @@ import * as path from "path";
 import {opt, optMap} from "./utils";
 import {VERSION} from "./version";
 
+type HttpReq = http.IncomingMessage | http2.Http2ServerRequest;
+type HttpRes = http.ServerResponse | http2.Http2ServerResponse;
+
 type ReqRes = {
-  readonly req: http.IncomingMessage,
-  readonly res: http.ServerResponse
+  readonly req: HttpReq,
+  readonly res: HttpRes
 };
 
 type Pipe = {
@@ -28,6 +32,8 @@ type UnestablishedPipe = {
   receivers: ReqResAndUnsubscribe[];
   nReceivers: number;
 };
+
+type Handler = (req: HttpReq, res: HttpRes) => void;
 
 /**
  * Convert unestablished pipe to pipe if it is established
@@ -210,8 +216,8 @@ export class Server {
   constructor(readonly enableLog: boolean) {
   }
 
-  public generateHandler(useHttps: boolean): (req: http.IncomingMessage, res: http.ServerResponse) => void {
-    return (req: http.IncomingMessage, res: http.ServerResponse) => {
+  public generateHandler(useHttps: boolean): Handler {
+    return (req: HttpReq, res: HttpRes) => {
       // Get path name
       const reqPath: string =
           url.resolve(
@@ -229,7 +235,7 @@ export class Server {
         case "PUT":
           if (RESERVED_PATHS.includes(reqPath)) {
             res.writeHead(400);
-            res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
+            res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n` as any);
           } else {
             // Handle a sender
             this.handleSender(req, res, reqPath);
@@ -242,7 +248,7 @@ export class Server {
                 "Content-Length": Buffer.byteLength(indexPage),
                 "Content-Type": "text/html"
               });
-              res.end(indexPage);
+              res.end(indexPage as any);
               break;
             case NAME_TO_RESERVED_PATH.version:
               const versionPage: string = VERSION + "\n";
@@ -250,7 +256,7 @@ export class Server {
                 "Content-Length": Buffer.byteLength(versionPage),
                 "Content-Type": "text/plain"
               });
-              res.end(versionPage);
+              res.end(versionPage as any);
               break;
             case NAME_TO_RESERVED_PATH.help:
               // x-forwarded-proto is https or not
@@ -270,7 +276,7 @@ export class Server {
                 "Content-Length": Buffer.byteLength(helpPage),
                 "Content-Type": "text/plain"
               });
-              res.end(helpPage);
+              res.end(helpPage as any);
               break;
             case NAME_TO_RESERVED_PATH.faviconIco:
               // (from: https://stackoverflow.com/a/35408810/2885946)
@@ -296,7 +302,7 @@ export class Server {
           });
           res.end();
         default:
-          res.end(`[ERROR] Unsupported method: ${req.method}.\n`);
+          res.end(`[ERROR] Unsupported method: ${req.method}.\n` as any);
           break;
       }
     };
@@ -329,7 +335,8 @@ export class Server {
           form.once("part", (p: multiparty.Part) => {
             resolve(p);
           });
-          form.parse(sender.req);
+          // TODO: Not use any
+          form.parse(sender.req as any);
         }) :
         undefined;
 
@@ -344,10 +351,10 @@ export class Server {
         senderData.unpipe(passThrough);
         // If close-count is # of receivers
         if (closeCount === receivers.length) {
-          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
+          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n" as any);
           delete this.pathToEstablished[path];
           // Close sender
-          sender.req.connection.destroy();
+          sender.req.destroy();
         }
       };
 
@@ -398,7 +405,8 @@ export class Server {
 
       const passThrough = new stream.PassThrough();
       senderData.pipe(passThrough);
-      passThrough.pipe(receiver.res);
+      // TODO: Not use any
+      passThrough.pipe(receiver.res as any);
       receiver.req.on("close", () => {
         if (this.enableLog) {
           console.log("on-close");
@@ -424,13 +432,13 @@ export class Server {
     });
 
     senderData.on("end", () => {
-      sender.res.end("[INFO] Sending successful!\n");
+      sender.res.end("[INFO] Sending successful!\n" as any);
       // Delete from established
       delete this.pathToEstablished[path];
     });
 
     senderData.on("error", (error) => {
-      sender.res.end("[ERROR] Sending failed.\n");
+      sender.res.end("[ERROR] Sending failed.\n" as any);
       // Delete from established
       delete this.pathToEstablished[path];
     });
@@ -438,20 +446,20 @@ export class Server {
 
   /**
    * Handle a sender
-   * @param {"http".IncomingMessage} req
-   * @param {"http".ServerResponse} res
+   * @param {HttpReq} req
+   * @param {HttpRes} res
    * @param {string} reqPath
    */
-  private handleSender(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): void {
+  private handleSender(req: HttpReq, res: HttpRes, reqPath: string): void {
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(req.url);
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400);
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
+      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
     } else if (reqPath in this.pathToEstablished) {
       res.writeHead(400);
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
+      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
     } else {
       if (this.enableLog) {
         console.log(this.pathToUnestablishedPipe);
@@ -484,11 +492,11 @@ export class Server {
             }
           } else {
             res.writeHead(400);
-            res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+            res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any);
           }
         } else {
           res.writeHead(400);
-          res.end(`[ERROR] Another sender has been registered on '${reqPath}'.\n`);
+          res.end(`[ERROR] Another sender has been registered on '${reqPath}'.\n` as any);
         }
       } else {
         // Add headers
@@ -511,20 +519,20 @@ export class Server {
 
   /**
    * Handle a receiver
-   * @param {"http".IncomingMessage} req
-   * @param {"http".ServerResponse} res
+   * @param {HttpReq} req
+   * @param {HttpReqs} res
    * @param {string} reqPath
    */
-  private handleReceiver(req: http.IncomingMessage, res: http.ServerResponse, reqPath: string): void {
+  private handleReceiver(req: HttpReq, res: HttpRes, reqPath: string): void {
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(req.url);
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400);
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
+      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
     } else if (reqPath in this.pathToEstablished) {
       res.writeHead(400);
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
+      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
     } else {
       // If the path connection is connecting
       if (reqPath in this.pathToUnestablishedPipe) {
@@ -554,11 +562,11 @@ export class Server {
             }
           } else {
             res.writeHead(400);
-            res.end("[ERROR] The number of receivers has reached limits.\n");
+            res.end("[ERROR] The number of receivers has reached limits.\n" as any);
           }
         } else {
           res.writeHead(400);
-          res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+          res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any);
         }
       } else {
         // Create a receiver
@@ -584,8 +592,8 @@ export class Server {
    */
   private createSenderOrReceiver(
     removerType: "sender" | "receiver",
-    req: http.IncomingMessage,
-    res: http.ServerResponse,
+    req: HttpReq,
+    res: HttpRes,
     reqPath: string
   ): ReqResAndUnsubscribe {
     // Create receiver req&res
