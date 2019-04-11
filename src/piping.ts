@@ -427,7 +427,9 @@ export class Server {
       }
       for (const receiver of receivers) {
         // Close a receiver
-        receiver.res.connection.destroy();
+        if (receiver.res.connection !== undefined) {
+          receiver.res.connection.destroy();
+        }
       }
     });
 

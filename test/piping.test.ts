@@ -1,17 +1,19 @@
 import * as getPort from "get-port";
 import * as http from "http";
+import * as http2 from "http2";
 import * as assert from "power-assert";
 import * as request from "request";
 import thenRequest from "then-request";
 import * as piping from "../src/piping";
 import {VERSION} from "../src/version";
+import * as fs from "fs";
 
 /**
  * Listen on the specify port
  * @param server
  * @param port
  */
-function listenPromise(server: http.Server, port: number): Promise<void> {
+function listenPromise(server: http.Server | http2.Http2Server, port: number): Promise<void> {
   return new Promise<void>((resolve) => {
     server.listen(port, resolve);
   });
@@ -21,7 +23,7 @@ function listenPromise(server: http.Server, port: number): Promise<void> {
  * Close the server
  * @param server
  */
-function closePromise(server: http.Server): Promise<void> {
+function closePromise(server: http.Server | http2.Http2Server): Promise<void> {
   return new Promise<void>((resolve) => {
     server.close(() => resolve());
   });
@@ -159,6 +161,57 @@ describe("piping.Server", () => {
     assert.strictEqual(data.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
+  });
+
+  it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
+    // Get available port
+    const pipingPort = await getPort();
+    // Define Piping URL
+    const pipingUrl = `http://localhost:${pipingPort}`;
+    // Create a Piping server on HTTP/2
+    const pipingServer = http2.createServer(new piping.Server(false).generateHandler(false));
+    const sessions: http2.Http2Session[] = [];
+    pipingServer.on('session', session => sessions.push(session));
+    await listenPromise(pipingServer, pipingPort);
+
+    // Get request
+    const getReq = http2.connect(`${pipingUrl}`)
+      .request({
+        [http2.constants.HTTP2_HEADER_SCHEME]: "http",
+        [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_GET,
+        [http2.constants.HTTP2_HEADER_PATH]: `/mydataid`,
+      });
+
+    await sleep(10);
+
+    // Post data
+    const bodyBuffer = Buffer.from("this is a content");
+    // (base: https://stackoverflow.com/a/48705842/2885946)
+    const postReq = http2.connect(`${pipingUrl}`)
+      .request({
+        [http2.constants.HTTP2_HEADER_SCHEME]: "http",
+        [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_POST,
+        [http2.constants.HTTP2_HEADER_PATH]: `/mydataid`,
+        "Content-Length": bodyBuffer.length,
+      });
+    postReq.write(bodyBuffer);
+    postReq.end();
+
+    // Get data
+    const getBody = await new Promise(resolve => {
+      const chunks: Buffer[] = [];
+      getReq.on("data", (data)=> chunks.push(data));
+      getReq.on("end", ()=> resolve(Buffer.concat(chunks)));
+    });
+
+    // // Body should be the sent data
+    assert.strictEqual(getBody.toString(), bodyBuffer.toString());
+
+    // (from: https://github.com/nodejs/node/issues/18176#issuecomment-358482149)
+    for (const session of sessions) {
+      session.destroy();
+    }
+    await closePromise(pipingServer);
   });
 
   it("should pass sender's Content-Type to receivers' one", async () => {
