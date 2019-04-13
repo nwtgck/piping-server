@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.10.0] - 2019-04-13
+### Added
+* Support HTTP/2 over HTTPS 
+
 ## [0.9.4] - 2019-04-05
 ### Changed
 * Support Preflight request
@@ -161,7 +165,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.9.4...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/nwtgck/piping-server/compare/v0.9.4...v0.10.0
 [0.9.4]: https://github.com/nwtgck/piping-server/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/nwtgck/piping-server/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/nwtgck/piping-server/compare/v0.9.1...v0.9.2

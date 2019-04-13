@@ -3,7 +3,7 @@
 
 import * as fs from "fs";
 import * as http from "http";
-import * as https from "https";
+import * as http2 from "http2";
 import * as yargs from "yargs";
 
 import * as piping from "./piping";
@@ -57,7 +57,7 @@ if (enableHttps && httpsPort !== undefined) {
   if (serverKeyPath === undefined || serverCrtPath === undefined) {
     console.error("Error: --key-path and --crt-path should be specified");
   } else {
-    https.createServer(
+    http2.createSecureServer(
       {
         key: fs.readFileSync(serverKeyPath),
         cert: fs.readFileSync(serverCrtPath)
