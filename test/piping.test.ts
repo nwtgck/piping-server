@@ -161,6 +161,7 @@ describe("piping.Server", () => {
     assert.strictEqual(data.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
@@ -252,7 +253,7 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-disposition"], "attachment; filename=\"myfile.txt\"");
   });
 
-  it("should have Access-Control-Allow-Origin headers in GET/POST response", async () => {
+  it("should have Access-Control-Allow-Origin/Access-Control-Expose-Headers headers in GET/POST response", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
@@ -271,9 +272,11 @@ describe("piping.Server", () => {
 
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(data.headers["access-control-allow-origin"], "*");
+    // Headers of GET response should have Access-Control-Expose-Headers
+    assert.strictEqual(data.headers["access-control-expose-headers"], "Content-Length, Content-Type");
   });
 
-  it("should have Access-Control-Allow-Origin headers in POST/GET response", async () => {
+  it("should have Access-Control-Allow-Origin/Access-Control-Expose-Headers headers in POST/GET response", async () => {
     // Send data
     const postResPromise = thenRequest("POST", `${pipingUrl}/mydataid`, {
       body: "this is a content"
@@ -286,6 +289,8 @@ describe("piping.Server", () => {
 
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(getRes.headers["access-control-allow-origin"], "*");
+    // Headers of GET response should have Access-Control-Expose-Headers
+    assert.strictEqual(getRes.headers["access-control-expose-headers"], "Content-Length, Content-Type");
 
     // Get response
     const postRes = await postResPromise;
