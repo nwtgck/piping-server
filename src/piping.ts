@@ -398,7 +398,8 @@ export class Server {
       // Write headers to a receiver
       receiver.res.writeHead(200, {
         ...{
-          "Access-Control-Allow-Origin": "*"
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Expose-Headers": "Content-Length, Content-Type"
         },
         ...headers
       });
