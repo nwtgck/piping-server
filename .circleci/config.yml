@@ -10,6 +10,11 @@ ANCHORS:
 
 version: 2
 jobs:
+  node_12:
+    docker:
+      - image: circleci/node:12
+    <<: *node_steps
+
   node_10:
     docker:
       - image: circleci/node:10
@@ -61,6 +66,10 @@ workflows:
   version: 2
   node_tests:
     jobs:
+      - node_12:
+          filters:
+            tags:
+              only: /.*/
       - node_10:
           filters:
             tags:
@@ -72,6 +81,7 @@ workflows:
       - docker_test
       - npm_publish:
           requires:
+            - node_12
             - node_10
             - node_8
           filters:
