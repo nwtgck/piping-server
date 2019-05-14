@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.10.2] - 2019-05-14
+### Changed
+* Update dependencies
+
 ## [0.10.1] - 2019-04-23
 ### Changed
 * Expose Content-Length and Content-Length by Access-Control-Expose-Headers
@@ -33,7 +37,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.0] - 2019-03-08
 ### Changed
-* Make logs for sender consistent
+* Make logs for sednder consistent
 * Update dependencies
 
 ## [0.8.10] - 2019-02-24
@@ -169,7 +173,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.10.2...HEAD
+[0.10.2]: https://github.com/nwtgck/piping-server/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/nwtgck/piping-server/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/nwtgck/piping-server/compare/v0.9.4...v0.10.0
 [0.9.4]: https://github.com/nwtgck/piping-server/compare/v0.9.3...v0.9.4
