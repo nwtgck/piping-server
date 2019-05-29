@@ -199,7 +199,7 @@ describe("piping.Server", () => {
     postReq.end();
 
     // Get data
-    const getBody = await new Promise((resolve) => {
+    const getBody: Buffer = await new Promise((resolve) => {
       const chunks: Buffer[] = [];
       getReq.on("data", (data) => chunks.push(data));
       getReq.on("end", () => resolve(Buffer.concat(chunks)));
