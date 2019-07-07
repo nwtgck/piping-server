@@ -46,6 +46,7 @@
     "typescript": "^3.3.1"
   },
   "dependencies": {
+    "log4js": "^4.4.0",
     "multiparty": "^4.2.1",
     "yargs": "^13.1.0"
   }
