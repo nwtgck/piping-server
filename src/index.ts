@@ -4,6 +4,7 @@
 import * as fs from "fs";
 import * as http from "http";
 import * as http2 from "http2";
+import * as log4js from "log4js";
 import * as yargs from "yargs";
 
 import * as piping from "./piping";
@@ -29,11 +30,6 @@ const parser = yargs
   .option("crt-path", {
     describe: "Certification path",
     type: "string"
-  })
-  .option("enable-log", {
-    describe: "Enable logging",
-    type: "boolean",
-    default: true
   });
 
 // Parse arguments
@@ -43,19 +39,22 @@ const enableHttps: boolean = args["enable-https"];
 const httpsPort: number | undefined = args["https-port"];
 const serverKeyPath: string | undefined = args["key-path"];
 const serverCrtPath: string | undefined = args["crt-path"];
-const enableLog: boolean = args["enable-log"];
+
+// Create a logger
+const logger = log4js.getLogger();
+logger.level = "info";
 
 // Create a piping server
-const pipingServer = new piping.Server(enableLog);
+const pipingServer = new piping.Server(logger);
 
 http.createServer(pipingServer.generateHandler(false))
   .listen(httpPort, () => {
-    console.log(`Listen HTTP on ${httpPort}...`);
+    logger.info(`Listen HTTP on ${httpPort}...`);
   });
 
 if (enableHttps && httpsPort !== undefined) {
   if (serverKeyPath === undefined || serverCrtPath === undefined) {
-    console.error("Error: --key-path and --crt-path should be specified");
+    logger.error("Error: --key-path and --crt-path should be specified");
   } else {
     http2.createSecureServer(
       {
@@ -64,7 +63,7 @@ if (enableHttps && httpsPort !== undefined) {
       },
       pipingServer.generateHandler(true)
     ).listen(httpsPort, () => {
-      console.log(`Listen HTTPS on ${httpsPort}...`);
+      logger.info(`Listen HTTPS on ${httpsPort}...`);
     });
   }
 }

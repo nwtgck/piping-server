@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as getPort from "get-port";
 import * as http from "http";
 import * as http2 from "http2";
+import * as log4js from "log4js";
 import * as assert from "power-assert";
 import * as request from "request";
 import thenRequest from "then-request";
@@ -35,6 +36,9 @@ export function sleep(ms: number): Promise<any> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Create a logger
+const logger = log4js.getLogger();
+
 describe("piping.Server", () => {
   let pipingServer: http.Server;
   let pipingPort: number;
@@ -46,7 +50,7 @@ describe("piping.Server", () => {
     // Define Piping URL
     pipingUrl = `http://localhost:${pipingPort}`;
     // Create a Piping server
-    pipingServer = http.createServer(new piping.Server(false).generateHandler(false));
+    pipingServer = http.createServer(new piping.Server(logger).generateHandler(false));
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
   });
@@ -169,8 +173,9 @@ describe("piping.Server", () => {
     const http2PipingPort = await getPort();
     // Define Piping URL
     const http2PipingUrl = `http://localhost:${http2PipingPort}`;
+
     // Create a Piping server on HTTP/2
-    const http2PipingServer = http2.createServer(new piping.Server(false).generateHandler(false));
+    const http2PipingServer = http2.createServer(new piping.Server(logger).generateHandler(false));
     const sessions: http2.Http2Session[] = [];
     http2PipingServer.on("session", (session) => sessions.push(session));
     await listenPromise(http2PipingServer, http2PipingPort);

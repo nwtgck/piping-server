@@ -1,5 +1,6 @@
 import * as http from "http";
 import * as http2 from "http2";
+import * as log4js from "log4js";
 import * as multiparty from "multiparty";
 import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
@@ -210,9 +211,9 @@ export class Server {
 
   /**
    *
-   * @param enableLog Enable logging
+   * @param logger
    */
-  constructor(readonly enableLog: boolean) {
+  constructor(readonly logger: log4js.Logger) {
   }
 
   public generateHandler(useHttps: boolean): Handler {
@@ -225,9 +226,7 @@ export class Server {
               // Remove last "/"
               .replace(/\/$/, "")
           );
-      if (this.enableLog) {
-        console.log(req.method, reqPath);
-      }
+      this.logger.info(`${req.method} ${reqPath}`);
 
       switch (req.method) {
         case "POST":
@@ -407,42 +406,41 @@ export class Server {
       senderData.pipe(passThrough);
       // TODO: Not use any
       passThrough.pipe(receiver.res as any);
+      receiver.req.on("end", () => {
+        this.logger.info(`receiver on-end: '${path}'`);
+      });
       receiver.req.on("close", () => {
-        if (this.enableLog) {
-          console.log("on-close");
-        }
+        this.logger.info(`receiver on-close: '${path}'`);
         closeReceiver();
       });
       receiver.req.on("error", (err) => {
-        if (this.enableLog) {
-          console.log("on-error");
-        }
+        this.logger.info(`receiver on-error: '${path}'`);
         closeReceiver();
       });
     }
 
     senderData.on("close", () => {
-      if (this.enableLog) {
-        console.log("sender on-close");
-      }
       for (const receiver of receivers) {
         // Close a receiver
         if (receiver.res.connection !== undefined) {
           receiver.res.connection.destroy();
         }
       }
+      this.logger.info(`sender on-close: '${path}'`);
     });
 
     senderData.on("end", () => {
       sender.res.end("[INFO] Sent successfully!\n" as any);
       // Delete from established
       delete this.pathToEstablished[path];
+      this.logger.info(`sender on-end: '${path}'`);
     });
 
     senderData.on("error", (error) => {
       sender.res.end("[ERROR] Failed to send.\n" as any);
       // Delete from established
       delete this.pathToEstablished[path];
+      this.logger.info(`sender on-error: '${path}'`);
     });
   }
 
@@ -463,9 +461,6 @@ export class Server {
       res.writeHead(400);
       res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
     } else {
-      if (this.enableLog) {
-        console.log(this.pathToUnestablishedPipe);
-      }
       // If the path connection is connecting
       if (reqPath in this.pathToUnestablishedPipe) {
         // Get unestablished pipe
@@ -643,9 +638,7 @@ export class Server {
           if (unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
             // Remove unestablished pipe
             delete this.pathToUnestablishedPipe[reqPath];
-            if (this.enableLog) {
-              console.log(`${reqPath} removed`);
-            }
+            this.logger.info(`'${reqPath}' removed`);
           }
         }
       }
