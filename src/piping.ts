@@ -5,7 +5,6 @@ import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
 import * as url from "url";
 
-import * as path from "path";
 import {opt, optMap} from "./utils";
 import {VERSION} from "./version";
 
