@@ -89,7 +89,6 @@ Options:
   --https-port    Port of HTTPS server                                  [number]
   --key-path      Private key path                                      [string]
   --crt-path      Certification path                                    [string]
-  --enable-log    Enable logging                       [boolean] [default: true]
 ```
 
 ### Run on Docker

@@ -211,11 +211,9 @@ export class Server {
 
   /**
    *
-   * @param enableLog Enable logging
    * @param logger
    */
-  // TODO: Remove enableLog parameter
-  constructor(readonly enableLog: boolean, readonly logger: log4js.Logger) {
+  constructor(readonly logger: log4js.Logger) {
   }
 
   public generateHandler(useHttps: boolean): Handler {
