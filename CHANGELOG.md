@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.11.0] - 2019-07-07
+### Changed
+* Revise English message for sender
+* Use log4js-node for logger
+* Remove `--enable-log` option
+* Update dependencies
+
 ## [0.10.2] - 2019-05-14
 ### Changed
 * Update dependencies
@@ -173,7 +180,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.10.2...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/nwtgck/piping-server/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/nwtgck/piping-server/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/nwtgck/piping-server/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/nwtgck/piping-server/compare/v0.9.4...v0.10.0
