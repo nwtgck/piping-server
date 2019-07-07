@@ -12,8 +12,9 @@
     "build": "npm run generate-version && tsc",
     "start": "npm run build && node dist/src/index.js",
     "lint": "tslint 'src/**/*.ts' && tslint 'test/**/*.ts'",
-    "prepare": "npm run build",
-    "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts"
+    "prepare": "npm run snyk-protect; npm run build",
+    "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts",
+    "snyk-protect": "snyk protect"
   },
   "keywords": [
     "http",
@@ -48,6 +49,8 @@
   "dependencies": {
     "log4js": "^4.4.0",
     "multiparty": "^4.2.1",
-    "yargs": "^13.1.0"
-  }
+    "yargs": "^13.1.0",
+    "snyk": "^1.192.3"
+  },
+  "snyk": true
 }
