@@ -235,7 +235,7 @@ export class Server {
         case "PUT":
           if (RESERVED_PATHS.includes(reqPath)) {
             res.writeHead(400);
-            res.end(`[ERROR] Cannot send to a reserved path '${reqPath}'. (e.g. '/mypath123')\n` as any);
+            res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n` as any);
           } else {
             // Handle a sender
             this.handleSender(req, res, reqPath);
@@ -324,7 +324,7 @@ export class Server {
     const {sender, receivers} = pipe;
 
     // Emit message to sender
-    sender.res.write(`[INFO] Start sending with ${pipe.receivers.length} receiver(s)!\n`);
+    sender.res.write(`[INFO] Start sending to ${pipe.receivers.length} receiver(s)!\n`);
 
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
 
@@ -435,13 +435,13 @@ export class Server {
     });
 
     senderData.on("end", () => {
-      sender.res.end("[INFO] Sending successful!\n" as any);
+      sender.res.end("[INFO] Sent successfully!\n" as any);
       // Delete from established
       delete this.pathToEstablished[path];
     });
 
     senderData.on("error", (error) => {
-      sender.res.end("[ERROR] Sending failed.\n" as any);
+      sender.res.end("[ERROR] Failed to send.\n" as any);
       // Delete from established
       delete this.pathToEstablished[path];
     });
@@ -501,7 +501,7 @@ export class Server {
           }
         } else {
           res.writeHead(400);
-          res.end(`[ERROR] Another sender has been registered on '${reqPath}'.\n` as any);
+          res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n` as any);
         }
       } else {
         // Add headers
