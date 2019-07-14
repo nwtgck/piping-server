@@ -333,6 +333,9 @@ export class Server {
           form.once("part", (p: multiparty.Part) => {
             resolve(p);
           });
+          form.on("error", () => {
+            this.logger.info(`sender-multipart on-error: '${path}'`);
+          });
           // TODO: Not use any
           form.parse(sender.req as any);
         }) :
