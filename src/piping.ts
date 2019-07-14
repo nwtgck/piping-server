@@ -226,7 +226,7 @@ export class Server {
               // Remove last "/"
               .replace(/\/$/, "")
           );
-      this.logger.info(`${req.method} ${reqPath}`);
+      this.logger.info(`${req.method} ${req.url}`);
 
       switch (req.method) {
         case "POST":
@@ -324,6 +324,8 @@ export class Server {
     // Emit message to sender
     sender.res.write(`[INFO] Start sending to ${pipe.receivers.length} receiver(s)!\n`);
 
+    this.logger.info(`Sending: path='${path}', receivers=${pipe.receivers.length}`);
+
     const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
 
     const part: multiparty.Part | undefined =
@@ -332,6 +334,9 @@ export class Server {
           const form = new multiparty.Form();
           form.once("part", (p: multiparty.Part) => {
             resolve(p);
+          });
+          form.on("error", () => {
+            this.logger.info(`sender-multipart on-error: '${path}'`);
           });
           // TODO: Not use any
           form.parse(sender.req as any);
