@@ -67,3 +67,8 @@ if (enableHttps && httpsPort !== undefined) {
     });
   }
 }
+
+// Catch and ignore error
+process.on("uncaughtException", (err) => {
+  logger.error("on uncaughtException", err);
+});
