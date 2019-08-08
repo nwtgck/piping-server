@@ -59,7 +59,8 @@ if (enableHttps && httpsPort !== undefined) {
     http2.createSecureServer(
       {
         key: fs.readFileSync(serverKeyPath),
-        cert: fs.readFileSync(serverCrtPath)
+        cert: fs.readFileSync(serverCrtPath),
+        allowHTTP1: true
       },
       pipingServer.generateHandler(true)
     ).listen(httpsPort, () => {
