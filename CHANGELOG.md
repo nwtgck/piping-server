@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.11.5] - 2019-08-08
+### Changed
+* Allow HTTP/1 in HTTPS
+* Update dependencies
+
 ## [0.11.4] - 2019-07-16
 ### Changed
 * Handle uncaughtException
@@ -197,7 +202,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.11.4...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.11.5...HEAD
+[0.11.5]: https://github.com/nwtgck/piping-server/compare/v0.11.4...v0.11.5
 [0.11.4]: https://github.com/nwtgck/piping-server/compare/v0.11.3...v0.11.4
 [0.11.3]: https://github.com/nwtgck/piping-server/compare/v0.11.2...v0.11.3
 [0.11.2]: https://github.com/nwtgck/piping-server/compare/v0.11.1...v0.11.2
