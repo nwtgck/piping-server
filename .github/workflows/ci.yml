@@ -1,0 +1,21 @@
+# (base: https://github.com/actions/starter-workflows/blob/ba767afb30b1bceb8c1d6a798d526be9b6f14554/ci/node.js.yml)
+name: Node CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Use Node.js 10.x
+      uses: actions/setup-node@v1
+      with:
+        version: 10.x
+    - name: npm install, build, and test
+      run: |
+        npm install
+        npm run build
+        npm test
