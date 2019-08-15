@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "0.11.5",
+  "version": "0.11.6",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -46,7 +46,7 @@
     "typescript": "^3.3.1"
   },
   "dependencies": {
-    "log4js": "^4.4.0",
+    "log4js": "^5.0.0",
     "multiparty": "^4.2.1",
     "yargs": "^13.1.0"
   }
