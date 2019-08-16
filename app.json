@@ -1,6 +1,6 @@
 {
     "name": "Piping Server",
-    "description": "A Piping Transfer Server on HTTP",
+    "description": "Streaming Data Transfer Server over HTTP/HTTPS",
     "repository": "https://github.com/nwtgck/piping-server",
     "keywords": ["transfer", "http", "server", "data-transfer"]
 }
