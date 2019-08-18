@@ -239,6 +239,45 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-type"], "text/plain");
   });
 
+  it("should attach 'Content-Disposition: attachment' when Content-Type is 'text/html'", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      headers: {
+        "content-type": "text/html"
+      },
+      body: "<h1>this is a content</h1>"
+    });
+
+    // Get data
+    const data = await reqPromise;
+
+    // Content-Disposition should be 'attachment'
+    assert.strictEqual(data.headers["content-disposition"], "attachment");
+  });
+
+  it("should preserve 'Content-Disposition: attachment; OOO' when Content-Type is 'text/html'", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      headers: {
+        "content-type": "text/html",
+        "content-disposition": "attachment; filename=\"filename.jpg\""
+      },
+      body: "<h1>this is a content</h1>"
+    });
+
+    // Get data
+    const data = await reqPromise;
+
+    // Content-Disposition should be preserved
+    assert.strictEqual(data.headers["content-disposition"], "attachment; filename=\"filename.jpg\"");
+  });
+
   it("should pass sender's Content-Disposition to receivers' one", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
@@ -871,6 +910,28 @@ describe("piping.Server", () => {
       const getData1 = await getPromise1;
       assert.strictEqual(getData1.statusCode, 200);
       assert.strictEqual(getData1.headers["content-type"], "text/plain");
+    });
+
+    it("should attach 'Content-Disposition: attachment' when Content-Type is 'text/html'", async () => {
+      const formData = {
+        "dummy form name": {
+          value: "<h1>this is a content</h1>",
+          options: {
+            contentType: "text/html"
+          }
+        }
+      };
+
+      // Send data
+      request.post({url: `${pipingUrl}/mydataid`, formData: formData});
+
+      await sleep(10);
+
+      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+      const getData1 = await getPromise1;
+      assert.strictEqual(getData1.statusCode, 200);
+      assert.strictEqual(getData1.headers["content-disposition"], "attachment");
     });
 
     it("should pass sender's Content-Disposition to receivers' one", async () => {
