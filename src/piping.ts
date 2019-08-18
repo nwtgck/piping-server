@@ -361,50 +361,47 @@ export class Server {
         }
       };
 
-      const headers: http.OutgoingHttpHeaders =
-        // If not multi-part sending
-        part === undefined ?
-          {
-            // Add Content-Length if it exists
-            ...(
-              sender.req.headers["content-length"] === undefined ?
-                {} : {"Content-Length": sender.req.headers["content-length"]}
-            ),
-            // Add Content-Type if it exists
-            ...(
-              sender.req.headers["content-type"] === undefined ?
-                {} : {"Content-Type": sender.req.headers["content-type"]}
-            ),
-            // Add Content-Disposition if it exists
-            ...(
-              sender.req.headers["content-disposition"] === undefined ?
-                {} : {"Content-Disposition": sender.req.headers["content-disposition"]}
-            )
-          } :
-          {
-            // Add Content-Length if it exists
-            ...(
-              part.byteCount === undefined ?
-                {} : {"Content-Length": part.byteCount}
-            ),
-            ...(
-              part.headers["content-type"] === undefined ?
-                {} : {"Content-Type": part.headers["content-type"]}
-            )
-            ,
-            ...(
-              part.headers["content-disposition"] === undefined ?
-                {} : {"Content-Disposition": part.headers["content-disposition"]}
-            )
-          };
+      // Decide Content-Length
+      const contentLength: string | number | undefined = part === undefined ?
+        sender.req.headers["content-length"] : part.byteCount;
+      // Get Content-Type from part or HTTP header.
+      // If none, it is 'application/octet-stream'
+      const contentType: string = (part === undefined ?
+        sender.req.headers["content-type"] : part.headers["content-type"]) || "application/octet-stream";
+      // Extract MIME type
+      const mimeType: string = contentType.replace(/\s*;.*$/, "");
+      // Decide Content-Disposition
+      const contentDisposition: string | undefined = (() => {
+        // If it is HTML
+        if (mimeType === "text/html") {
+          const disposition = part === undefined ?
+            sender.req.headers["content-disposition"] : part.headers["content-disposition"];
+          if (disposition === undefined) {
+            return "attachment";
+          } else {
+            const inlineOrAttachment = disposition.replace(/\s*;.*$/, "");
+            if (inlineOrAttachment === "attachment") {
+              return disposition;
+            } else {
+              return "attachment";
+            }
+          }
+        } else {
+          if (part === undefined) {
+            return  sender.req.headers["content-disposition"];
+          } else {
+            return part.headers["content-disposition"];
+          }
+        }
+      })();
 
       // Write headers to a receiver
       receiver.res.writeHead(200, {
-        ...{
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Expose-Headers": "Content-Length, Content-Type"
-        },
-        ...headers
+        ...(contentLength === undefined ? {} : {"Content-Length": contentLength}),
+        "Content-Type": contentType,
+        ...(contentDisposition === undefined ? {} : {"Content-Disposition": contentDisposition}),
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "Content-Length, Content-Type"
       });
 
       const passThrough = new stream.PassThrough();

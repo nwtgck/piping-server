@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.12.0] - 2019-08-18
+### Changed
+* Prevent hijacking top page of simple Web UI by Service Worker
+
 ## [0.11.6] - 2019-08-15
 ### Changed
 * Update dependencies
@@ -206,7 +210,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.11.6...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/nwtgck/piping-server/compare/v0.11.6...v0.12.0
 [0.11.6]: https://github.com/nwtgck/piping-server/compare/v0.11.5...v0.11.6
 [0.11.5]: https://github.com/nwtgck/piping-server/compare/v0.11.4...v0.11.5
 [0.11.4]: https://github.com/nwtgck/piping-server/compare/v0.11.3...v0.11.4
