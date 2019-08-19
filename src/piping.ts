@@ -401,7 +401,8 @@ export class Server {
         "Content-Type": contentType,
         ...(contentDisposition === undefined ? {} : {"Content-Disposition": contentDisposition}),
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Expose-Headers": "Content-Length, Content-Type"
+        "Access-Control-Expose-Headers": "Content-Length, Content-Type",
+        "X-Content-Type-Options": "nosniff"
       });
 
       const passThrough = new stream.PassThrough();

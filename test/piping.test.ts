@@ -167,6 +167,7 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-type"], "application/octet-stream");
+    assert.strictEqual(data.headers["x-content-type-options"], "nosniff");
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
