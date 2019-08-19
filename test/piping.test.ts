@@ -167,6 +167,7 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-type"], "application/octet-stream");
+    assert.strictEqual(data.headers["x-content-type-options"], "nosniff");
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
@@ -240,7 +241,7 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-type"], "text/plain");
   });
 
-  it("should attach 'Content-Disposition: attachment' when Content-Type is 'text/html'", async () => {
+  it("should replace 'Content-Type: text/html' with 'text/plain'", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
@@ -255,19 +256,18 @@ describe("piping.Server", () => {
     // Get data
     const data = await reqPromise;
 
-    // Content-Disposition should be 'attachment'
-    assert.strictEqual(data.headers["content-disposition"], "attachment");
+    // Content-Tyoe should be 'text/plain'
+    assert.strictEqual(data.headers["content-type"], "text/plain");
   });
 
-  it("should preserve 'Content-Disposition: attachment; OOO' when Content-Type is 'text/html'", async () => {
+  it("should replace 'Content-Type: text/html; charset=utf-8' with 'text/plain; charset=utf-8'", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
     await thenRequest("POST", `${pipingUrl}/mydataid`, {
       headers: {
-        "content-type": "text/html",
-        "content-disposition": "attachment; filename=\"filename.jpg\""
+        "content-type": "text/html; charset=utf-8"
       },
       body: "<h1>this is a content</h1>"
     });
@@ -275,8 +275,8 @@ describe("piping.Server", () => {
     // Get data
     const data = await reqPromise;
 
-    // Content-Disposition should be preserved
-    assert.strictEqual(data.headers["content-disposition"], "attachment; filename=\"filename.jpg\"");
+    // Content-Tyoe should be 'text/plain'
+    assert.strictEqual(data.headers["content-type"], "text/plain; charset=utf-8");
   });
 
   it("should pass sender's Content-Disposition to receivers' one", async () => {
@@ -913,7 +913,7 @@ describe("piping.Server", () => {
       assert.strictEqual(getData1.headers["content-type"], "text/plain");
     });
 
-    it("should attach 'Content-Disposition: attachment' when Content-Type is 'text/html'", async () => {
+    it("should replace 'Content-Type: text/html' when 'text/plain'", async () => {
       const formData = {
         "dummy form name": {
           value: "<h1>this is a content</h1>",
@@ -932,7 +932,29 @@ describe("piping.Server", () => {
 
       const getData1 = await getPromise1;
       assert.strictEqual(getData1.statusCode, 200);
-      assert.strictEqual(getData1.headers["content-disposition"], "attachment");
+      assert.strictEqual(getData1.headers["content-type"], "text/plain");
+    });
+
+    it("should replace 'Content-Type: text/html; charset=utf-8' when 'text/plain; charset=utf-8'", async () => {
+      const formData = {
+        "dummy form name": {
+          value: "<h1>this is a content</h1>",
+          options: {
+            contentType: "text/html; charset=utf-8"
+          }
+        }
+      };
+
+      // Send data
+      request.post({url: `${pipingUrl}/mydataid`, formData: formData});
+
+      await sleep(10);
+
+      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+      const getData1 = await getPromise1;
+      assert.strictEqual(getData1.statusCode, 200);
+      assert.strictEqual(getData1.headers["content-type"], "text/plain; charset=utf-8");
     });
 
     it("should pass sender's Content-Disposition to receivers' one", async () => {
