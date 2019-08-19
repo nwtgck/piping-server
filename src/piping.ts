@@ -365,35 +365,26 @@ export class Server {
       const contentLength: string | number | undefined = part === undefined ?
         sender.req.headers["content-length"] : part.byteCount;
       // Get Content-Type from part or HTTP header.
-      // If none, it is 'application/octet-stream'
-      const contentType: string = (part === undefined ?
-        sender.req.headers["content-type"] : part.headers["content-type"]) || "application/octet-stream";
-      // Extract MIME type
-      const mimeType: string = contentType.replace(/\s*;.*$/, "");
-      // Decide Content-Disposition
-      const contentDisposition: string | undefined = (() => {
-        // If it is HTML
-        if (mimeType === "text/html") {
-          const disposition = part === undefined ?
-            sender.req.headers["content-disposition"] : part.headers["content-disposition"];
-          if (disposition === undefined) {
-            return "attachment";
-          } else {
-            const inlineOrAttachment = disposition.replace(/\s*;.*$/, "");
-            if (inlineOrAttachment === "attachment") {
-              return disposition;
-            } else {
-              return "attachment";
-            }
-          }
+      const contentType: string = (() => {
+        // If none, it is 'application/octet-stream'
+        const type = (part === undefined ?
+          sender.req.headers["content-type"] : part.headers["content-type"]) || "application/octet-stream";
+        const matched = type.match(/^\s*([^;]*)(\s*;?.*)$/);
+        // If invalid Content-Type
+        if (matched === null) {
+          return "application/octet-stream";
         } else {
-          if (part === undefined) {
-            return  sender.req.headers["content-disposition"];
-          } else {
-            return part.headers["content-disposition"];
-          }
+          // Extract MIME type and parameters
+          const mimeType: string = matched[1];
+          const params: string = matched[2];
+          // If it is text/html, it should replace it with text/plain not to render in browser.
+          // It is the same as GitHub Raw (https://raw.githubusercontent.com).
+          // "text/plain" can be consider a superordinate concept of "text/html"
+          return mimeType === "text/html" ? "text/plain" + params : type;
         }
       })();
+      const contentDisposition: string | undefined = part === undefined ?
+        sender.req.headers["content-disposition"] : part.headers["content-disposition"];
 
       // Write headers to a receiver
       receiver.res.writeHead(200, {
