@@ -132,6 +132,7 @@ describe("piping.Server", () => {
         });
         // Should be failed
         assert.strictEqual(req.statusCode, 400);
+        assert.strictEqual(req.headers["access-control-allow-origin"], "*");
       }
     });
   });
@@ -488,6 +489,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(sendData.statusCode, 400);
+    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -508,6 +510,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(sendData.statusCode, 400);
+    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -536,6 +539,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(data1.statusCode, 400);
+    assert.strictEqual(data1.headers["access-control-allow-origin"], "*");
 
     // Quit send request
     sendReq.abort();
@@ -564,6 +568,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(data1.statusCode, 400);
+    assert.strictEqual(data1.headers["access-control-allow-origin"], "*");
 
     // Quit send request
     sendReq.abort();
@@ -589,6 +594,7 @@ describe("piping.Server", () => {
     );
     // Should be rejected
     assert.strictEqual((await getReqPromise3).statusCode, 400);
+    assert.strictEqual((await getReqPromise3).headers["access-control-allow-origin"], "*");
     // Quit get requests
     getReq1.abort();
     getReq2.abort();
@@ -614,6 +620,7 @@ describe("piping.Server", () => {
     );
     // Should be rejected
     assert.strictEqual((await getReqPromise3).statusCode, 400);
+    assert.strictEqual((await getReqPromise3).headers["access-control-allow-origin"], "*");
     // Quit get requests
     getReq1.abort();
     getReq2.abort();
@@ -638,6 +645,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(sendData.statusCode, 400);
+    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
 
     // Quit get requests
     getReq1.abort();
@@ -663,6 +671,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(sendData.statusCode, 400);
+    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
 
     // Quit get requests
     getReq1.abort();
@@ -694,6 +703,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(data2.statusCode, 400);
+    assert.strictEqual(data2.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -726,6 +736,7 @@ describe("piping.Server", () => {
 
     // Should be rejected
     assert.strictEqual(data2.statusCode, 400);
+    assert.strictEqual(data2.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -768,6 +779,7 @@ describe("piping.Server", () => {
 
     // Should be bad request
     assert.strictEqual(data3.statusCode, 400);
+    assert.strictEqual(data3.headers["access-control-allow-origin"], "*");
   });
 
   // tslint:disable-next-line:max-line-length
@@ -795,6 +807,7 @@ describe("piping.Server", () => {
 
     // Should be bad request
     assert.strictEqual(data3.statusCode, 400);
+    assert.strictEqual(data3.headers["access-control-allow-origin"], "*");
   });
 
   it("should unregister a sender before establishing", async () => {
@@ -860,6 +873,7 @@ describe("piping.Server", () => {
 
       // Should be rejected
       assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(res.headers["access-control-allow-origin"], "*");
     });
 
     it("should not allow n=-1", async () => {
@@ -870,6 +884,7 @@ describe("piping.Server", () => {
 
       // Should be rejected
       assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(res.headers["access-control-allow-origin"], "*");
     });
   });
 
