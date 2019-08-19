@@ -232,7 +232,9 @@ export class Server {
         case "POST":
         case "PUT":
           if (RESERVED_PATHS.includes(reqPath)) {
-            res.writeHead(400);
+            res.writeHead(400, {
+              "Access-Control-Allow-Origin": "*"
+            });
             res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n` as any);
           } else {
             // Handle a sender
@@ -449,10 +451,14 @@ export class Server {
     const nReceivers = Server.getNReceivers(req.url);
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
-      res.writeHead(400);
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
     } else if (reqPath in this.pathToEstablished) {
-      res.writeHead(400);
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
       res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
     } else {
       // If the path connection is connecting
@@ -482,13 +488,17 @@ export class Server {
               this.runPipe(reqPath, pipe);
             }
           } else {
-            res.writeHead(400);
+            res.writeHead(400, {
+              "Access-Control-Allow-Origin": "*"
+            });
             res.end(
               `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
             );
           }
         } else {
-          res.writeHead(400);
+          res.writeHead(400, {
+            "Access-Control-Allow-Origin": "*"
+          });
           res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n` as any);
         }
       } else {
@@ -521,10 +531,14 @@ export class Server {
     const nReceivers = Server.getNReceivers(req.url);
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
-      res.writeHead(400);
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
     } else if (reqPath in this.pathToEstablished) {
-      res.writeHead(400);
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
       res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
     } else {
       // If the path connection is connecting
@@ -554,11 +568,15 @@ export class Server {
               this.runPipe(reqPath, pipe);
             }
           } else {
-            res.writeHead(400);
+            res.writeHead(400, {
+              "Access-Control-Allow-Origin": "*"
+            });
             res.end("[ERROR] The number of receivers has reached limits.\n" as any);
           }
         } else {
-          res.writeHead(400);
+          res.writeHead(400, {
+            "Access-Control-Allow-Origin": "*"
+          });
           res.end(
             `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
           );
