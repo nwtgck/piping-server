@@ -162,7 +162,7 @@ const indexPage: string =
 // tslint:disable-next-line:no-shadowed-variable
 function generateHelpPage(url: string): string {
   return (
-`Help for piping-server ${VERSION}
+`Help for Piping Server ${VERSION}
 (Repository: https://github.com/nwtgck/piping-server)
 
 ======= Get  =======

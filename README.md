@@ -1,4 +1,4 @@
-# piping-server
+# Piping Server
 [![npm](https://img.shields.io/npm/v/piping-server.svg)](https://www.npmjs.com/package/piping-server) [![CodeFactor](https://www.codefactor.io/repository/github/nwtgck/piping-server/badge)](https://www.codefactor.io/repository/github/nwtgck/piping-server) [![CircleCI](https://circleci.com/gh/nwtgck/piping-server.svg?style=shield)](https://circleci.com/gh/nwtgck/piping-server) [![Build status](https://ci.appveyor.com/api/projects/status/g075o30d5pp4m0pa?svg=true)](https://ci.appveyor.com/project/nwtgck/piping-server)  [![GitHub Actions](https://github.com/nwtgck/piping-server/workflows/Node%20CI/badge.svg)](https://github.com/nwtgck/piping-server/actions) [![Docker Automated build](https://img.shields.io/docker/automated/nwtgck/piping-server.svg)](https://hub.docker.com/r/nwtgck/piping-server/)
  [![](https://images.microbadger.com/badges/image/nwtgck/piping-server.svg)](https://microbadger.com/images/nwtgck/piping-server "Get your own image badge on microbadger.com") [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=nwtgck/piping-server)](https://dependabot.com)
 
@@ -6,44 +6,45 @@
 
 Streaming Data Transfer Server over HTTP/HTTPS
 
-![piping server transfer](demo_images/piping-server.gif)
+![Piping Server transfer](demo_images/piping-server.gif)
+
+## How to transfer data?
+
+Suppose a Piping Server is running on <https://piping.ml>. You can send "hello.txt" to a receiver.
+
+```bash
+# Send
+cat hello.txt | curl -T - https://piping.ml/mysecret
+```
+
+```bash
+# Get
+curl https://piping.ml/mysecret > myhello.txt
+```
+
+## Multiple Transfer
+
+Piping Server supports multiple receiver. The following moving image is an example. Use query parameter "?n=3" to allow 3 receivers for example.
+
+![Piping Server multiple transfer](demo_images/piping-server-multi-transfer.gif)
 
 ## Design Philosophy
 
-Piping server is designed to realize the following three ideas. 
+Piping Server is designed to realize the following ideas. 
 
-1. Account-free
-1. Install-free
+1. No account
+1. No installation
+1. Never store data
 1. Engineer friendly
 
 Usually, when you want to send data to someone, you need to have an account in the common service among you and his/her.
 In addition, the service may require you to install specific software to share the data.
 
 
-Piping server is designed to solve the problems above.
-Piping server allows you to use without any account and frees you from additional software installation because the server is available with Web browsers, `curl` and `wget` commands, which are widely pre-installed in Unix-like OS.
+Piping Server is designed to solve the problems above.
+Piping Server allows you to use without any account and frees you from additional software installation because the server is available with Web browsers, `curl` and `wget` commands, which are widely pre-installed in Unix-like OS.
 Because of HTTP/HTTPS, users can send data across different devices such as Windows, macOS, Unix, Linux, iOS, Android and any device which uses HTTP. 
 Furthermore, pipe in Unix-like OS allows you to send data in a more efficient and secure way.
-
-## Transfer example
-
-Suppose a Piping server is running on <https://piping.glitch.me>. You can send "hello.txt" to a receiver.
-
-```bash
-# Send
-cat hello.txt | curl -T - https://piping.glitch.me/mysecret
-```
-
-```bash
-# Get
-curl https://piping.glitch.me/mysecret > myhello.txt 
-```
-
-## Multiple Transfer
-
-Piping server supports multiple receiver. The following moving image is an example. Use query parameter "?n=3" to allow 3 receivers for example.
-
-![Piping server multiple transfer](demo_images/piping-server-multi-transfer.gif)
 
 ## Engineer Friendly Help
 
@@ -61,7 +62,7 @@ curl piping.ml/version
 
 ### Heroku deployment
 
-Click the botton below to deploy a Piping server to Heroku.
+Click the button below to deploy a Piping Server to Heroku.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
@@ -74,7 +75,7 @@ npm install -g piping-server
 # Run a server
 piping-server
 ```
-Then, a Piping server is running on <http://localhost:8080>.
+Then, a Piping Server is running on <http://localhost:8080>.
 
 ### Command-line Options
 
@@ -93,7 +94,7 @@ Options:
 
 ### Run on Docker
 
-Run a Piping server on <http://localhost:8181> by the following command.
+Run a Piping Server on <http://localhost:8181> by the following command.
 
 ```bash
 docker run -p 8181:8080 nwtgck/piping-server
@@ -110,3 +111,10 @@ You can run a server in background and it automatically always restarts.
 ```bash
 docker run -p 8181:80 -d --restart=always nwtgck/piping-server --http-port=80
 ```
+
+## More about Piping Server
+
+[Ecosystem around Piping Server · nwtgck/piping-server Wiki](https://github.com/nwtgck/piping-server/wiki/Ecosystem-around-Piping-Server)  
+This contains end-to-end encrypted chat/file transfer/screen sharing/voice chat/drawing share and some English and Japanese posts.
+
+Piping Server is simple and streams any kind of data, not limited to a file.
