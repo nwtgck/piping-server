@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.13.0] - 2019-08-19
+### Fixed
+* Add `X-Content-Type-Options: nosniff` header for disabling sniffing 
+### Changed
+* Replace `text/plain` with `text/html` not to use `Content-Disposition: attachment`
+
 ## [0.12.0] - 2019-08-18
 ### Changed
 * Prevent hijacking top page of simple Web UI by Service Worker
@@ -210,7 +216,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/nwtgck/piping-server/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/nwtgck/piping-server/compare/v0.11.6...v0.12.0
 [0.11.6]: https://github.com/nwtgck/piping-server/compare/v0.11.5...v0.11.6
 [0.11.5]: https://github.com/nwtgck/piping-server/compare/v0.11.4...v0.11.5
