@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.13.1] - 2019-08-20
+### Changed
+* Allow cross-origin for 400 responses
+
 ## [0.13.0] - 2019-08-19
 ### Fixed
 * Add `X-Content-Type-Options: nosniff` header for disabling sniffing 
@@ -216,7 +220,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/nwtgck/piping-server/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/nwtgck/piping-server/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/nwtgck/piping-server/compare/v0.11.6...v0.12.0
 [0.11.6]: https://github.com/nwtgck/piping-server/compare/v0.11.5...v0.11.6
