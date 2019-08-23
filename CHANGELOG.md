@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.13.2] - 2019-08-23
+### Changed
+* Update dependencies
+
 ## [0.13.1] - 2019-08-20
 ### Changed
 * Allow cross-origin for 400 responses
@@ -220,7 +224,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.13.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.13.2...HEAD
+[0.13.2]: https://github.com/nwtgck/piping-server/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/nwtgck/piping-server/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/nwtgck/piping-server/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/nwtgck/piping-server/compare/v0.11.6...v0.12.0
