@@ -179,7 +179,7 @@ describe("piping.Server", () => {
     // Content-length should be returned
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data.headers["content-type"], "application/octet-stream");
+    assert.strictEqual(data.headers["content-type"], undefined);
     assert.strictEqual(data.headers["x-content-type-options"], "nosniff");
   });
 

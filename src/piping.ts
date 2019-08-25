@@ -369,14 +369,16 @@ export class Server {
       const contentLength: string | number | undefined = part === undefined ?
         sender.req.headers["content-length"] : part.byteCount;
       // Get Content-Type from part or HTTP header.
-      const contentType: string = (() => {
-        // If none, it is 'application/octet-stream'
-        const type = (part === undefined ?
-          sender.req.headers["content-type"] : part.headers["content-type"]) || "application/octet-stream";
+      const contentType: string | undefined = (() => {
+        const type: string | undefined = (part === undefined ?
+          sender.req.headers["content-type"] : part.headers["content-type"]);
+        if (type === undefined) {
+          return undefined;
+        }
         const matched = type.match(/^\s*([^;]*)(\s*;?.*)$/);
         // If invalid Content-Type
         if (matched === null) {
-          return "application/octet-stream";
+          return undefined;
         } else {
           // Extract MIME type and parameters
           const mimeType: string = matched[1];
@@ -393,7 +395,7 @@ export class Server {
       // Write headers to a receiver
       receiver.res.writeHead(200, {
         ...(contentLength === undefined ? {} : {"Content-Length": contentLength}),
-        "Content-Type": contentType,
+        ...(contentType === undefined ? {} : {"Content-Type": contentType}),
         ...(contentDisposition === undefined ? {} : {"Content-Disposition": contentDisposition}),
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Expose-Headers": "Content-Length, Content-Type",
