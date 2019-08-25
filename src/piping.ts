@@ -286,6 +286,7 @@ export class Server {
             case NAME_TO_RESERVED_PATH.robotsTxt:
               res.writeHead(404);
               res.end();
+              break;
             default:
               // Handle a receiver
               this.handleReceiver(req, res, reqPath);
@@ -301,6 +302,7 @@ export class Server {
             "Content-Length": 0
           });
           res.end();
+          break;
         default:
           res.end(`[ERROR] Unsupported method: ${req.method}.\n` as any);
           break;
