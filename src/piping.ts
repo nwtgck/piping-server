@@ -529,6 +529,16 @@ export class Server {
    * @param {string} reqPath
    */
   private handleReceiver(req: HttpReq, res: HttpRes, reqPath: string): void {
+    // If the receiver requests Service Worker registration
+    // (from: https://speakerdeck.com/masatokinugawa/pwa-study-sw?slide=32)"
+    if (req.headers["service-worker"] === "script") {
+      // Reject Service Worker registration
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(`[ERROR] Service Worker registration is rejected.\n` as any);
+      return;
+    }
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(req.url);
     // If the number of receivers is invalid
