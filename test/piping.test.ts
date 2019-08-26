@@ -150,6 +150,18 @@ describe("piping.Server", () => {
     assert.strictEqual(headers["content-length"], "0");
   });
 
+  it("should reject Service Worker registration request", async () => {
+    const res = await thenRequest("GET", `${pipingUrl}/mysw.js`, {
+      headers: {
+        "Service-Worker": "script"
+      }
+    });
+
+    assert.strictEqual(res.statusCode, 400);
+    const headers = res.headers;
+    assert.strictEqual(headers["access-control-allow-origin"], "*");
+  });
+
   it("should handle connection (receiver O, sender: O)", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
@@ -167,7 +179,7 @@ describe("piping.Server", () => {
     // Content-length should be returned
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data.headers["content-type"], "application/octet-stream");
+    assert.strictEqual(data.headers["content-type"], undefined);
     assert.strictEqual(data.headers["x-content-type-options"], "nosniff");
   });
 

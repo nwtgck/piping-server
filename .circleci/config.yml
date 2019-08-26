@@ -2,7 +2,7 @@ ANCHORS:
  node_steps: &node_steps
    steps:
      - checkout
-     - run: npm install
+     - run: npm ci
      - run: npm run lint
      - run: npm test
      # Check whether "run build" is successful
@@ -41,7 +41,7 @@ jobs:
             sleep 1
             # Create a file to send
             echo 'hello, world' > /tmp/hello.txt
-            # Send and wait for a reciever
+            # Send and wait for a receiver
             curl -T /tmp/hello.txt localhost:8080/mypath &
             # Get data as a file
             curl localhost:8080/mypath > /tmp/download.txt
@@ -56,7 +56,7 @@ jobs:
     - image: circleci/node:10
     steps:
       - checkout
-      - run: npm install
+      - run: npm ci
       - run:
           name: Authenticate with registry
           command: echo -e "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc

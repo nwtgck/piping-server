@@ -286,6 +286,7 @@ export class Server {
             case NAME_TO_RESERVED_PATH.robotsTxt:
               res.writeHead(404);
               res.end();
+              break;
             default:
               // Handle a receiver
               this.handleReceiver(req, res, reqPath);
@@ -301,6 +302,7 @@ export class Server {
             "Content-Length": 0
           });
           res.end();
+          break;
         default:
           res.end(`[ERROR] Unsupported method: ${req.method}.\n` as any);
           break;
@@ -367,14 +369,16 @@ export class Server {
       const contentLength: string | number | undefined = part === undefined ?
         sender.req.headers["content-length"] : part.byteCount;
       // Get Content-Type from part or HTTP header.
-      const contentType: string = (() => {
-        // If none, it is 'application/octet-stream'
-        const type = (part === undefined ?
-          sender.req.headers["content-type"] : part.headers["content-type"]) || "application/octet-stream";
+      const contentType: string | undefined = (() => {
+        const type: string | undefined = (part === undefined ?
+          sender.req.headers["content-type"] : part.headers["content-type"]);
+        if (type === undefined) {
+          return undefined;
+        }
         const matched = type.match(/^\s*([^;]*)(\s*;?.*)$/);
         // If invalid Content-Type
         if (matched === null) {
-          return "application/octet-stream";
+          return undefined;
         } else {
           // Extract MIME type and parameters
           const mimeType: string = matched[1];
@@ -391,7 +395,7 @@ export class Server {
       // Write headers to a receiver
       receiver.res.writeHead(200, {
         ...(contentLength === undefined ? {} : {"Content-Length": contentLength}),
-        "Content-Type": contentType,
+        ...(contentType === undefined ? {} : {"Content-Type": contentType}),
         ...(contentDisposition === undefined ? {} : {"Content-Disposition": contentDisposition}),
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Expose-Headers": "Content-Length, Content-Type",
@@ -527,6 +531,16 @@ export class Server {
    * @param {string} reqPath
    */
   private handleReceiver(req: HttpReq, res: HttpRes, reqPath: string): void {
+    // If the receiver requests Service Worker registration
+    // (from: https://speakerdeck.com/masatokinugawa/pwa-study-sw?slide=32)"
+    if (req.headers["service-worker"] === "script") {
+      // Reject Service Worker registration
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(`[ERROR] Service Worker registration is rejected.\n` as any);
+      return;
+    }
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(req.url);
     // If the number of receivers is invalid
