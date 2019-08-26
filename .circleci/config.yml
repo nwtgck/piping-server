@@ -2,7 +2,7 @@ ANCHORS:
  node_steps: &node_steps
    steps:
      - checkout
-     - run: npm install
+     - run: npm ci
      - run: npm run lint
      - run: npm test
      # Check whether "run build" is successful
@@ -56,7 +56,7 @@ jobs:
     - image: circleci/node:10
     steps:
       - checkout
-      - run: npm install
+      - run: npm ci
       - run:
           name: Authenticate with registry
           command: echo -e "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
