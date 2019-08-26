@@ -41,7 +41,7 @@ jobs:
             sleep 1
             # Create a file to send
             echo 'hello, world' > /tmp/hello.txt
-            # Send and wait for a reciever
+            # Send and wait for a receiver
             curl -T /tmp/hello.txt localhost:8080/mypath &
             # Get data as a file
             curl localhost:8080/mypath > /tmp/download.txt
