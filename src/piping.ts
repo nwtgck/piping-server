@@ -91,20 +91,20 @@ const indexPage: string =
 </head>
 <body>
   <h1>Piping</h1>
-  Streaming Data Transfer Server over HTTP/HTTPS
+  HTTP/HTTPSを介したストリーミングデータ転送サーバー
   <form method="POST" id="file_form" enctype="multipart/form-data">
-    <h3>Step 1: Choose a file or text</h3>
+    <h3>Step 1: ファイルまたはテキストを選択</h3>
 
-    <input type="checkbox" id="inputMode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
+    <input type="checkbox" id="inputMode" onchange="toggleInputMode()">: <b>テキストを入力して送信</b><br><br>
 
     <input type="file" name="input_file">
-    <textarea type="text" name="input_text" placeholder="Input text" cols="30" rows="10"></textarea>
+    <textarea type="text" name="input_text" placeholder="ここにテキストを入力" cols="30" rows="10"></textarea>
     <br>
 
-    <h3>Step 2: Write your secret path</h3>
-    (e.g. "abcd1234", "mysecret.png?n=3")<br>
+    <h3>Step 2: 転送するパスを指定</h3>
+    (例: "abcd1234", "mysecret.png?n=3")<br>
     <input id="secret_path" placeholder="Secret path" size="50"><br>
-    <h3>Step 3: Click the submit button</h3>
+    <h3>Step 3: 送信</h3>
     <input type="submit">
   </form>
   <hr>
