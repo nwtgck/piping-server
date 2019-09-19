@@ -1,5 +1,5 @@
 {
-  "name": "piping-server",
+  "name": "piping-server-ja",
   "version": "0.14.0",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
@@ -24,9 +24,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/nwtgck/piping-server"
+    "url": "https://github.com/2oo5mc/piping-server-ja"
   },
-  "author": "Ryo Ota <nwtgck@gmail.com> (https://github.com/nwtgck)",
+  "author": "Shion Takeuchi <shiontak2oo5@gmail.com> (https://github.com/2oo5mc)",
   "license": "MIT",
   "devDependencies": {
     "@types/mocha": "^5.0.0",
