@@ -90,66 +90,99 @@ const indexPage: string =
   </style>
 </head>
 <body>
-  <h1>Piping</h1>
-  Streaming Data Transfer Server over HTTP/HTTPS
-  <form method="POST" id="file_form" enctype="multipart/form-data">
-    <h3>Step 1: Choose a file or text</h3>
+<h1>Piping</h1>
+Streaming Data Transfer Server over HTTP/HTTPS
+<h3>Step 1: Choose a file or text</h3>
 
-    <input type="checkbox" id="inputMode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
+<input type="checkbox" id="text_mode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
 
-    <input type="file" name="input_file">
-    <textarea type="text" name="input_text" placeholder="Input text" cols="30" rows="10"></textarea>
-    <br>
+<input type="file" id="file_input">
+<textarea type="text" id="text_input" placeholder="Input text" cols="30" rows="10"></textarea>
+<br>
 
-    <h3>Step 2: Write your secret path</h3>
-    (e.g. "abcd1234", "mysecret.png?n=3")<br>
-    <input id="secret_path" placeholder="Secret path" size="50"><br>
-    <h3>Step 3: Click the submit button</h3>
-    <input type="submit">
-  </form>
-  <hr>
-  Command-line usage:
-  <a href="https://github.com/nwtgck/piping-server#readme">
-    https://github.com/nwtgck/piping-server#readme
-  </a><br>
-  <script>
-    // Set secret path action routing
-    (function () {
-      var fileForm = document.getElementById("file_form");
-      var secretPathInput = document.getElementById("secret_path");
-      secretPathInput.onkeyup = function(){
-        fileForm.action = "/" + secretPathInput.value;
-      };
-    })();
-
-    // Toggle input mode: file or text
-    var toggleInputMode = (function () {
-      var fileInput   = document.getElementsByName("input_file")[0];
-      var textInput   = document.getElementsByName("input_text")[0];
-      var activeInput = fileInput;
-      var deactivatedInput = textInput;
-
-      // Set inputs' functionality and visibility
-      function setInputs() {
-        activeInput.removeAttribute("disabled");
-        activeInput.style.removeProperty("display");
-
-        deactivatedInput.setAttribute("disabled", "");
-        deactivatedInput.style.display = "none";
-      }
+<h3>Step 2: Write your secret path</h3>
+(e.g. "abcd1234", "mysecret.png")<br>
+<input id="secret_path" placeholder="Secret path" size="50"><br>
+<h3>Step 3: Click the send button</h3>
+<button onclick="send()">Send</button><br>
+<progress id="progress_bar" value="0" max="100" style="display: none"></progress><br>
+<div id="message"></div>
+<hr>
+Piping UI for Web: <a href="https://piping-ui.org">https://piping-ui.org</a><br>
+Command-line usage:
+<a href="https://github.com/nwtgck/piping-server#readme">
+  https://github.com/nwtgck/piping-server#readme
+</a><br>
+<script>
+  // Toggle input mode: file or text
+  var toggleInputMode = (function () {
+    var activeInput      = window.file_input;
+    var deactivatedInput = window.text_input;
+    // Set inputs' functionality and visibility
+    function setInputs() {
+      activeInput.removeAttribute("disabled");
+      activeInput.style.removeProperty("display");
+      deactivatedInput.setAttribute("disabled", "");
+      deactivatedInput.style.display = "none";
+    }
+    setInputs();
+    // Body of toggleInputMode
+    function toggle() {
+      // Swap inputs
+      var tmpInput     = activeInput;
+      activeInput      = deactivatedInput;
+      deactivatedInput = tmpInput;
       setInputs();
-
-      // Body of toggleInputMode
-      function toggle() {
-        // Swap inputs
-        var tmpInput     = activeInput;
-        activeInput      = deactivatedInput;
-        deactivatedInput = tmpInput;
-        setInputs();
+    }
+    return toggle;
+  })();
+  function setMessage(msg) {
+    window.message.innerText = msg;
+  }
+  function setProgress(loaded, total) {
+    var progress = (total === 0) ? 0 : loaded / total * 100;
+    window.progress_bar.value = progress;
+    setMessage(loaded + "B (" + progress.toFixed(2) + "%)");
+  }
+  function hideProgress() {
+    window.progress_bar.style.display = "none";
+  }
+  function send() {
+    // Select body (text or file)
+    var body = window.text_mode.checked ? window.text_input.value : window.file_input.files[0];
+    // Send
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/" + window.secret_path.value, true);
+    // If file has no type
+    if (!window.text_mode.checked && body.type === "") {
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    }
+    // Update progress bar
+    xhr.upload.onprogress = function (e) {
+      setProgress(e.loaded, e.total);
+    };
+    xhr.upload.onload = function (e) {
+      // Send finished
+      if (xhr.status === 200) {
+        setProgress(e.loaded, e.total);
       }
-      return toggle;
-    })();
-  </script>
+    };
+    xhr.onload = function () {
+      // Status code error
+      if (xhr.status !== 200) {
+        setMessage(xhr.responseText);
+        hideProgress();
+      }
+    };
+    xhr.onerror = function () {
+      setMessage("Upload error");
+      hideProgress();
+    };
+    xhr.send(body);
+    // Show progress bar
+    window.progress_bar.style.removeProperty("display");
+  }
+</script>
 </body>
 </html>
 `;

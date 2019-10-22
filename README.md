@@ -28,6 +28,11 @@ Piping Server supports multiple receiver. The following moving image is an examp
 
 ![Piping Server multiple transfer](demo_images/piping-server-multi-transfer.gif)
 
+## Web UI
+
+Piping UI: <https://piping-ui.org>  
+GitHub repository: <https://github.com/nwtgck/piping-ui-web>
+
 ## Design Philosophy
 
 Piping Server is designed to realize the following ideas. 
