@@ -140,9 +140,9 @@ Command-line usage:
     window.message.innerText = msg;
   }
   function setProgress(loaded, total) {
-    var progress = loaded / total * 100;
+    var progress = (total === 0) ? 0 : loaded / total * 100;
     window.progress_bar.value = progress;
-    setMessage(loaded + " (" + progress.toFixed(2) + "%)");
+    setMessage(loaded + "B (" + progress.toFixed(2) + "%)");
   }
   function hideProgress() {
     window.progress_bar.style.display = "none";
