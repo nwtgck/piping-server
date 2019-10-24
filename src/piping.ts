@@ -380,7 +380,7 @@ export class Server {
         }) :
         undefined;
 
-    const senderData: NodeJS.ReadableStream =
+    const senderData: stream.Readable =
       part === undefined ? sender.req : part;
 
     let closeCount: number = 0;
