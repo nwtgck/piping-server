@@ -78,7 +78,8 @@ const NAME_TO_RESERVED_PATH = {
 };
 
 const indexPage: string =
-`<html>
+`<!DOCTYPE html>
+<html lang="en">
 <head>
   <title>Piping</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -97,7 +98,7 @@ Streaming Data Transfer Server over HTTP/HTTPS
 <input type="checkbox" id="text_mode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
 
 <input type="file" id="file_input">
-<textarea type="text" id="text_input" placeholder="Input text" cols="30" rows="10"></textarea>
+<textarea id="text_input" placeholder="Input text" cols="30" rows="10"></textarea>
 <br>
 
 <h3>Step 2: Write your secret path</h3>
