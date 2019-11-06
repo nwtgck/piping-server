@@ -242,7 +242,7 @@ export class Server {
       .query;
     // The number receivers
     // NOTE: parseInt(undefined, 10) is NaN
-    const nReceivers: number = nanOrElse(parseInt((query?.n as string || "1"), 10), 1);
+    const nReceivers: number = nanOrElse(parseInt((query?.n as string ?? "1"), 10), 1);
     return nReceivers;
   }
   private readonly pathToEstablished: {[path: string]: boolean} = {};
@@ -263,7 +263,7 @@ export class Server {
             "/",
             optMap(url.parse, req.url).pathname?.
               // Remove last "/"
-              replace(/\/$/, "") || ""
+              replace(/\/$/, "") ?? ""
           );
       this.logger.info(`${req.method} ${req.url}`);
 
@@ -306,7 +306,7 @@ export class Server {
               })();
               const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
               // NOTE: req.headers.host contains port number
-              const hostname: string = req.headers.host || "hostname";
+              const hostname: string = req.headers.host ?? "hostname";
               // tslint:disable-next-line:no-shadowed-variable
               const url = `${scheme}://${hostname}`;
 
@@ -369,7 +369,7 @@ export class Server {
 
     this.logger.info(`Sending: path='${path}', receivers=${pipe.receivers.length}`);
 
-    const isMultipart: boolean = (sender.req.headers["content-type"] || "").includes("multipart/form-data");
+    const isMultipart: boolean = (sender.req.headers["content-type"] ?? "").includes("multipart/form-data");
 
     const part: multiparty.Part | undefined =
       isMultipart ?
