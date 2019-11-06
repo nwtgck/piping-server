@@ -242,7 +242,7 @@ export class Server {
       .query;
     // The number receivers
     // NOTE: parseInt(undefined, 10) is NaN
-    const nReceivers: number = nanOrElse(parseInt((query?.n as string || "1"), 10), 1);
+    const nReceivers: number = nanOrElse(parseInt((query ? .n as string || "1" ), 10), 1);
     return nReceivers;
   }
   private readonly pathToEstablished: {[path: string]: boolean} = {};
@@ -261,9 +261,9 @@ export class Server {
       const reqPath: string =
           url.resolve(
             "/",
-            optMap(url.parse, req.url).pathname?.
+            optMap(url.parse, req.url).pathname ? .
               // Remove last "/"
-              replace(/\/$/, "") || ""
+              replace(/\/$/, "") || "" 
           );
       this.logger.info(`${req.method} ${req.url}`);
 
