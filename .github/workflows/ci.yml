@@ -6,10 +6,11 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
+        os: [macos-latest, windows-latest, ubuntu-18.04]
         node-version: [8.x, 10.x, 12.x]
 
     steps:
@@ -20,6 +21,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: npm ci, build, and test
       run: |
+        set -eu
         npm ci
         npm run build
         npm test
