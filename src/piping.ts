@@ -292,6 +292,7 @@ export class Server {
             case NAME_TO_RESERVED_PATH.version:
               const versionPage: string = VERSION + "\n";
               res.writeHead(200, {
+                "Access-Control-Allow-Origin": "*",
                 "Content-Length": Buffer.byteLength(versionPage),
                 "Content-Type": "text/plain"
               });
@@ -312,6 +313,7 @@ export class Server {
 
               const helpPage: string = generateHelpPage(url);
               res.writeHead(200, {
+                "Access-Control-Allow-Origin": "*",
                 "Content-Length": Buffer.byteLength(helpPage),
                 "Content-Type": "text/plain"
               });
