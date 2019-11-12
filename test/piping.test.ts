@@ -87,6 +87,8 @@ describe("piping.Server", () => {
       // (from: https://stackoverflow.com/a/22339262/2885946)
       assert.strictEqual(res.getBody("UTF-8"), VERSION + "\n");
 
+      // Allow cross-origin
+      assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       // Should have "Content-Length"
       assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
       // Should have "Content-Type"
@@ -97,6 +99,8 @@ describe("piping.Server", () => {
       // Get response
       const res = await thenRequest("GET", `${pipingUrl}/help`);
 
+      // Allow cross-origin
+      assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       // Should have "Content-Length"
       assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
       // Should have "Content-Type"
