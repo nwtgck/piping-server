@@ -36,7 +36,7 @@ jobs:
           command: |
             set -x
             # Run a server
-            docker run -d -p 8080:80 piping-server --http-port=80
+            docker run -d -p 8080:80 --name=piping piping-server --http-port=80
             # Wait for server running
             sleep 1
             # Create a file to send
@@ -49,6 +49,8 @@ jobs:
             cat  /tmp/download.txt
             # Test the equality
             diff /tmp/hello.txt /tmp/download.txt
+            # Print server log
+            docker logs piping
 
   # (from: https://circleci.com/blog/publishing-npm-packages-using-circleci-2-0/)
   npm_publish:
