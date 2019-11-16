@@ -48,6 +48,6 @@
   "dependencies": {
     "log4js": "^6.0.0",
     "multiparty": "^4.2.1",
-    "yargs": "^14.0.0"
+    "yargs": "^15.0.1"
   }
 }
