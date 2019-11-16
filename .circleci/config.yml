@@ -34,7 +34,7 @@ jobs:
       - run:
           name: Working test with Docker image
           command: |
-            set -x
+            set -eux
             # Run a server
             docker run -d -p 8080:80 --name=piping piping-server --http-port=80
             # Wait for server running
@@ -51,6 +51,36 @@ jobs:
             diff /tmp/hello.txt /tmp/download.txt
             # Print server log
             docker logs piping
+            # Delete container
+            docker rm -f piping
+      - run:
+          name: Working test with Docker image for HTTPS
+          command: |
+            set -eux
+            mkdir ssl_certs
+            cd ssl_certs
+            openssl genrsa 2024 > server.key
+            openssl req -new -key server.key -subj "/C=US" > server.csr
+            openssl x509 -req -days 3650 -signkey server.key < server.csr > server.crt
+            cd ..
+            # Run a server
+            docker run -d -p 8080:80 -p 8443:443 -v $PWD/ssl_certs:/ssl_certs --name=piping piping-server --http-port=80 --enable-https=true --https-port=443 --key-path=/ssl_certs/server.key --crt-path=/ssl_certs/server.crt
+            # Wait for server running
+            sleep 1
+            # Create a file to send
+            echo 'hello, world' > /tmp/hello.txt
+            # Send and wait for a receiver
+            curl -kT /tmp/hello.txt https://localhost:8443/mypath &
+            # Get data as a file
+            curl -k https://localhost:8443/mypath > /tmp/download.txt
+            # Print downloaded file
+            cat  /tmp/download.txt
+            # Test the equality
+            diff /tmp/hello.txt /tmp/download.txt
+            # Print server log
+            docker logs piping
+            # Delete container
+            docker rm -f piping
 
   # (from: https://circleci.com/blog/publishing-npm-packages-using-circleci-2-0/)
   npm_publish:
