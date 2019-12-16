@@ -8,7 +8,7 @@
   "main": "dist/src/piping.js",
   "types": "dist/src/piping.d.ts",
   "scripts": {
-    "generate-version": "cross-var echo \"export const VERSION = \\\"$npm_package_version\\\";\" > src/version.ts",
+    "generate-version": "./gen-version.sh",
     "build": "npm run generate-version && tsc",
     "start": "npm run build && node dist/src/index.js",
     "lint": "tslint 'src/**/*.ts' && tslint 'test/**/*.ts'",
