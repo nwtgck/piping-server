@@ -8,7 +8,7 @@
   "main": "dist/src/piping.js",
   "types": "dist/src/piping.d.ts",
   "scripts": {
-    "generate-version": "./gen-version.sh",
+    "generate-version": "node gen-version.js",
     "build": "npm run generate-version && tsc",
     "start": "npm run build && node dist/src/index.js",
     "lint": "tslint 'src/**/*.ts' && tslint 'test/**/*.ts'",
