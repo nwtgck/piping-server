@@ -81,9 +81,12 @@ const indexPage: string =
 `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Piping</title>
+  <title>Piping Server</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
+    h1 {
+      display: inline;
+    }
     h3 {
       margin-top: 2em;
       margin-bottom: 0.5em;
@@ -91,8 +94,10 @@ const indexPage: string =
   </style>
 </head>
 <body>
-<h1>Piping</h1>
-Streaming Data Transfer Server over HTTP/HTTPS
+<h1>Piping Server</h1>
+<span>${VERSION}</span>
+
+<p>Streaming Data Transfer Server over HTTP/HTTPS</p>
 <h3>Step 1: Choose a file or text</h3>
 
 <input type="checkbox" id="text_mode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
