@@ -1,25 +1,26 @@
 # (base: https://github.com/actions/starter-workflows/blob/ba767afb30b1bceb8c1d6a798d526be9b6f14554/ci/node.js.yml)
 name: Node CI
 
-on: [push]
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
         node-version: [8.x, 10.x, 12.x]
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm ci, build, and test
-      run: |
-        npm ci
-        npm run build
-        npm test
+    - run: npm ci
+    - run: npm run build
+    - run: npm test
