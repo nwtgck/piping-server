@@ -15,3 +15,11 @@ cd <this repo>
 npm i
 npm start -- --enable-https=true --https-port=8443 --key-path=./ssl_certs/server.key --crt-path=./ssl_certs/server.crt
 ```
+
+## Run HTTP and HTTPS server on Docker
+
+`$PWD/ssl_certs/server.crt` and `$PWD/ssl_certs/server.key` should be prepared.
+
+```bash
+docker run -it -p 8080:8080 -p 8443:8443 -v $PWD/ssl_certs:/ssl_certs nwtgck/piping-server --enable-https=true --https-port=8443 --key-path=/ssl_certs/server.key --crt-path=/ssl_certs/server.crt
+```
