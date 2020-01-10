@@ -13,5 +13,5 @@ openssl x509 -days 3650 -req -signkey server.key < server.csr > server.crt
 ```bash
 cd <this repo>
 npm i
-npm start -- --enable-https=true --https-port=4443 --key-path=./ssl_certs/server.key --crt-path=./ssl_certs/server.crt
+npm start -- --enable-https=true --https-port=8443 --key-path=./ssl_certs/server.key --crt-path=./ssl_certs/server.crt
 ```
