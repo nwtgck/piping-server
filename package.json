@@ -41,7 +41,7 @@
     "request": "^2.88.0",
     "then-request": "^6.0.0",
     "ts-node": "^8.0.1",
-    "tslint": "^5.12.1",
+    "tslint": "^6.0.0",
     "typescript": "^3.3.1"
   },
   "dependencies": {
