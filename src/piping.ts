@@ -78,7 +78,7 @@ const NAME_TO_RESERVED_PATH = {
 };
 
 const indexPage: string =
-  `<!DOCTYPE html>
+`<!DOCTYPE html>
 <html lang="en">
 <head>
   <title>Piping Server</title>
@@ -201,7 +201,7 @@ Command-line usage:
 // tslint:disable-next-line:no-shadowed-variable
 function generateHelpPage(url: string): string {
   return (
-    `Help for Piping Server ${VERSION}
+`Help for Piping Server ${VERSION}
 (Repository: https://github.com/nwtgck/piping-server)
 
 ======= Get  =======
@@ -244,7 +244,7 @@ export class Server {
       // tslint:disable-next-line:max-line-length
       // NOTE: Return type casting is safe because function parse(urlStr: string, parseQueryString: true, slashesDenoteHost?: boolean): UrlWithParsedQuery;
       (optMap(url.parse, reqUrl, true) as OptionalProperty<url.UrlWithParsedQuery>)
-        .query;
+      .query;
     // The number receivers
     // NOTE: parseInt(undefined, 10) is NaN
     const nReceivers: number = nanOrElse(parseInt((query?.n as string ?? "1"), 10), 1);
@@ -264,12 +264,12 @@ export class Server {
     return (req: HttpReq, res: HttpRes) => {
       // Get path name
       const reqPath: string =
-        url.resolve(
-          "/",
-          optMap(url.parse, req.url).pathname?.
-            // Remove last "/"
-            replace(/\/$/, "") ?? ""
-        );
+          url.resolve(
+            "/",
+            optMap(url.parse, req.url).pathname?.
+              // Remove last "/"
+              replace(/\/$/, "") ?? ""
+          );
       this.logger.info(`${req.method} ${req.url}`);
 
       switch (req.method) {
