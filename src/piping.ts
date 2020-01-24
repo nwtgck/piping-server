@@ -595,61 +595,66 @@ export class Server {
         "Access-Control-Allow-Origin": "*"
       });
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
-    } else if (this.pathToEstablished.has(reqPath)) {
+      return;
+    }
+    // The connection has been established already
+    if (this.pathToEstablished.has(reqPath)) {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
       res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
-    } else {
-      // Get unestablishedPipe
-      const unestablishedPipe = this.pathToUnestablishedPipe.get(reqPath);
-      // If the path connection is connecting
-      if (unestablishedPipe !== undefined) {
-        // If the number of receivers is the same size as connecting pipe's one
-        if (nReceivers === unestablishedPipe.nReceivers) {
-          // If more receivers can connect
-          if (unestablishedPipe.receivers.length < unestablishedPipe.nReceivers) {
-            // Create a receiver
-            const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
-            // Append new receiver
-            unestablishedPipe.receivers.push(receiver);
+      return;
+    }
+    // Get unestablishedPipe
+    const unestablishedPipe = this.pathToUnestablishedPipe.get(reqPath);
+    // If the path connection is not connecting
+    if (unestablishedPipe === undefined) {
+      // Create a receiver
+      /* tslint:disable:no-shadowed-variable */
+      const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
+      // Set a receiver
+      this.pathToUnestablishedPipe.set(reqPath, {
+        receivers: [receiver],
+        nReceivers: nReceivers
+      });
+      return;
+    }
+    // If the number of receivers is not the same size as connecting pipe's one
+    if (nReceivers !== unestablishedPipe.nReceivers) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(
+        `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
+      );
+      return;
+    }
+    // If more receivers can not connect
+    if (unestablishedPipe.receivers.length === unestablishedPipe.nReceivers) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end("[ERROR] The number of receivers has reached limits.\n" as any);
+      return;
+    }
 
-            if (unestablishedPipe.sender !== undefined) {
-              // Send connection message to the sender
-              unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
-            }
+    // Create a receiver
+    const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
+    // Append new receiver
+    unestablishedPipe.receivers.push(receiver);
 
-            // Get pipeOpt if established
-            const pipe: Pipe | undefined =
-              getPipeIfEstablished(unestablishedPipe);
+    if (unestablishedPipe.sender !== undefined) {
+      // Send connection message to the sender
+      unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
+    }
 
-            if (pipe !== undefined) {
-              // Start data transfer
-              this.runPipe(reqPath, pipe);
-            }
-          } else {
-            res.writeHead(400, {
-              "Access-Control-Allow-Origin": "*"
-            });
-            res.end("[ERROR] The number of receivers has reached limits.\n" as any);
-          }
-        } else {
-          res.writeHead(400, {
-            "Access-Control-Allow-Origin": "*"
-          });
-          res.end(
-            `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
-          );
-        }
-      } else {
-        // Create a receiver
-        const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
-        // Set a receiver
-        this.pathToUnestablishedPipe.set(reqPath, {
-          receivers: [receiver],
-          nReceivers: nReceivers
-        });
-      }
+    // Get pipeOpt if established
+    const pipe: Pipe | undefined =
+      getPipeIfEstablished(unestablishedPipe);
+
+    if (pipe !== undefined) {
+      // Start data transfer
+      this.runPipe(reqPath, pipe);
     }
   }
 
