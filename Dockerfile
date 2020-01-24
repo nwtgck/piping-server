@@ -1,6 +1,6 @@
-FROM node:12.14.0-alpine
+FROM node:12.14.1-alpine
 
-LABEL maintainer="Ryo Ota <nwtgck@gmail.com>"
+LABEL maintainer="Ryo Ota <nwtgck@nwtgck.org>"
 
 RUN apk add --no-cache tini
 

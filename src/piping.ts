@@ -250,8 +250,8 @@ export class Server {
     const nReceivers: number = nanOrElse(parseInt((query?.n as string ?? "1"), 10), 1);
     return nReceivers;
   }
-  private readonly pathToEstablished: {[path: string]: boolean} = {};
-  private readonly pathToUnestablishedPipe: {[path: string]: UnestablishedPipe} = {};
+  private readonly pathToEstablished: Set<string> = new Set();
+  private readonly pathToUnestablishedPipe: Map<string, UnestablishedPipe> = new Map();
 
   /**
    *
@@ -364,10 +364,10 @@ export class Server {
    */
   // tslint:disable-next-line:no-shadowed-variable
   private async runPipe(path: string, pipe: Pipe): Promise<void> {
-    // Set established as true
-    this.pathToEstablished[path] = true;
+    // Add to established
+    this.pathToEstablished.add(path);
     // Delete unestablished pipe
-    delete this.pathToUnestablishedPipe[path];
+    this.pathToUnestablishedPipe.delete(path);
 
     const {sender, receivers} = pipe;
 
@@ -405,7 +405,7 @@ export class Server {
         // If close-count is # of receivers
         if (closeCount === receivers.length) {
           sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n" as any);
-          delete this.pathToEstablished[path];
+          this.pathToEstablished.delete(path);
           // Close sender
           sender.req.destroy();
         }
@@ -478,14 +478,14 @@ export class Server {
     senderData.on("end", () => {
       sender.res.end("[INFO] Sent successfully!\n" as any);
       // Delete from established
-      delete this.pathToEstablished[path];
+      this.pathToEstablished.delete(path);
       this.logger.info(`sender on-end: '${path}'`);
     });
 
     senderData.on("error", (error) => {
       sender.res.end("[ERROR] Failed to send.\n" as any);
       // Delete from established
-      delete this.pathToEstablished[path];
+      this.pathToEstablished.delete(path);
       this.logger.info(`sender on-error: '${path}'`);
     });
   }
@@ -505,68 +505,70 @@ export class Server {
         "Access-Control-Allow-Origin": "*"
       });
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
-    } else if (reqPath in this.pathToEstablished) {
+      return;
+    }
+    if (this.pathToEstablished.has(reqPath)) {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
       res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
-    } else {
-      // If the path connection is connecting
-      if (reqPath in this.pathToUnestablishedPipe) {
-        // Get unestablished pipe
-        const unestablishedPipe: UnestablishedPipe = this.pathToUnestablishedPipe[reqPath];
-        // If a sender have not been registered yet
-        if (unestablishedPipe.sender === undefined) {
-          // If the number of receivers is the same size as connecting pipe's one
-          if (nReceivers === unestablishedPipe.nReceivers) {
-            // Register the sender
-            unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
-            // Add headers
-            res.writeHead(200, {
-              "Access-Control-Allow-Origin": "*"
-            });
-            // Send waiting message
-            res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
-            // Send the number of receivers information
-            res.write(`[INFO] ${unestablishedPipe.receivers.length} receiver(s) has/have been connected.\n`);
-            // Get pipeOpt if established
-            const pipe: Pipe | undefined =
-              getPipeIfEstablished(unestablishedPipe);
+      return;
+    }
+    // Get unestablished pipe
+    const unestablishedPipe = this.pathToUnestablishedPipe.get(reqPath);
+    // If the path connection is not connecting
+    if (unestablishedPipe === undefined) {
+      // Add headers
+      res.writeHead(200, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      // Send waiting message
+      res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
+      // Create a sender
+      const sender = this.createSenderOrReceiver("sender", req, res, reqPath);
+      // Register new unestablished pipe
+      this.pathToUnestablishedPipe.set(reqPath, {
+        sender: sender,
+        receivers: [],
+        nReceivers: nReceivers
+      });
+      return;
+    }
+    // If a sender has been connected already
+    if (unestablishedPipe.sender !== undefined) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n` as any);
+      return;
+    }
+    // If the number of receivers is not the same size as connecting pipe's one
+    if (nReceivers !== unestablishedPipe.nReceivers) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(
+        `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
+      );
+      return;
+    }
+    // Register the sender
+    unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
+    // Add headers
+    res.writeHead(200, {
+      "Access-Control-Allow-Origin": "*"
+    });
+    // Send waiting message
+    res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
+    // Send the number of receivers information
+    res.write(`[INFO] ${unestablishedPipe.receivers.length} receiver(s) has/have been connected.\n`);
+    // Get pipeOpt if established
+    const pipe: Pipe | undefined =
+      getPipeIfEstablished(unestablishedPipe);
 
-            if (pipe !== undefined) {
-              // Start data transfer
-              this.runPipe(reqPath, pipe);
-            }
-          } else {
-            res.writeHead(400, {
-              "Access-Control-Allow-Origin": "*"
-            });
-            res.end(
-              `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
-            );
-          }
-        } else {
-          res.writeHead(400, {
-            "Access-Control-Allow-Origin": "*"
-          });
-          res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n` as any);
-        }
-      } else {
-        // Add headers
-        res.writeHead(200, {
-          "Access-Control-Allow-Origin": "*"
-        });
-        // Send waiting message
-        res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
-        // Create a sender
-        const sender = this.createSenderOrReceiver("sender", req, res, reqPath);
-        // Register new unestablished pipe
-        this.pathToUnestablishedPipe[reqPath] = {
-          sender: sender,
-          receivers: [],
-          nReceivers: nReceivers
-        };
-      }
+    if (pipe !== undefined) {
+      // Start data transfer
+      this.runPipe(reqPath, pipe);
     }
   }
 
@@ -595,61 +597,66 @@ export class Server {
         "Access-Control-Allow-Origin": "*"
       });
       res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
-    } else if (reqPath in this.pathToEstablished) {
+      return;
+    }
+    // The connection has been established already
+    if (this.pathToEstablished.has(reqPath)) {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
       res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
-    } else {
-      // If the path connection is connecting
-      if (reqPath in this.pathToUnestablishedPipe) {
-        // Get unestablishedPipe
-        const unestablishedPipe: UnestablishedPipe = this.pathToUnestablishedPipe[reqPath];
-        // If the number of receivers is the same size as connecting pipe's one
-        if (nReceivers === unestablishedPipe.nReceivers) {
-          // If more receivers can connect
-          if (unestablishedPipe.receivers.length < unestablishedPipe.nReceivers) {
-            // Create a receiver
-            const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
-            // Append new receiver
-            unestablishedPipe.receivers.push(receiver);
+      return;
+    }
+    // Get unestablishedPipe
+    const unestablishedPipe = this.pathToUnestablishedPipe.get(reqPath);
+    // If the path connection is not connecting
+    if (unestablishedPipe === undefined) {
+      // Create a receiver
+      /* tslint:disable:no-shadowed-variable */
+      const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
+      // Set a receiver
+      this.pathToUnestablishedPipe.set(reqPath, {
+        receivers: [receiver],
+        nReceivers: nReceivers
+      });
+      return;
+    }
+    // If the number of receivers is not the same size as connecting pipe's one
+    if (nReceivers !== unestablishedPipe.nReceivers) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(
+        `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
+      );
+      return;
+    }
+    // If more receivers can not connect
+    if (unestablishedPipe.receivers.length === unestablishedPipe.nReceivers) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end("[ERROR] The number of receivers has reached limits.\n" as any);
+      return;
+    }
 
-            if (unestablishedPipe.sender !== undefined) {
-              // Send connection message to the sender
-              unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
-            }
+    // Create a receiver
+    const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
+    // Append new receiver
+    unestablishedPipe.receivers.push(receiver);
 
-            // Get pipeOpt if established
-            const pipe: Pipe | undefined =
-              getPipeIfEstablished(unestablishedPipe);
+    if (unestablishedPipe.sender !== undefined) {
+      // Send connection message to the sender
+      unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
+    }
 
-            if (pipe !== undefined) {
-              // Start data transfer
-              this.runPipe(reqPath, pipe);
-            }
-          } else {
-            res.writeHead(400, {
-              "Access-Control-Allow-Origin": "*"
-            });
-            res.end("[ERROR] The number of receivers has reached limits.\n" as any);
-          }
-        } else {
-          res.writeHead(400, {
-            "Access-Control-Allow-Origin": "*"
-          });
-          res.end(
-            `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
-          );
-        }
-      } else {
-        // Create a receiver
-        const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
-        // Set a receiver
-        this.pathToUnestablishedPipe[reqPath] = {
-          receivers: [receiver],
-          nReceivers: nReceivers
-        };
-      }
+    // Get pipeOpt if established
+    const pipe: Pipe | undefined =
+      getPipeIfEstablished(unestablishedPipe);
+
+    if (pipe !== undefined) {
+      // Start data transfer
+      this.runPipe(reqPath, pipe);
     }
   }
 
@@ -670,13 +677,13 @@ export class Server {
     reqPath: string
   ): ReqResAndUnsubscribe {
     // Create receiver req&res
-    const receiverReqRes: ReqRes = {req: req, res: res};
+    const receiverReqRes: ReqRes = { req: req, res: res };
     // Define on-close handler
     const closeListener = () => {
-      // If reqPath is registered
-      if (reqPath in this.pathToUnestablishedPipe) {
-        // Get unestablished pipe
-        const unestablishedPipe = this.pathToUnestablishedPipe[reqPath];
+      // Get unestablished pipe
+      const unestablishedPipe = this.pathToUnestablishedPipe.get(reqPath);
+      // If the pipe is registered
+      if (unestablishedPipe !== undefined) {
         // Get sender/receiver remover
         const remover =
           removerType === "sender" ?
@@ -709,7 +716,7 @@ export class Server {
           // If unestablished pipe has no sender and no receivers
           if (unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
             // Remove unestablished pipe
-            delete this.pathToUnestablishedPipe[reqPath];
+            this.pathToUnestablishedPipe.delete(reqPath);
             this.logger.info(`'${reqPath}' removed`);
           }
         }
