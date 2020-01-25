@@ -54,7 +54,6 @@ Command-line usage:
       deactivatedInput.setAttribute("disabled", "");
       deactivatedInput.style.display = "none";
     }
-    setInputs();
     // Body of toggleInputMode
     function toggle() {
       // Swap inputs
@@ -62,6 +61,14 @@ Command-line usage:
       activeInput      = deactivatedInput;
       deactivatedInput = tmpInput;
       setInputs();
+    }
+    // Support browser form restoration
+    window.onload = function () {
+      if (window.text_mode.checked) {
+        toggle();
+      } else {
+        setInputs();
+      }
     }
     return toggle;
   })();
