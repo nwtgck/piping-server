@@ -6,7 +6,7 @@ import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
 import * as url from "url";
 
-import {OptionalProperty, optMap} from "./utils";
+import {OptionalProperty, optMap, nanOrElse} from "./utils";
 import {VERSION} from "./version";
 
 type HttpReq = http.IncomingMessage | http2.Http2ServerRequest;
@@ -52,19 +52,6 @@ function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
     };
   } else {
     return undefined;
-  }
-}
-
-/**
- * Return a if a is number otherwise return b
- * @param a
- * @param b
- */
-function nanOrElse<T>(a: number, b: number): number {
-  if (isNaN(a)) {
-    return b;
-  } else {
-    return a;
   }
 }
 

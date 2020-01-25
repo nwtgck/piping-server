@@ -23,13 +23,14 @@ export function optMap<T, S>(
 }
 
 /**
- * Try
- * @param f
+ * Return a if a is number otherwise return b
+ * @param a
+ * @param b
  */
-export function tryOpt<T>(f: () => T): T | undefined {
-  try {
-    return f();
-  } catch {
-    return undefined;
+export function nanOrElse<T>(a: number, b: number): number {
+  if (isNaN(a)) {
+    return b;
+  } else {
+    return a;
   }
 }
