@@ -116,7 +116,7 @@ export class Server {
             res.writeHead(400, {
               "Access-Control-Allow-Origin": "*"
             });
-            res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n` as any);
+            res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
           } else {
             // Handle a sender
             this.handleSender(req, res, reqPath);
@@ -129,7 +129,7 @@ export class Server {
                 "Content-Length": Buffer.byteLength(resources.indexPage),
                 "Content-Type": "text/html"
               });
-              res.end(resources.indexPage as any);
+              res.end(resources.indexPage);
               break;
             case NAME_TO_RESERVED_PATH.version:
               const versionPage: string = VERSION + "\n";
@@ -138,7 +138,7 @@ export class Server {
                 "Content-Length": Buffer.byteLength(versionPage),
                 "Content-Type": "text/plain"
               });
-              res.end(versionPage as any);
+              res.end(versionPage);
               break;
             case NAME_TO_RESERVED_PATH.help:
               // x-forwarded-proto is https or not
@@ -159,7 +159,7 @@ export class Server {
                 "Content-Length": Buffer.byteLength(helpPage),
                 "Content-Type": "text/plain"
               });
-              res.end(helpPage as any);
+              res.end(helpPage);
               break;
             case NAME_TO_RESERVED_PATH.faviconIco:
               // (from: https://stackoverflow.com/a/35408810/2885946)
@@ -187,7 +187,7 @@ export class Server {
           res.end();
           break;
         default:
-          res.end(`[ERROR] Unsupported method: ${req.method}.\n` as any);
+          res.end(`[ERROR] Unsupported method: ${req.method}.\n`);
           break;
       }
     };
@@ -241,7 +241,7 @@ export class Server {
         senderData.unpipe(passThrough);
         // If close-count is # of receivers
         if (closeCount === receivers.length) {
-          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n" as any);
+          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
           this.pathToEstablished.delete(path);
           // Close sender
           sender.req.destroy();
@@ -313,14 +313,14 @@ export class Server {
     });
 
     senderData.on("end", () => {
-      sender.res.end("[INFO] Sent successfully!\n" as any);
+      sender.res.end("[INFO] Sent successfully!\n");
       // Delete from established
       this.pathToEstablished.delete(path);
       this.logger.info(`sender on-end: '${path}'`);
     });
 
     senderData.on("error", (error) => {
-      sender.res.end("[ERROR] Failed to send.\n" as any);
+      sender.res.end("[ERROR] Failed to send.\n");
       // Delete from established
       this.pathToEstablished.delete(path);
       this.logger.info(`sender on-error: '${path}'`);
@@ -341,14 +341,14 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
+      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
       return;
     }
     if (this.pathToEstablished.has(reqPath)) {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
+      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
       return;
     }
     // Get unestablished pipe
@@ -376,7 +376,7 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n` as any);
+      res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n`);
       return;
     }
     // If the number of receivers is not the same size as connecting pipe's one
@@ -384,9 +384,7 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(
-        `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
-      );
+      res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
       return;
     }
     // Register the sender
@@ -423,7 +421,7 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(`[ERROR] Service Worker registration is rejected.\n` as any);
+      res.end(`[ERROR] Service Worker registration is rejected.\n`);
       return;
     }
     // Get the number of receivers
@@ -433,7 +431,7 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n` as any);
+      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
       return;
     }
     // The connection has been established already
@@ -441,7 +439,7 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n` as any);
+      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
       return;
     }
     // Get unestablishedPipe
@@ -463,9 +461,7 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end(
-        `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n` as any
-      );
+      res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
       return;
     }
     // If more receivers can not connect
@@ -473,7 +469,7 @@ export class Server {
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
       });
-      res.end("[ERROR] The number of receivers has reached limits.\n" as any);
+      res.end("[ERROR] The number of receivers has reached limits.\n");
       return;
     }
 
