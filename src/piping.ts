@@ -24,14 +24,14 @@ type Pipe = {
 };
 
 type ReqResAndUnsubscribe = {
-  reqRes: ReqRes,
-  unsubscribeCloseListener: () => void
+  readonly reqRes: ReqRes,
+  readonly unsubscribeCloseListener: () => void
 };
 
 type UnestablishedPipe = {
   sender?: ReqResAndUnsubscribe;
-  receivers: ReqResAndUnsubscribe[];
-  nReceivers: number;
+  readonly receivers: ReqResAndUnsubscribe[];
+  readonly nReceivers: number;
 };
 
 type Handler = (req: HttpReq, res: HttpRes) => void;
