@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.15.7] - 2020-02-24
+### Changed
+* Update dependencies
+
 ## [0.15.6] - 2020-01-24
 ### Changed
 * Update dependencies
@@ -262,7 +266,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.15.6...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v0.15.7...HEAD
+[0.15.7]: https://github.com/nwtgck/piping-server/compare/v0.15.6...v0.15.7
 [0.15.6]: https://github.com/nwtgck/piping-server/compare/v0.15.5...v0.15.6
 [0.15.5]: https://github.com/nwtgck/piping-server/compare/v0.15.4...v0.15.5
 [0.15.4]: https://github.com/nwtgck/piping-server/compare/v0.15.3...v0.15.4
