@@ -81,7 +81,8 @@ Command-line usage:
     var body = window.text_mode.checked ? window.text_input.value : window.file_input.files[0];
     // Send
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/" + window.secret_path.value, true);
+    var path = location.href.replace(/\\/$/, '') + "/" + window.secret_path.value;
+    xhr.open("POST", path, true);
     // If file has no type
     if (!window.text_mode.checked && body.type === "") {
       xhr.setRequestHeader("Content-Type", "application/octet-stream");
