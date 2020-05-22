@@ -233,18 +233,28 @@ export class Server {
     const senderData: stream.Readable =
       part === undefined ? sender.req : part;
 
-    let closeCount: number = 0;
+    let abortedCount: number = 0;
+    let endCount: number = 0;
     for (const receiver of receivers) {
       // Close receiver
-      const closeReceiver = (): void => {
-        closeCount += 1;
+      const abortedListener = (): void => {
+        abortedCount++;
         senderData.unpipe(passThrough);
-        // If close-count is # of receivers
-        if (closeCount === receivers.length) {
-          sender.res.end("[INFO] All receiver(s) was/were closed halfway.\n");
+        // If aborted-count is # of receivers
+        if (abortedCount === receivers.length) {
+          sender.res.end("[INFO] All receiver(s) was/were aborted halfway.\n");
           this.pathToEstablished.delete(path);
           // Close sender
           sender.req.destroy();
+        }
+      };
+      // End
+      const endListener = (): void => {
+        endCount++;
+        // If end-count is # of receivers
+        if (endCount === receivers.length) {
+          sender.res.end("[INFO] All receiver(s) was/were received successfully.\n");
+          this.pathToEstablished.delete(path);
         }
       };
 
@@ -291,29 +301,37 @@ export class Server {
       passThrough.pipe(receiver.res as any);
       receiver.req.on("end", () => {
         this.logger.info(`receiver on-end: '${path}'`);
+        endListener();
       });
       receiver.req.on("close", () => {
         this.logger.info(`receiver on-close: '${path}'`);
-        closeReceiver();
+      });
+      receiver.req.on("aborted", () => {
+        this.logger.info(`receiver on-aborted: '${path}'`);
+        abortedListener();
       });
       receiver.req.on("error", (err) => {
         this.logger.info(`receiver on-error: '${path}'`);
-        closeReceiver();
+        abortedListener();
       });
     }
 
     senderData.on("close", () => {
+      this.logger.info(`sender on-close: '${path}'`);
+    });
+
+    senderData.on("aborted", () => {
       for (const receiver of receivers) {
         // Close a receiver
         if (receiver.res.connection !== undefined) {
           receiver.res.connection.destroy();
         }
       }
-      this.logger.info(`sender on-close: '${path}'`);
+      this.logger.info(`sender on-aborted: '${path}'`);
     });
 
     senderData.on("end", () => {
-      sender.res.end("[INFO] Sent successfully!\n");
+      sender.res.write("[INFO] Sent successfully!\n");
       // Delete from established
       this.pathToEstablished.delete(path);
       this.logger.info(`sender on-end: '${path}'`);
