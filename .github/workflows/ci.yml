@@ -1,10 +1,7 @@
 # (base: https://github.com/actions/starter-workflows/blob/ba767afb30b1bceb8c1d6a798d526be9b6f14554/ci/node.js.yml)
 name: Node CI
 
-on:
-  push:
-  pull_request:
-    types: [opened, synchronize]
+on: [push, pull_request]
 
 jobs:
   build:

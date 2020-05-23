@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -29,24 +29,24 @@
   "author": "Ryo Ota <nwtgck@nwtgck.org> (https://github.com/nwtgck)",
   "license": "MIT",
   "devDependencies": {
-    "@types/mocha": "^7.0.0",
-    "@types/node": "^12.11.7",
-    "@types/power-assert": "^1.5.0",
-    "@types/request": "^2.48.1",
-    "@types/yargs": "^15.0.0",
-    "espower-typescript": "^9.0.0",
-    "get-port": "^5.0.0",
-    "mocha": "^7.0.0",
-    "power-assert": "^1.4.4",
-    "request": "^2.88.0",
-    "then-request": "^6.0.0",
-    "ts-node": "^8.0.1",
-    "tslint": "^6.0.0",
-    "typescript": "^3.3.1"
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^12.12.42",
+    "@types/power-assert": "^1.5.3",
+    "@types/request": "^2.48.5",
+    "@types/yargs": "^15.0.5",
+    "espower-typescript": "^9.0.2",
+    "get-port": "^5.1.1",
+    "mocha": "^7.2.0",
+    "power-assert": "^1.6.1",
+    "request": "^2.88.2",
+    "then-request": "^6.0.2",
+    "ts-node": "^8.10.1",
+    "tslint": "^6.1.2",
+    "typescript": "^3.9.3"
   },
   "dependencies": {
-    "log4js": "^6.0.0",
+    "log4js": "^6.2.1",
     "multiparty": "^4.2.1",
-    "yargs": "^15.0.1"
+    "yargs": "^15.3.1"
   }
 }
