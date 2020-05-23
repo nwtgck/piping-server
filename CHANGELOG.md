@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.0.1] - 2020-05-23
+### Changed
+* Update dependencies
+
+### Fixed
+* Not close receiver when sender is closed
+
 ## [1.0.0] - 2020-03-29
 ### Changed
 * Update dependencies
@@ -278,7 +285,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/nwtgck/piping-server/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/nwtgck/piping-server/compare/v0.15.9...v1.0.0
 [0.15.9]: https://github.com/nwtgck/piping-server/compare/v0.15.8...v0.15.9
 [0.15.8]: https://github.com/nwtgck/piping-server/compare/v0.15.7...v0.15.8
