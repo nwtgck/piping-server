@@ -239,11 +239,13 @@ export class Server {
       // Close receiver
       const abortedListener = (): void => {
         abortedCount++;
+        sender.res.write("[INFO] A receiver aborted.\n");
         senderData.unpipe(passThrough);
         // If aborted-count is # of receivers
         if (abortedCount === receivers.length) {
           sender.res.end("[INFO] All receiver(s) was/were aborted halfway.\n");
-          this.pathToEstablished.delete(path);
+          // Delete from established
+          this.removeEstablished(path);
           // Close sender
           sender.req.destroy();
         }
@@ -254,7 +256,8 @@ export class Server {
         // If end-count is # of receivers
         if (endCount === receivers.length) {
           sender.res.end("[INFO] All receiver(s) was/were received successfully.\n");
-          this.pathToEstablished.delete(path);
+          // Delete from established
+          this.removeEstablished(path);
         }
       };
 
@@ -332,17 +335,21 @@ export class Server {
 
     senderData.on("end", () => {
       sender.res.write("[INFO] Sent successfully!\n");
-      // Delete from established
-      this.pathToEstablished.delete(path);
       this.logger.info(`sender on-end: '${path}'`);
     });
 
     senderData.on("error", (error) => {
       sender.res.end("[ERROR] Failed to send.\n");
       // Delete from established
-      this.pathToEstablished.delete(path);
+      this.removeEstablished(path);
       this.logger.info(`sender on-error: '${path}'`);
     });
+  }
+
+  // Delete from established
+  private removeEstablished(path: string): void {
+    this.pathToEstablished.delete(path);
+    this.logger.info(`established '${path}' removed`);
   }
 
   /**
@@ -568,7 +575,7 @@ export class Server {
           if (unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
             // Remove unestablished pipe
             this.pathToUnestablishedPipe.delete(reqPath);
-            this.logger.info(`'${reqPath}' removed`);
+            this.logger.info(`unestablished '${reqPath}' removed`);
           }
         }
       }
