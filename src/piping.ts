@@ -92,10 +92,11 @@ export class Server {
 
   /**
    *
-   * @param logger
+   * @param params
    */
-  constructor(readonly logger: log4js.Logger) {
-  }
+  constructor(readonly params: {
+    readonly logger?: log4js.Logger
+  } = {}) { }
 
   public generateHandler(useHttps: boolean): Handler {
     return (req: HttpReq, res: HttpRes) => {
@@ -107,7 +108,7 @@ export class Server {
               // Remove last "/"
               replace(/\/$/, "") ?? ""
           );
-      this.logger.info(`${req.method} ${req.url}`);
+      this.params.logger?.info(`${req.method} ${req.url}`);
 
       switch (req.method) {
         case "POST":
@@ -211,7 +212,7 @@ export class Server {
     // Emit message to sender
     sender.res.write(`[INFO] Start sending to ${pipe.receivers.length} receiver(s)!\n`);
 
-    this.logger.info(`Sending: path='${path}', receivers=${pipe.receivers.length}`);
+    this.params.logger?.info(`Sending: path='${path}', receivers=${pipe.receivers.length}`);
 
     const isMultipart: boolean = (sender.req.headers["content-type"] ?? "").includes("multipart/form-data");
 
@@ -223,7 +224,7 @@ export class Server {
             resolve(p);
           });
           form.on("error", () => {
-            this.logger.info(`sender-multipart on-error: '${path}'`);
+            this.params.logger?.info(`sender-multipart on-error: '${path}'`);
           });
           // TODO: Not use any
           form.parse(sender.req as any);
@@ -303,24 +304,24 @@ export class Server {
       // TODO: Not use any
       passThrough.pipe(receiver.res as any);
       receiver.req.on("end", () => {
-        this.logger.info(`receiver on-end: '${path}'`);
+        this.params.logger?.info(`receiver on-end: '${path}'`);
         endListener();
       });
       receiver.req.on("close", () => {
-        this.logger.info(`receiver on-close: '${path}'`);
+        this.params.logger?.info(`receiver on-close: '${path}'`);
       });
       receiver.req.on("aborted", () => {
-        this.logger.info(`receiver on-aborted: '${path}'`);
+        this.params.logger?.info(`receiver on-aborted: '${path}'`);
         abortedListener();
       });
       receiver.req.on("error", (err) => {
-        this.logger.info(`receiver on-error: '${path}'`);
+        this.params.logger?.info(`receiver on-error: '${path}'`);
         abortedListener();
       });
     }
 
     senderData.on("close", () => {
-      this.logger.info(`sender on-close: '${path}'`);
+      this.params.logger?.info(`sender on-close: '${path}'`);
     });
 
     senderData.on("aborted", () => {
@@ -330,26 +331,26 @@ export class Server {
           receiver.res.connection.destroy();
         }
       }
-      this.logger.info(`sender on-aborted: '${path}'`);
+      this.params.logger?.info(`sender on-aborted: '${path}'`);
     });
 
     senderData.on("end", () => {
       sender.res.write("[INFO] Sent successfully!\n");
-      this.logger.info(`sender on-end: '${path}'`);
+      this.params.logger?.info(`sender on-end: '${path}'`);
     });
 
     senderData.on("error", (error) => {
       sender.res.end("[ERROR] Failed to send.\n");
       // Delete from established
       this.removeEstablished(path);
-      this.logger.info(`sender on-error: '${path}'`);
+      this.params.logger?.info(`sender on-error: '${path}'`);
     });
   }
 
   // Delete from established
   private removeEstablished(path: string): void {
     this.pathToEstablished.delete(path);
-    this.logger.info(`established '${path}' removed`);
+    this.params.logger?.info(`established '${path}' removed`);
   }
 
   /**
@@ -575,7 +576,7 @@ export class Server {
           if (unestablishedPipe.receivers.length === 0 && unestablishedPipe.sender === undefined) {
             // Remove unestablished pipe
             this.pathToUnestablishedPipe.delete(reqPath);
-            this.logger.info(`unestablished '${reqPath}' removed`);
+            this.params.logger?.info(`unestablished '${reqPath}' removed`);
           }
         }
       }
