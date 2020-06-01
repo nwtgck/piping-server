@@ -50,7 +50,7 @@ describe("piping.Server", () => {
     // Define Piping URL
     pipingUrl = `http://localhost:${pipingPort}`;
     // Create a Piping server
-    pipingServer = http.createServer(new piping.Server(logger).generateHandler(false));
+    pipingServer = http.createServer(new piping.Server({logger}).generateHandler(false));
     // Listen on the port
     await listenPromise(pipingServer, pipingPort);
   });
@@ -194,7 +194,7 @@ describe("piping.Server", () => {
     const http2PipingUrl = `http://localhost:${http2PipingPort}`;
 
     // Create a Piping server on HTTP/2
-    const http2PipingServer = http2.createServer(new piping.Server(logger).generateHandler(false));
+    const http2PipingServer = http2.createServer(new piping.Server({logger}).generateHandler(false));
     const sessions: http2.Http2Session[] = [];
     http2PipingServer.on("session", (session) => sessions.push(session));
     await listenPromise(http2PipingServer, http2PipingPort);

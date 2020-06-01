@@ -45,7 +45,7 @@ const logger = log4js.getLogger();
 logger.level = "info";
 
 // Create a piping server
-const pipingServer = new piping.Server(logger);
+const pipingServer = new piping.Server({ logger });
 
 http.createServer(pipingServer.generateHandler(false))
   .listen(httpPort, () => {
