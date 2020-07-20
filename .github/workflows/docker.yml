@@ -10,14 +10,15 @@ on:
     - cron: '*/30 * * * *'
 
 jobs:
-  build:
+  build_and_push:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - run: git fetch --unshallow
     - name: Build & Push latest version
       run: |
-        export LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+        export LATEST_TAG=$(ruby -e 'puts ("v" + `git tag`.each_line.map{|l| begin Gem::Version::new(l.sub(/^v/, "")); rescue; nil end}.compact.max.to_s)')
+        echo "Latest tag: $LATEST_TAG"
         git reset --hard $LATEST_TAG
         git status
         docker build -t nwtgck/piping-server:$LATEST_TAG .
