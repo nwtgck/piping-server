@@ -40,7 +40,7 @@
     "power-assert": "^1.6.1",
     "request": "^2.88.2",
     "then-request": "^6.0.2",
-    "ts-node": "^8.10.1",
+    "ts-node": "^9.0.0",
     "tslint": "^6.1.2",
     "typescript": "^3.9.3"
   },
