@@ -37,11 +37,8 @@ export const indexPage: string =
 <progress id="progress_bar" value="0" max="100" style="display: none"></progress><br>
 <div id="message"></div>
 <hr>
-Piping UI for Web: <a href="https://piping-ui.org">https://piping-ui.org</a><br>
-Command-line usage:
-<a href="https://github.com/nwtgck/piping-server#readme">
-  https://github.com/nwtgck/piping-server#readme
-</a><br>
+<a href="https://piping-ui.org">Piping UI for Web</a><br>
+<a href="https://github.com/nwtgck/piping-server#readme">Command-line usage</a><br>
 <script>
   // Toggle input mode: file or text
   var toggleInputMode = (function () {
