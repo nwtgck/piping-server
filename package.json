@@ -47,6 +47,6 @@
   "dependencies": {
     "log4js": "^6.2.1",
     "multiparty": "^4.2.1",
-    "yargs": "^15.3.1"
+    "yargs": "^16.0.3"
   }
 }
