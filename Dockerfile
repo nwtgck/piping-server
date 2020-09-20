@@ -13,7 +13,8 @@ WORKDIR /app
 # (from: https://stackoverflow.com/a/25571391/2885946)
 RUN npm ci && \
     npm run build && \
-    npm prune --production
+    npm prune --production && \
+    rm -rf $(npm config get cache)
 
 # Run a server
 ENTRYPOINT [ "tini", "--", "node", "dist/src/index.js" ]
