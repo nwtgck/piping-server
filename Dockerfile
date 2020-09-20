@@ -14,7 +14,7 @@ WORKDIR /app
 RUN npm ci && \
     npm run build && \
     npm prune --production && \
-    rm -rf $(npm config get cache)
+    npm cache clean --force
 
 # Run a server
 ENTRYPOINT [ "tini", "--", "node", "dist/src/index.js" ]
