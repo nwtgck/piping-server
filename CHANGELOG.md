@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.1.3] - 2020-09-22
+### Changed
+* Update dependencies
+* (Docker) Reduce Docker image size [#388](https://github.com/nwtgck/piping-server/pull/388) by [@peaceiris](https://github.com/peaceiris)
+
 ## [1.1.2] - 2020-09-01
 ### Changed
 * Update dependencies
@@ -299,7 +304,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/nwtgck/piping-server/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/nwtgck/piping-server/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/nwtgck/piping-server/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/nwtgck/piping-server/compare/v1.0.1...v1.1.0
