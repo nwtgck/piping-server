@@ -11,7 +11,7 @@
     "generate-version": "sh -c \"echo 'export const VERSION = \\\"${npm_package_version}\\\";' > src/version.ts\"",
     "build": "npm run generate-version && tsc",
     "start": "npm run build && node dist/src/index.js",
-    "lint": "tslint 'src/**/*.ts' && tslint 'test/**/*.ts'",
+    "lint": "eslint ./{src,test}/**/*.ts",
     "prepare": "npm run build",
     "test": "mocha --require ts-node/register --timeout 10000 test/**/*.ts"
   },
@@ -34,6 +34,10 @@
     "@types/power-assert": "^1.5.3",
     "@types/request": "^2.48.5",
     "@types/yargs": "^15.0.5",
+    "@typescript-eslint/eslint-plugin": "^4.4.1",
+    "@typescript-eslint/parser": "^4.4.1",
+    "eslint": "^7.11.0",
+    "eslint-plugin-mocha": "^8.0.0",
     "espower-typescript": "^9.0.2",
     "get-port": "^5.1.1",
     "mocha": "^8.1.3",
@@ -41,7 +45,6 @@
     "request": "^2.88.2",
     "then-request": "^6.0.2",
     "ts-node": "^9.0.0",
-    "tslint": "^6.1.2",
     "typescript": "^4.0.2"
   },
   "dependencies": {
