@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import * as getPort from "get-port";
 import * as http from "http";
 import * as http2 from "http2";
