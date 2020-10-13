@@ -10,6 +10,10 @@ ANCHORS:
 
 version: 2
 jobs:
+  node_14:
+    docker:
+      - image: circleci/node:14
+    <<: *node_steps
   node_12:
     docker:
       - image: circleci/node:12
@@ -18,11 +22,6 @@ jobs:
   node_10:
     docker:
       - image: circleci/node:10
-    <<: *node_steps
-
-  node_8:
-    docker:
-      - image: circleci/node:8
     <<: *node_steps
 
   docker_test:
