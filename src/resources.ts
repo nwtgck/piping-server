@@ -1,6 +1,6 @@
 import {VERSION} from "./version";
 
-export const indexPage: string =
+export const indexPage =
 `<!DOCTYPE html>
 <html lang="en">
 <head>

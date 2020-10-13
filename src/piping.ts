@@ -234,8 +234,8 @@ export class Server {
     const senderData: stream.Readable =
       part === undefined ? sender.req : part;
 
-    let abortedCount: number = 0;
-    let endCount: number = 0;
+    let abortedCount = 0;
+    let endCount = 0;
     for (const receiver of receivers) {
       // Close receiver
       const abortedListener = (): void => {
