@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import * as http from "http";
 import * as http2 from "http2";
 import * as log4js from "log4js";
