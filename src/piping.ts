@@ -225,6 +225,7 @@ export class Server {
             this.params.logger?.info(`sender-multipart on-error: '${path}'`);
           });
           // TODO: Not use any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           form.parse(sender.req as any);
         }) :
         undefined;
@@ -300,6 +301,7 @@ export class Server {
       const passThrough = new stream.PassThrough();
       senderData.pipe(passThrough);
       // TODO: Not use any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       passThrough.pipe(receiver.res as any);
       receiver.req.on("end", () => {
         this.params.logger?.info(`receiver on-end: '${path}'`);

@@ -12,6 +12,7 @@ export type OptionalProperty<T> = {
  * @param args
  */
 export function optMap<T, S>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     f: (p: T, ...args: any[]) => S, obj: T | null | undefined, ...args: any[]
 ): OptionalProperty<S> {
   if (obj === null || obj === undefined) {

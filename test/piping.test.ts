@@ -31,6 +31,7 @@ function closePromise(server: http.Server | http2.Http2Server): Promise<void> {
 
 // Sleep
 // (from: https://qiita.com/yuba/items/2b17f9ac188e5138319c)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function sleep(ms: number): Promise<any> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
