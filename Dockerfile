@@ -1,4 +1,4 @@
-FROM node:12.19.1-alpine
+FROM node:12.20.0-alpine
 
 LABEL maintainer="Ryo Ota <nwtgck@nwtgck.org>"
 
