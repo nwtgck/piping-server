@@ -43,7 +43,9 @@ Piping Server is designed based on the ideas as follows.
 
 ## Applications
 
-Any data such as text streams, video streams and protocols can be streamed over Piping Server. Here are applications that fully use the power of pure HTTP.
+Any data such as text streams, video streams and protocols can be streamed over Piping Server. Here are applications that fully use the power of pure HTTP.  
+See: "[The Power of Pure HTTP – screen share, real-time messaging, SSH and VNC](https://dev.to/nwtgck/the-power-of-pure-http-screen-share-real-time-messaging-ssh-and-vnc-5ghc)"
+
 
 <table>
   <tr>
