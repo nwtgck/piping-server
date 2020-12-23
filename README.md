@@ -100,7 +100,19 @@ You can transfer to multiple receivers. In the demo below, query parameter `?n=3
 
 <img src="https://github.com/nwtgck/piping-server/raw/develop/demo_images/piping-server-multi-transfer.gif" alt="Piping Server multiple transfer" width="450">
 
-## Server on Docker
+
+## Public servers
+
+Here are public Piping Servers.
+
+* <https://ppng.io> (alias for now: <https://ppng.ml>, <https://piping.ml>)
+* <https://piping.glitch.me>
+* <https://piping-47q675ro2guv.runkit.sh>
+* <https://piping.nwtgck.repl.co>
+* <https://ppng.herokuapp.com> (NOTE: Heroku does not support streaming)
+
+
+## Self-host on Docker
 
 Run a Piping Server on <http://localhost:8080> as follows.
 
@@ -113,6 +125,18 @@ Run a server in background and it automatically always restarts.
 ```bash
 docker run -p 8080:8080 -d --restart=always nwtgck/piping-server
 ```
+
+## Self-host on free services
+
+Here are easier ways to own your Piping Server.
+
+- Remix on Glitch <https://glitch.com/~piping>
+- Clone on RunKit: <https://runkit.com/nwtgck/piping>
+- Fork on Repl.it: <https://repl.it/@nwtgck/piping>
+- Deploy to Heroku: <https://elements.heroku.com/buttons/nwtgck/piping-server>
+
+See "[Ecosystem around Piping Server · nwtgck/piping-server Wiki](https://github.com/nwtgck/piping-server/wiki/Ecosystem-around-Piping-Server)" to find more about self-hosting.
+
 
 ### Command-line options
 
@@ -128,10 +152,6 @@ Options:
   --key-path      Private key path                                      [string]
   --crt-path      Certification path                                    [string]
 ```
-
-
-## Heroku deployment
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 Click the button above to deploy a Piping Server to Heroku.
 
