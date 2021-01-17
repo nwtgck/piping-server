@@ -1,11 +1,12 @@
 import {VERSION} from "./version";
 
-export const indexPage: string =
-`<!DOCTYPE html>
+export const indexPage: string = `\
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <title>Piping Server</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
   <style>
     h1 {
       display: inline;
