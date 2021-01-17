@@ -327,7 +327,7 @@ export class Server {
     senderData.on("aborted", () => {
       for (const receiver of receivers) {
         // Close a receiver
-        if (receiver.res.connection !== undefined) {
+        if (receiver.res.connection !== undefined && receiver.res.connection !== null) {
           receiver.res.connection.destroy();
         }
       }
