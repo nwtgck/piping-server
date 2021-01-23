@@ -15,7 +15,7 @@ jobs:
     - run: git fetch --unshallow
     - name: Build & Push latest version
       run: |
-        $DEVELOP_BRANCH=develop
+        DEVELOP_BRANCH=develop
         git reset --hard $DEVELOP_BRANCH
         git status
         docker build -t nwtgck/piping-server:$DEVELOP_BRANCH .
