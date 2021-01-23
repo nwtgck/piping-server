@@ -1,0 +1,28 @@
+name: Docker push for latest
+
+on:
+  push:
+    branches:
+    - master
+  release:
+    types: [published]
+  schedule:
+    - cron: '*/30 * * * *'
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: git fetch --unshallow
+    - name: Build & Push latest version
+      run: |
+        export LATEST_TAG=$(ruby -e 'puts ("v" + `git tag`.each_line.map{|l| begin Gem::Version::new(l.sub(/^v/, "")); rescue; nil end}.compact.max.to_s)')
+        echo "Latest tag: $LATEST_TAG"
+        git reset --hard $LATEST_TAG
+        git status
+        docker build -t nwtgck/piping-server:$LATEST_TAG .
+        docker tag nwtgck/piping-server:$LATEST_TAG nwtgck/piping-server:latest
+        echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u nwtgck --password-stdin
+        docker push nwtgck/piping-server:$LATEST_TAG
+        docker push nwtgck/piping-server:latest

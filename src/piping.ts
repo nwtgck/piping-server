@@ -2,11 +2,8 @@ import * as http from "http";
 import * as http2 from "http2";
 import * as log4js from "log4js";
 import * as multiparty from "multiparty";
-import {ParsedUrlQuery} from "querystring";
 import * as stream from "stream";
-import * as url from "url";
 
-import {OptionalProperty, optMap, nanOrElse} from "./utils";
 import * as resources from "./resources";
 import {VERSION} from "./version";
 
@@ -72,20 +69,11 @@ const RESERVED_PATHS: string[] =
 export class Server {
 
   /** Get the number of receivers
-   * @param {string | undefined} reqUrl
+   * @param {URL} reqUrl
    * @returns {number}
    */
-  private static getNReceivers(reqUrl: string | undefined): number {
-    // Get query parameter
-    const query: ParsedUrlQuery | undefined =
-      // tslint:disable-next-line:max-line-length
-      // NOTE: Return type casting is safe because function parse(urlStr: string, parseQueryString: true, slashesDenoteHost?: boolean): UrlWithParsedQuery;
-      (optMap(url.parse, reqUrl, true) as OptionalProperty<url.UrlWithParsedQuery>)
-      .query;
-    // The number receivers
-    // NOTE: parseInt(undefined, 10) is NaN
-    const nReceivers: number = nanOrElse(parseInt((query?.n as string ?? "1"), 10), 1);
-    return nReceivers;
+  private static getNReceivers(reqUrl: URL): number {
+    return parseInt(reqUrl.searchParams.get('n') ?? "1", 10)
   }
   private readonly pathToEstablished: Set<string> = new Set();
   private readonly pathToUnestablishedPipe: Map<string, UnestablishedPipe> = new Map();
@@ -100,14 +88,9 @@ export class Server {
 
   public generateHandler(useHttps: boolean): Handler {
     return (req: HttpReq, res: HttpRes) => {
+      const reqUrl = new URL(req.url ?? "", "a:///");
       // Get path name
-      const reqPath: string =
-          url.resolve(
-            "/",
-            optMap(url.parse, req.url).pathname?.
-              // Remove last "/"
-              replace(/\/$/, "") ?? ""
-          );
+      const reqPath = reqUrl.pathname;
       this.params.logger?.info(`${req.method} ${req.url}`);
 
       switch (req.method) {
@@ -120,7 +103,7 @@ export class Server {
             res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
           } else {
             // Handle a sender
-            this.handleSender(req, res, reqPath);
+            this.handleSender(req, res, reqUrl);
           }
           break;
         case "GET":
@@ -173,7 +156,7 @@ export class Server {
               break;
             default:
               // Handle a receiver
-              this.handleReceiver(req, res, reqPath);
+              this.handleReceiver(req, res, reqUrl);
               break;
           }
           break;
@@ -327,7 +310,7 @@ export class Server {
     senderData.on("aborted", () => {
       for (const receiver of receivers) {
         // Close a receiver
-        if (receiver.res.connection !== undefined) {
+        if (receiver.res.connection !== undefined && receiver.res.connection !== null) {
           receiver.res.connection.destroy();
         }
       }
@@ -357,11 +340,12 @@ export class Server {
    * Handle a sender
    * @param {HttpReq} req
    * @param {HttpRes} res
-   * @param {string} reqPath
+   * @param {URL} reqUrl
    */
-  private handleSender(req: HttpReq, res: HttpRes, reqPath: string): void {
+  private handleSender(req: HttpReq, res: HttpRes, reqUrl: URL): void {
+    const reqPath = reqUrl.pathname;
     // Get the number of receivers
-    const nReceivers = Server.getNReceivers(req.url);
+    const nReceivers = Server.getNReceivers(reqUrl);
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400, {
@@ -436,10 +420,11 @@ export class Server {
   /**
    * Handle a receiver
    * @param {HttpReq} req
-   * @param {HttpReqs} res
-   * @param {string} reqPath
+   * @param {HttpRes} res
+   * @param {URL} reqUrl
    */
-  private handleReceiver(req: HttpReq, res: HttpRes, reqPath: string): void {
+  private handleReceiver(req: HttpReq, res: HttpRes, reqUrl: URL): void {
+    const reqPath = reqUrl.pathname;
     // If the receiver requests Service Worker registration
     // (from: https://speakerdeck.com/masatokinugawa/pwa-study-sw?slide=32)"
     if (req.headers["service-worker"] === "script") {
@@ -451,7 +436,7 @@ export class Server {
       return;
     }
     // Get the number of receivers
-    const nReceivers = Server.getNReceivers(req.url);
+    const nReceivers = Server.getNReceivers(reqUrl);
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400, {

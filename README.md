@@ -2,89 +2,145 @@
 [![npm](https://img.shields.io/npm/v/piping-server.svg)](https://www.npmjs.com/package/piping-server) [![CodeFactor](https://www.codefactor.io/repository/github/nwtgck/piping-server/badge)](https://www.codefactor.io/repository/github/nwtgck/piping-server) [![CircleCI](https://circleci.com/gh/nwtgck/piping-server.svg?style=shield)](https://circleci.com/gh/nwtgck/piping-server) [![Build status](https://ci.appveyor.com/api/projects/status/g075o30d5pp4m0pa?svg=true)](https://ci.appveyor.com/project/nwtgck/piping-server)  [![GitHub Actions](https://github.com/nwtgck/piping-server/workflows/Node%20CI/badge.svg)](https://github.com/nwtgck/piping-server/actions) [![Docker Automated build](https://img.shields.io/docker/automated/nwtgck/piping-server.svg)](https://hub.docker.com/r/nwtgck/piping-server/)
  [![](https://images.microbadger.com/badges/image/nwtgck/piping-server.svg)](https://microbadger.com/images/nwtgck/piping-server "Get your own image badge on microbadger.com") [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=nwtgck/piping-server)](https://dependabot.com)
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+Infinitely transfer between every device over HTTP/HTTPS  
+<img src="demo_images/piping-server-terminal-hello.gif" alt="Piping Server hello" width="600">
 
-Streaming Data Transfer Server over HTTP/HTTPS
 
-![Piping Server transfer](demo_images/piping-server.gif)
+## Transfer
 
-## How to transfer data?
-
-Suppose a Piping Server is running on <https://piping.ml>. You can send "hello.txt" to a receiver.
+Piping Server is simple. You can transfer as follows.
 
 ```bash
 # Send
-cat hello.txt | curl -T - https://piping.ml/mysecret
+echo 'hello, world' | curl -T - https://ppng.io/hello
 ```
 
 ```bash
 # Get
-curl https://piping.ml/mysecret > myhello.txt
+curl https://ppng.io/hello > hello.txt
 ```
 
-## Multiple Transfer
+Piping Server transfers data to `POST /hello` or `PUT /hello` into `GET /hello`. The path `/hello` can be anything such as `/mypath` or `/mypath/123/`. A sender and receivers who specify the same path can transfer. Both the sender and the recipient can start the transfer first. The first one waits for the other. 
 
-Piping Server supports multiple receiver. The following moving image is an example. Use query parameter "?n=3" to allow 3 receivers for example.
-
-![Piping Server multiple transfer](demo_images/piping-server-multi-transfer.gif)
-
-## Web UI
-
-Piping UI: <https://piping-ui.org>  
-GitHub repository: <https://github.com/nwtgck/piping-ui-web>
-
-## Design Philosophy
-
-Piping Server is designed to realize the following ideas. 
-
-1. No account
-1. No installation
-1. Never store data
-1. Engineer friendly
-
-Usually, when you want to send data to someone, you need to have an account in the common service among you and his/her.
-In addition, the service may require you to install specific software to share the data.
+You can also use Web UI like <https://ppng.io> on your browser. A more modern UI is found in <https://piping-ui.org>, which supports E2E encryption.
 
 
-Piping Server is designed to solve the problems above.
-Piping Server allows you to use without any account and frees you from additional software installation because the server is available with Web browsers, `curl` and `wget` commands, which are widely pre-installed in Unix-like OS.
-Because of HTTP/HTTPS, users can send data across different devices such as Windows, macOS, Unix, Linux, iOS, Android and any device which uses HTTP. 
-Furthermore, pipe in Unix-like OS allows you to send data in a more efficient and secure way.
+### Stream
+The most important thing is that the data are streamed. This means that you can **transfer any data infinitely**. The demo below transfers an infinite text stream with `seq inf`.
 
-## Engineer Friendly Help
+<img src="demo_images/seq-inf.gif" alt="infnite text stream" width="400">
 
-You can get help and version only with `curl`!
+## Ideas
+Piping Server is designed based on the ideas as follows.
+
+- **Infinite transfer**: You can transfer any kind of data infinitely on a stream. Streams are very efficient in terms of both time and space.
+- **Zero installation**: All you need is to have either a Web browser or `curl`, which are widely pre-installed. You do not need to install any extra software.
+- **Simpleness**: Making simple makes it more secure.
+- **Storageless**: The server makes transfer more secure since the server never stores your data.
+- **Purity**: The server streams over pure HTTP, which makes integration easier with other softwares.
+- **Engineer friendly**: Also designed for Unix/Linux users, who use pipes, not only for Web browser users.
+
+
+## Applications
+
+Any data such as text streams, video streams and protocols can be streamed over Piping Server. Here are applications that fully use the power of pure HTTP.  
+See: "[The Power of Pure HTTP – screen share, real-time messaging, SSH and VNC](https://dev.to/nwtgck/the-power-of-pure-http-screen-share-real-time-messaging-ssh-and-vnc-5ghc)"
+
+
+<table>
+  <tr>
+    <td><img src="demo_images/text-stream-chat.gif" width="300"></td>
+    <td><img src="demo_images/screen-share.gif" width="300"></td>
+    <td><img src="demo_images/piping-draw.gif" width="300"></td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/nwtgck/piping-server-streaming-upload-htmls/blob/a107dd1fb1bbee9991a9278b10d9eaf88b52c395/text_stream.html">Text stream chat</a></td>
+    <td><a href="https://github.com/nwtgck/piping-server-streaming-upload-htmls/blob/a107dd1fb1bbee9991a9278b10d9eaf88b52c395/screen_share.html">Screen share</a></td>
+    <td><a href="https://github.com/nwtgck/piping-draw-web">Drawing share</a></td>
+  </tr>
+</table>
+<table>
+  <tr>
+    <td><img src="demo_images/piping-ui.gif" width="300"></td>
+    <td><img src="demo_images/piping-ssh.gif" width="300"></td>
+    <td><img src="demo_images/piping-vnc.gif" width="300"></td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/nwtgck/piping-ui-web">E2E encryption file transfer</a></td>
+    <td><a href="https://github.com/nwtgck/piping-ssh-web">SSH on Web browser</a></td>
+    <td><a href="https://github.com/nwtgck/piping-vnc-web">VNC on Web browser</a></td>
+  </tr>
+</table>
+
+The most important thing is that Piping Server stays simple. The applications use **Piping Server as a core of data communication**. It transfers data to `POST /thepath` into `GET /thepath` streamingly. The stream makes real-time communications over every device possible.
+
+See "[Ecosystem around Piping Server · nwtgck/piping-server Wiki](https://github.com/nwtgck/piping-server/wiki/Ecosystem-around-Piping-Server)" to find more about softwares using Piping Server.
+
+## Power of HTTP
+
+In my experiment, Piping Server transferred 1,110TB (≈ 1PB) in a single HTTP request for 64 days and 2 hours at least. This means that it can transfer huge data and keep a request for about 2 months.
+
+<img src="demo_images/1110TB-transfer.gif" alt="The power of HTTP" width="400">
+
+## Engineer-friendly help
+
+Get help and version only with `curl`.
 
 ```bash
-curl piping.ml/help
+curl https://ppng.io/help
 ```
 
 ```bash
-curl piping.ml/version
+curl https://ppng.io/version
 ```
 
-## Run server
+## Transfer to multiple receivers
 
-### Heroku deployment
+You can transfer to multiple receivers. In the demo below, query parameter `?n=3` is specified to allow three receivers.
 
-Click the button below to deploy a Piping Server to Heroku.
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+<img src="https://github.com/nwtgck/piping-server/raw/develop/demo_images/piping-server-multi-transfer.gif" alt="Piping Server multiple transfer" width="450">
 
 
-### Run server on localhost
+## Public servers
+
+Here are public Piping Servers.
+
+* <https://ppng.io> (alias for now: <https://ppng.ml>, <https://piping.ml>)
+* <https://piping.glitch.me>
+* <https://piping-47q675ro2guv.runkit.sh>
+* <https://piping.nwtgck.repl.co>
+* <https://ppng.herokuapp.com> (NOTE: Heroku does not support streaming)
+
+
+## Self-host on Docker
+
+Run a Piping Server on <http://localhost:8080> as follows.
 
 ```bash
-# Install
-npm install -g piping-server
-# Run a server
-piping-server
+docker run -p 8080:8080 nwtgck/piping-server
 ```
-Then, a Piping Server is running on <http://localhost:8080>.
 
-### Command-line Options
+Run a server in background and it automatically always restarts.
 
-Here is available command-line options by `piping-server --help`.
+```bash
+docker run -p 8080:8080 -d --restart=always nwtgck/piping-server
+```
+
+## Self-host on free services
+
+Here are easier ways to own your Piping Server.
+
+- Remix on Glitch <https://glitch.com/~piping>
+- Clone on RunKit: <https://runkit.com/nwtgck/piping>
+- Fork on Repl.it: <https://repl.it/@nwtgck/piping>
+- Deploy to Heroku: <https://elements.heroku.com/buttons/nwtgck/piping-server>
+
+See "[Ecosystem around Piping Server · nwtgck/piping-server Wiki](https://github.com/nwtgck/piping-server/wiki/Ecosystem-around-Piping-Server)" to find more about self-hosting.
+
+
+### Command-line options
+
+Here is available CLI options by `piping-server --help`.
 
 ```
 Options:
@@ -97,29 +153,8 @@ Options:
   --crt-path      Certification path                                    [string]
 ```
 
-### Run on Docker
+Click the button above to deploy a Piping Server to Heroku.
 
-Run a Piping Server on <http://localhost:8181> by the following command.
-
-```bash
-docker run -p 8181:8080 nwtgck/piping-server
-```
-
-You can also specify an option like the following.
-
-```bash
-docker run -p 8181:80 nwtgck/piping-server --http-port=80
-```
-
-You can run a server in background and it automatically always restarts.
-
-```bash
-docker run -p 8181:80 -d --restart=always nwtgck/piping-server --http-port=80
-```
-
-## More about Piping Server
-
-[Ecosystem around Piping Server · nwtgck/piping-server Wiki](https://github.com/nwtgck/piping-server/wiki/Ecosystem-around-Piping-Server)  
-This contains end-to-end encrypted chat/file transfer/screen sharing/voice chat/drawing share and some English and Japanese posts.
-
-Piping Server is simple and streams any kind of data, not limited to a file.
+## Piping Server written in Rust
+Piping Server is also developed in Rust.  
+<https://github.com/nwtgck/piping-server-rust>

@@ -10,7 +10,7 @@
     "sourceMap": true,
     "declaration": true,
     "target": "es2015",
-    "lib": ["es2017"],
+    "lib": [ "es2017", "dom" ],
     "outDir": "dist",
     "rootDir": "./",
     "baseUrl": ".",
