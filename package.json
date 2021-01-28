@@ -34,7 +34,7 @@
     "@types/power-assert": "^1.5.3",
     "@types/request": "^2.48.5",
     "@types/yargs": "^15.0.5",
-    "espower-typescript": "^9.0.2",
+    "espower-typescript": "^10.0.0",
     "get-port": "^5.1.1",
     "mocha": "^8.1.3",
     "power-assert": "^1.6.1",
