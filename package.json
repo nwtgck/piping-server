@@ -33,7 +33,7 @@
     "@types/node": "^12.12.42",
     "@types/power-assert": "^1.5.3",
     "@types/request": "^2.48.5",
-    "@types/yargs": "^15.0.5",
+    "@types/yargs": "^16.0.0",
     "espower-typescript": "^10.0.0",
     "get-port": "^5.1.1",
     "mocha": "^8.1.3",
