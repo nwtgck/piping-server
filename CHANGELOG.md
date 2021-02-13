@@ -102,7 +102,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * Add `X-Content-Type-Options: nosniff` header for disabling sniffing 
 ### Changed
-* Replace `text/plain` with `text/html` not to use `Content-Disposition: attachment`
+* Replace `text/html` with `text/plain` not to use `Content-Disposition: attachment`
 
 ## [0.12.0] - 2019-08-18
 ### Changed
