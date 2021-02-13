@@ -433,8 +433,8 @@ export class Server {
   private handleReceiver(req: HttpReq, res: HttpRes, reqUrl: URL): void {
     const reqPath = reqUrl.pathname;
     // If the receiver requests Service Worker registration
-    // (from: https://speakerdeck.com/masatokinugawa/pwa-study-sw?slide=32)"
-    if (req.headers["service-worker"] === "script") {
+    // (ref: https://www.w3.org/TR/service-workers-1/#service-worker-script-request)
+    if (req.headers["service-worker"] !== undefined) {
       // Reject Service Worker registration
       res.writeHead(400, {
         "Access-Control-Allow-Origin": "*"
