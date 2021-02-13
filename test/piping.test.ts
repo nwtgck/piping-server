@@ -826,6 +826,24 @@ describe("piping.Server", () => {
     assert.strictEqual(data3.headers["access-control-allow-origin"], "*");
   });
 
+  it(`should reject POST with invalid query parameter "n"`, async () => {
+    // Get data
+    const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=hoge`, {
+      body: "this is a content"
+    });
+    // Should be rejected
+    assert.strictEqual(res.statusCode, 400);
+    assert.strictEqual(res.headers["access-control-allow-origin"], "*");
+  });
+
+  it(`should reject GET with invalid query parameter "n"`, async () => {
+    // Get data
+    const res = await thenRequest("GET", `${pipingUrl}/mydataid?n=hoge`);
+    // Should be rejected
+    assert.strictEqual(res.statusCode, 400);
+    assert.strictEqual(res.headers["access-control-allow-origin"], "*");
+  });
+
   it("should unregister a sender before establishing", async () => {
     // Send data
     const sedReq1 = request.post( {
