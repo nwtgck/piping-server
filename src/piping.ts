@@ -346,6 +346,13 @@ export class Server {
     const reqPath = reqUrl.pathname;
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(reqUrl);
+    if (Number.isNaN(nReceivers)) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(`[ERROR] Invalid "n" query parameter\n`);
+      return;
+    }
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400, {
@@ -437,6 +444,13 @@ export class Server {
     }
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(reqUrl);
+    if (Number.isNaN(nReceivers)) {
+      res.writeHead(400, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      res.end(`[ERROR] Invalid query parameter "n"\n`);
+      return;
+    }
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
       res.writeHead(400, {
