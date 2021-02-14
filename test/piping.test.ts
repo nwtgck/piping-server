@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import * as getPort from "get-port";
 import * as http from "http";
 import * as http2 from "http2";
@@ -184,7 +183,6 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-type"], undefined);
-    assert.strictEqual(data.headers["x-content-type-options"], "nosniff");
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
@@ -824,6 +822,24 @@ describe("piping.Server", () => {
     // Should be bad request
     assert.strictEqual(data3.statusCode, 400);
     assert.strictEqual(data3.headers["access-control-allow-origin"], "*");
+  });
+
+  it(`should reject POST with invalid query parameter "n"`, async () => {
+    // Get data
+    const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=hoge`, {
+      body: "this is a content"
+    });
+    // Should be rejected
+    assert.strictEqual(res.statusCode, 400);
+    assert.strictEqual(res.headers["access-control-allow-origin"], "*");
+  });
+
+  it(`should reject GET with invalid query parameter "n"`, async () => {
+    // Get data
+    const res = await thenRequest("GET", `${pipingUrl}/mydataid?n=hoge`);
+    // Should be rejected
+    assert.strictEqual(res.statusCode, 400);
+    assert.strictEqual(res.headers["access-control-allow-origin"], "*");
   });
 
   it("should unregister a sender before establishing", async () => {

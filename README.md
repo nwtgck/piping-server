@@ -105,7 +105,7 @@ You can transfer to multiple receivers. In the demo below, query parameter `?n=3
 
 Here are public Piping Servers.
 
-* <https://ppng.io> (alias for now: <https://ppng.ml>, <https://piping.ml>)
+* <https://ppng.io> (alias for now: <https://piping.ml>)
 * <https://piping.glitch.me>
 * <https://piping-47q675ro2guv.runkit.sh>
 * <https://piping.nwtgck.repl.co>
