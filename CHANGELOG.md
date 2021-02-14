@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.2.0] - 2021-02-14
+### Changed
+* Update dependencies
+* Remove `X-Content-Type-Options: nosniff` for better UX for command-line users
+
 ## [1.1.4] - 2021-01-23
 ### Changed
 * Update dependencies
@@ -309,7 +314,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.1.4...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/nwtgck/piping-server/compare/v1.1.4...v1.2.0
 [1.1.4]: https://github.com/nwtgck/piping-server/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/nwtgck/piping-server/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/nwtgck/piping-server/compare/v1.1.1...v1.1.2
