@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import * as getPort from "get-port";
 import * as http from "http";
 import * as http2 from "http2";
@@ -184,7 +183,6 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-type"], undefined);
-    assert.strictEqual(data.headers["x-content-type-options"], "nosniff");
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
