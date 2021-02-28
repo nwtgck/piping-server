@@ -1,12 +1,15 @@
 {
   "name": "piping-server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
   },
   "main": "dist/src/piping.js",
   "types": "dist/src/piping.d.ts",
+  "files": [
+    "dist/src"
+  ],
   "scripts": {
     "generate-version": "sh -c \"echo 'export const VERSION = \\\"${npm_package_version}\\\";' > src/version.ts\"",
     "build": "npm run generate-version && tsc",
