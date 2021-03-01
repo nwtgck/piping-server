@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.2.1] - 2021-03-01
+### Changed
+* (internal) Reduce size of npm tarball [#462](https://github.com/nwtgck/piping-server/pull/462) by [@crazazy](https://github.com/crazazy)
+
 ## [1.2.0] - 2021-02-14
 ### Changed
 * Update dependencies
@@ -314,7 +318,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/nwtgck/piping-server/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/nwtgck/piping-server/compare/v1.1.4...v1.2.0
 [1.1.4]: https://github.com/nwtgck/piping-server/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/nwtgck/piping-server/compare/v1.1.2...v1.1.3
