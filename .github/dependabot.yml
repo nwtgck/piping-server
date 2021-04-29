@@ -1,0 +1,68 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 99
+  reviewers:
+  - nwtgck
+  assignees:
+  - nwtgck
+  ignore:
+  - dependency-name: "@types/node"
+    versions:
+    - ">= 11.a, < 12"
+  - dependency-name: "@types/node"
+    versions:
+    - ">= 13.a, < 14"
+  - dependency-name: "@types/node"
+    versions:
+    - ">= 14.a, < 15"
+  - dependency-name: "@types/node"
+    versions:
+    - 12.20.10
+    - 12.20.2
+    - 12.20.3
+    - 15.0.0
+  - dependency-name: typescript
+    versions:
+    - 4.2.2
+- package-ecosystem: docker
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 99
+  reviewers:
+  - nwtgck
+  assignees:
+  - nwtgck
+  ignore:
+  - dependency-name: node
+    versions:
+    - "< 12, >= 11.a"
+  - dependency-name: node
+    versions:
+    - ">= 13.a, < 14"
+  - dependency-name: node
+    versions:
+    - ">= 14.a, < 15"
+  - dependency-name: node
+    versions:
+    - ">= 15.a, < 16"
+  - dependency-name: node
+    versions:
+    - 12.21.0.pre.alpine
+    - 12.22.0.pre.alpine
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 99
+  reviewers:
+  - nwtgck
+  assignees:
+  - nwtgck
