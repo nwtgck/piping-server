@@ -109,7 +109,7 @@ Here are public Piping Servers.
 * <https://piping.glitch.me>
 * <https://piping-47q675ro2guv.runkit.sh>
 * <https://piping.nwtgck.repl.co>
-* <https://ppng.herokuapp.com> (NOTE: Heroku does not support streaming)
+* <https://ppng.herokuapp.com>
 
 
 ## Self-host on Docker
