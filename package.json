@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -33,7 +33,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/mocha": "^8.0.3",
-    "@types/node": "^12.12.42",
+    "@types/node": "^14.17.5",
     "@types/power-assert": "^1.5.3",
     "@types/request": "^2.48.5",
     "@types/yargs": "^16.0.0",
