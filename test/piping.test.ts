@@ -165,6 +165,20 @@ describe("piping.Server", () => {
     assert.strictEqual(headers["access-control-allow-origin"], "*");
   });
 
+  it("should reject POST and PUT with Content-Range", async () => {
+    const option = {
+      body: "hello",
+      headers: { "Content-Range": "bytes 2-6/100" },
+    };
+    const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, option);
+    assert.strictEqual(postRes.statusCode, 400);
+    assert.strictEqual(postRes.headers["access-control-allow-origin"], "*");
+
+    const putRes = await thenRequest("PUT", `${pipingUrl}/mydataid`, option);
+    assert.strictEqual(putRes.statusCode, 400);
+    assert.strictEqual(putRes.headers["access-control-allow-origin"], "*");
+  });
+
   it("should handle connection (receiver O, sender: O)", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
