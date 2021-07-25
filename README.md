@@ -147,7 +147,7 @@ Options:
   --help          Show help                                            [boolean]
   --version       Show version number                                  [boolean]
   --http-port     Port of HTTP server                            [default: 8080]
-  --enable-https  Enable HTTPS                                  [default: false]
+  --enable-https  Enable HTTPS                        [boolean] [default: false]
   --https-port    Port of HTTPS server                                  [number]
   --key-path      Private key path                                      [string]
   --crt-path      Certification path                                    [string]
