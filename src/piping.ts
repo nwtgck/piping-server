@@ -101,10 +101,20 @@ export class Server {
               "Access-Control-Allow-Origin": "*"
             });
             res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
-          } else {
-            // Handle a sender
-            this.handleSender(req, res, reqUrl);
+            return;
           }
+          // Notify that Content-Range is not supported
+          // In the future, resumable upload using Content-Range might be supported
+          // ref: https://github.com/httpwg/http-core/pull/653
+          if (req.headers["content-range"] !== undefined) {
+            res.writeHead(400, {
+              "Access-Control-Allow-Origin": "*"
+            });
+            res.end(`[ERROR] Content-Range is not supported for now in ${req.method}\n`);
+            return;
+          }
+          // Handle a sender
+          this.handleSender(req, res, reqUrl);
           break;
         case "GET":
           switch (reqPath) {

@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.3.0] - 2021-07-25
+### Changed
+* Reject POST and PUT with Content-Range for now to detect resumable upload in the future
+
 ## [1.2.3] - 2021-07-17
 ### Changed
 * Update dependencies
@@ -328,7 +332,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/nwtgck/piping-server/compare/v1.2.3...v1.3.0
 [1.2.3]: https://github.com/nwtgck/piping-server/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/nwtgck/piping-server/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/nwtgck/piping-server/compare/v1.2.0...v1.2.1
