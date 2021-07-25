@@ -17,9 +17,9 @@ const parser = yargs
   })
   .option("enable-https", {
     describe: "Enable HTTPS",
+    boolean: true,
+    default: false,
   })
-  .boolean("enable-https")
-  .default('enable-https', false)
   .option("https-port", {
     describe: "Port of HTTPS server",
     type: "number"
