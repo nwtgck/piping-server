@@ -1,0 +1,39 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 99
+  reviewers:
+  - nwtgck
+  assignees:
+  - nwtgck
+  ignore:
+  - dependency-name: "@types/node"
+    versions:
+    - ">= 11.a, < 12"
+  - dependency-name: "@types/node"
+    versions:
+    - ">= 13.a, < 14"
+- package-ecosystem: docker
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 99
+  reviewers:
+  - nwtgck
+  assignees:
+  - nwtgck
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 99
+  reviewers:
+  - nwtgck
+  assignees:
+  - nwtgck
