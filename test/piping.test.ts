@@ -197,6 +197,7 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(data.headers["content-type"], undefined);
+    assert.strictEqual(data.headers["x-robots-tag"], "none");
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {

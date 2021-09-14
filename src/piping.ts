@@ -289,6 +289,7 @@ export class Server {
         ...(contentDisposition === undefined ? {} : {"Content-Disposition": contentDisposition}),
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Expose-Headers": "Content-Length, Content-Type",
+        "X-Robots-Tag": "none",
       });
 
       const passThrough = new stream.PassThrough();
