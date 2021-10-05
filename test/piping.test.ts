@@ -5,6 +5,7 @@ import * as log4js from "log4js";
 import * as assert from "power-assert";
 import * as request from "request";
 import thenRequest from "then-request";
+import fetch from "node-fetch";
 import * as piping from "../src/piping";
 import {VERSION} from "../src/version";
 
@@ -62,20 +63,23 @@ describe("piping.Server", () => {
   context("In reserved path", () => {
     it("should return index page", async () => {
       // Get response
-      const res1 = await thenRequest("GET", `${pipingUrl}`);
-      const res2 = await thenRequest("GET", `${pipingUrl}/`);
+      const res1 = await fetch(`${pipingUrl}`);
+      const res2 = await fetch(`${pipingUrl}/`);
+
+      const res1Body = await res1.text();
+      const res2Body = await res2.text();
 
       // Body should be index page
-      assert.strictEqual(res1.getBody("UTF-8").includes("Piping"), true);
-      assert.strictEqual(res2.getBody("UTF-8").includes("Piping"), true);
+      assert.strictEqual(res1Body.includes("Piping"), true);
+      assert.strictEqual(res2Body.includes("Piping"), true);
 
       // Should have "Content-Length"
-      assert.strictEqual(res1.headers["content-length"], Buffer.byteLength(res1.getBody("UTF-8")).toString());
-      assert.strictEqual(res2.headers["content-length"], Buffer.byteLength(res2.getBody("UTF-8")).toString());
+      assert.strictEqual(res1.headers.get("content-length"), Buffer.byteLength(res1Body).toString());
+      assert.strictEqual(res2.headers.get("content-length"), Buffer.byteLength(res2Body).toString());
 
       // Should have "Content-Type"
-      assert.strictEqual(res1.headers["content-type"], "text/html");
-      assert.strictEqual(res2.headers["content-type"], "text/html");
+      assert.strictEqual(res1.headers.get("content-type"), "text/html");
+      assert.strictEqual(res2.headers.get("content-type"), "text/html");
     });
 
     it("should return version page", async () => {
