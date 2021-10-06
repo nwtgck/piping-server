@@ -17,6 +17,7 @@ jobs:
     - run: git fetch --unshallow
     - name: Build & Push latest version
       run: |
+        set -eu
         export LATEST_TAG=$(ruby -e 'puts ("v" + `git tag`.each_line.map{|l| begin Gem::Version::new(l.sub(/^v/, "")); rescue; nil end}.compact.max.to_s)')
         echo "Latest tag: $LATEST_TAG"
         git reset --hard $LATEST_TAG
