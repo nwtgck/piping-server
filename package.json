@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
