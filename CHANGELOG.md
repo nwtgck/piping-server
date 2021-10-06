@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.5.0] - 2021-10-06
+### Changed
+* Update dependencies
+
+### Added
+* Create /noscript Web UI for transferring a file without JavaScript
+
 ## [1.4.0] - 2021-09-14
 ### Changed
 * Update dependencies 
@@ -337,7 +344,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/nwtgck/piping-server/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/nwtgck/piping-server/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/nwtgck/piping-server/compare/v1.2.3...v1.3.0
 [1.2.3]: https://github.com/nwtgck/piping-server/compare/v1.2.2...v1.2.3
