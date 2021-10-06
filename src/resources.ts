@@ -1,5 +1,6 @@
 import {VERSION} from "./version";
-import {NAME_TO_RESERVED_PATH, noScriptPathQueryParameterName} from "./piping";
+import {NAME_TO_RESERVED_PATH} from "./reserved-paths";
+import {noScriptPathQueryParameterName} from "./piping";
 import * as utils from "./utils";
 
 export const indexPage: string = `\
@@ -41,6 +42,7 @@ export const indexPage: string = `\
 <div id="message"></div>
 <hr>
 <a href="https://piping-ui.org">Piping UI for Web</a><br>
+<a href="${NAME_TO_RESERVED_PATH.noscript.substring(1)}">Transfer without JavaScript</a><br>
 <a href="https://github.com/nwtgck/piping-server#readme">Command-line usage</a><br>
 <script>
   // Toggle input mode: file or text

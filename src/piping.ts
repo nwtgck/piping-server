@@ -6,6 +6,7 @@ import * as stream from "stream";
 
 import * as resources from "./resources";
 import {VERSION} from "./version";
+import {NAME_TO_RESERVED_PATH, RESERVED_PATHS} from "./reserved-paths";
 
 type HttpReq = http.IncomingMessage | http2.Http2ServerRequest;
 type HttpRes = http.ServerResponse | http2.Http2ServerResponse;
@@ -52,20 +53,6 @@ function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
     return undefined;
   }
 }
-
-// Name to reserved path
-export const NAME_TO_RESERVED_PATH = {
-  index: "/",
-  noscript: "/noscript",
-  version: "/version",
-  help: "/help",
-  faviconIco: "/favicon.ico",
-  robotsTxt: "/robots.txt",
-};
-
-// All reserved paths
-const RESERVED_PATHS: string[] =
-  Object.values(NAME_TO_RESERVED_PATH);
 
 export const noScriptPathQueryParameterName = "path";
 
