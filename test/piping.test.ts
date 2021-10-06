@@ -78,6 +78,20 @@ describe("piping.Server", () => {
       assert.strictEqual(res2.headers["content-type"], "text/html");
     });
 
+    it("should return noscript Web UI", async () => {
+      // Get response
+      const res = await thenRequest("GET", `${pipingUrl}/noscript?path=mypath`);
+
+      // Body should be index page
+      assert.strictEqual(res.getBody("UTF-8").includes("action=\"mypath\""), true);
+
+      // Should have "Content-Length"
+      assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
+
+      // Should have "Content-Type"
+      assert.strictEqual(res.headers["content-type"], "text/html");
+    });
+
     it("should return version page", async () => {
       // Get response
       const res = await thenRequest("GET", `${pipingUrl}/version`);
@@ -126,7 +140,7 @@ describe("piping.Server", () => {
     });
 
     it("should not allow user to send the reserved paths", async () => {
-      const reservedPaths = ["", "/", "/version", "/help", "/favicon.ico", "/robots.txt"];
+      const reservedPaths = ["", "/", "/noscript", "/version", "/help", "/favicon.ico", "/robots.txt"];
 
       for (const reservedPath of reservedPaths) {
         // Send data to ""

@@ -6,6 +6,7 @@ import * as stream from "stream";
 
 import * as resources from "./resources";
 import {VERSION} from "./version";
+import {NAME_TO_RESERVED_PATH, RESERVED_PATHS} from "./reserved-paths";
 
 type HttpReq = http.IncomingMessage | http2.Http2ServerRequest;
 type HttpRes = http.ServerResponse | http2.Http2ServerResponse;
@@ -53,18 +54,7 @@ function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
   }
 }
 
-// Name to reserved path
-const NAME_TO_RESERVED_PATH = {
-  index: "/",
-  version: "/version",
-  help: "/help",
-  faviconIco: "/favicon.ico",
-  robotsTxt: "/robots.txt"
-};
-
-// All reserved paths
-const RESERVED_PATHS: string[] =
-  Object.values(NAME_TO_RESERVED_PATH);
+export const noScriptPathQueryParameterName = "path";
 
 export class Server {
 
@@ -125,6 +115,16 @@ export class Server {
               });
               res.end(resources.indexPage);
               break;
+            case NAME_TO_RESERVED_PATH.noscript: {
+              const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
+              const html = resources.noScriptHtml(path ?? "");
+              res.writeHead(200, {
+                "Content-Length": Buffer.byteLength(html),
+                "Content-Type": "text/html"
+              });
+              res.end(html);
+              break;
+            }
             case NAME_TO_RESERVED_PATH.version:
               const versionPage: string = VERSION + "\n";
               res.writeHead(200, {
