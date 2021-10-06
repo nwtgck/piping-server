@@ -121,8 +121,9 @@ export const indexPage: string = `\
 
 export function noScriptHtml(path: string): string {
   const escapedPath = utils.escapeHtmlAttribute(path);
-  return (`\
-<html>
+  return `\
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <title>File transferring without JavaScript</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -153,7 +154,7 @@ export function noScriptHtml(path: string): string {
   </a><br>
 </body>
 </html>
-`);
+`;
 }
 
 /**
