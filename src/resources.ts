@@ -1,4 +1,6 @@
 import {VERSION} from "./version";
+import {NAME_TO_RESERVED_PATH, noScriptPathQueryParameterName} from "./piping";
+import * as utils from "./utils";
 
 export const indexPage: string = `\
 <!DOCTYPE html>
@@ -114,6 +116,43 @@ export const indexPage: string = `\
 </body>
 </html>
 `;
+
+export function noScriptHtml(path: string): string {
+  const escapedPath = utils.escapeHtmlAttribute(path);
+  return (`\
+<html>
+<head>
+  <title>File transferring without JavaScript</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    h3 {
+      margin-top: 2em;
+      margin-bottom: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <h2>File transferring without JavaScript</h2>
+  <form method="GET" action="${NAME_TO_RESERVED_PATH.noscript}">
+    <h3>Step 1: Specify path</h3>
+    <input name="${noScriptPathQueryParameterName}" value="${escapedPath}">
+    <input type="submit" value="Apply">
+  </form>
+  <form method="POST" action="${escapedPath}" enctype="multipart/form-data">
+    <h3>Step 2: Choose a file</h3>
+    <input type="file" name="input_file" ${path === "" ? "disabled" : ""}>
+    <h3>Step 3: Send</h3>
+    <input type="submit" value="Send" ${path === "" ? "disabled" : ""}>
+  </form>
+  <hr>
+  Piping Server:
+  <a href="https://github.com/nwtgck/piping-server">
+    https://github.com/nwtgck/piping-server
+  </a><br>
+</body>
+</html>
+`);
+}
 
 /**
  * Generate help page

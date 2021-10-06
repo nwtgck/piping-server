@@ -54,17 +54,20 @@ function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
 }
 
 // Name to reserved path
-const NAME_TO_RESERVED_PATH = {
+export const NAME_TO_RESERVED_PATH = {
   index: "/",
+  noscript: "/noscript",
   version: "/version",
   help: "/help",
   faviconIco: "/favicon.ico",
-  robotsTxt: "/robots.txt"
+  robotsTxt: "/robots.txt",
 };
 
 // All reserved paths
 const RESERVED_PATHS: string[] =
   Object.values(NAME_TO_RESERVED_PATH);
+
+export const noScriptPathQueryParameterName = "path";
 
 export class Server {
 
@@ -125,6 +128,16 @@ export class Server {
               });
               res.end(resources.indexPage);
               break;
+            case NAME_TO_RESERVED_PATH.noscript: {
+              const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
+              const html = resources.noScriptHtml(path ?? "");
+              res.writeHead(200, {
+                "Content-Length": Buffer.byteLength(html),
+                "Content-Type": "text/html"
+              });
+              res.end(html);
+              break;
+            }
             case NAME_TO_RESERVED_PATH.version:
               const versionPage: string = VERSION + "\n";
               res.writeHead(200, {
