@@ -292,7 +292,7 @@ export class Server {
         ...(contentDisposition === undefined ? {} : {"Content-Disposition": contentDisposition}),
         "X-Piping": xPiping,
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Expose-Headers": "X-Piping",
+        ...(xPiping.length === 0 ? {} : {"Access-Control-Expose-Headers": "X-Piping"}),
         "X-Robots-Tag": "none",
       });
 

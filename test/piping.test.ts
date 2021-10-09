@@ -388,7 +388,7 @@ describe("piping.Server", () => {
     assert.deepStrictEqual(xPiping, ["mymetadata1", "mymetadata2", "mymetadata3"]);
   });
 
-  it("should have Access-Control-Allow-Origin/Access-Control-Expose-Headers headers in GET/POST response", async () => {
+  it("should have Access-Control-Allow-Origin and no Access-Control-Expose-Headers in GET/POST response", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
@@ -408,10 +408,10 @@ describe("piping.Server", () => {
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(data.headers["access-control-allow-origin"], "*");
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(data.headers["access-control-expose-headers"], "X-Piping");
+    assert.strictEqual(data.headers["access-control-expose-headers"], undefined);
   });
 
-  it("should have Access-Control-Allow-Origin/Access-Control-Expose-Headers headers in POST/GET response", async () => {
+  it("should have Access-Control-Allow-Origin and no Access-Control-Expose-Headers in POST/GET response", async () => {
     // Send data
     const postResPromise = thenRequest("POST", `${pipingUrl}/mydataid`, {
       body: "this is a content"
@@ -425,13 +425,53 @@ describe("piping.Server", () => {
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(getRes.headers["access-control-allow-origin"], "*");
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(getRes.headers["access-control-expose-headers"], "X-Piping");
+    assert.strictEqual(getRes.headers["access-control-expose-headers"], undefined);
 
     // Get response
     const postRes = await postResPromise;
 
     // Headers of POST response should have Access-Control-Allow-Origin
     assert.strictEqual(postRes.headers["access-control-allow-origin"], "*");
+  });
+
+  it("should have X-Piping in Access-Control-Expose-Headers in GET/POST response when sending with X-Piping", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    await sleep(10);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      // NOTE: headers have X-Piping
+      headers: {
+        "X-Piping": "mymetadata",
+      },
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await reqPromise;
+    // Headers of GET response should have Access-Control-Expose-Headers
+    assert.strictEqual(data.headers["access-control-expose-headers"], "X-Piping");
+  });
+
+  it("should have X-Piping Access-Control-Expose-Headers in POST/GET response when sending with X-Piping", async () => {
+    // Send data
+    thenRequest("POST", `${pipingUrl}/mydataid`, {
+      // NOTE: headers have X-Piping
+      headers: {
+        "X-Piping": "mymetadata",
+      },
+      body: "this is a content"
+    });
+
+    await sleep(10);
+
+    // Get request promise
+    const getRes = await thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Headers of GET response should have Access-Control-Expose-Headers
+    assert.strictEqual(getRes.headers["access-control-expose-headers"], "X-Piping");
   });
 
   it("should handle connection (sender: O, receiver: O)", async () => {
