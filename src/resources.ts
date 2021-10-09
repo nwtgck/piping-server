@@ -125,7 +125,7 @@ export function noScriptHtml(path: string): string {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>File transferring without JavaScript</title>
+  <title>File transfer without JavaScript</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     h3 {
@@ -135,7 +135,7 @@ export function noScriptHtml(path: string): string {
   </style>
 </head>
 <body>
-  <h2>File transferring without JavaScript</h2>
+  <h2>File transfer without JavaScript</h2>
   <form method="GET" action="${NAME_TO_RESERVED_PATH.noscript}">
     <h3>Step 1: Specify path</h3>
     <input name="${noScriptPathQueryParameterName}" value="${escapedPath}">
