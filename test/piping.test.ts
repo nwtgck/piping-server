@@ -408,7 +408,7 @@ describe("piping.Server", () => {
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(data.headers["access-control-allow-origin"], "*");
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(data.headers["access-control-expose-headers"], "Content-Length, Content-Type, X-Piping");
+    assert.strictEqual(data.headers["access-control-expose-headers"], "X-Piping");
   });
 
   it("should have Access-Control-Allow-Origin/Access-Control-Expose-Headers headers in POST/GET response", async () => {
@@ -425,7 +425,7 @@ describe("piping.Server", () => {
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(getRes.headers["access-control-allow-origin"], "*");
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(getRes.headers["access-control-expose-headers"], "Content-Length, Content-Type, X-Piping");
+    assert.strictEqual(getRes.headers["access-control-expose-headers"], "X-Piping");
 
     // Get response
     const postRes = await postResPromise;
