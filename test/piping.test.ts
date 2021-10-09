@@ -6,6 +6,7 @@ import * as assert from "power-assert";
 import * as request from "request";
 import thenRequest from "then-request";
 import * as piping from "../src/piping";
+import * as utils from "../src/utils";
 import {VERSION} from "../src/version";
 
 /**
@@ -162,7 +163,7 @@ describe("piping.Server", () => {
     const headers = res.headers;
     assert.strictEqual(headers["access-control-allow-origin"], "*");
     assert.strictEqual(headers["access-control-allow-methods"], "GET, HEAD, POST, PUT, OPTIONS");
-    assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition");
+    assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition, X-Piping");
     assert.strictEqual(headers["access-control-max-age"], "86400");
     assert.strictEqual(headers["content-length"], "0");
   });
@@ -342,6 +343,51 @@ describe("piping.Server", () => {
     assert.strictEqual(data.headers["content-disposition"], "attachment; filename=\"myfile.txt\"");
   });
 
+  it("should pass sender's X-Piping to receivers' one", async () => {
+    // Get request promise
+    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      headers: {
+        "x-piping": "mymetadata"
+      },
+      body: "this is a content"
+    });
+
+    // Get data
+    const data = await reqPromise;
+
+    // Content-Type should be returned
+    assert.strictEqual(data.headers["x-piping"], "mymetadata");
+  });
+
+  it("should pass sender's multiple X-Piping to receivers' ones", async () => {
+    // Create a GET request
+    const getReq = http.request({
+      host: "localhost",
+      port: pipingPort,
+      method: "GET",
+      path: `/mydataid`
+    });
+    getReq.end();
+
+    // Send data
+    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+      headers: {
+        "x-piping": ["mymetadata1", "mymetadata2", "mymetadata3"],
+      },
+      body: "this is a content"
+    });
+
+    // Wait for GET
+    await new Promise(resolve => getReq.on("close", resolve));
+
+    // Should return multiple X-Piping
+    const xPiping = utils.parseHeaders((getReq as any).res.rawHeaders).get("x-piping");
+    assert.deepStrictEqual(xPiping, ["mymetadata1", "mymetadata2", "mymetadata3"]);
+  });
+
   it("should have Access-Control-Allow-Origin/Access-Control-Expose-Headers headers in GET/POST response", async () => {
     // Get request promise
     const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
@@ -362,7 +408,7 @@ describe("piping.Server", () => {
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(data.headers["access-control-allow-origin"], "*");
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(data.headers["access-control-expose-headers"], "Content-Length, Content-Type");
+    assert.strictEqual(data.headers["access-control-expose-headers"], "Content-Length, Content-Type, X-Piping");
   });
 
   it("should have Access-Control-Allow-Origin/Access-Control-Expose-Headers headers in POST/GET response", async () => {
@@ -379,7 +425,7 @@ describe("piping.Server", () => {
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(getRes.headers["access-control-allow-origin"], "*");
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(getRes.headers["access-control-expose-headers"], "Content-Length, Content-Type");
+    assert.strictEqual(getRes.headers["access-control-expose-headers"], "Content-Length, Content-Type, X-Piping");
 
     // Get response
     const postRes = await postResPromise;

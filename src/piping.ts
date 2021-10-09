@@ -7,6 +7,7 @@ import * as stream from "stream";
 import * as resources from "./resources";
 import {VERSION} from "./version";
 import {NAME_TO_RESERVED_PATH, RESERVED_PATHS} from "./reserved-paths";
+import * as utils from "./utils";
 
 type HttpReq = http.IncomingMessage | http2.Http2ServerRequest;
 type HttpRes = http.ServerResponse | http2.Http2ServerResponse;
@@ -174,7 +175,7 @@ export class Server {
           res.writeHead(200, {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Content-Disposition",
+            "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, X-Piping",
             "Access-Control-Max-Age": 86400,
             "Content-Length": 0
           });
@@ -281,14 +282,17 @@ export class Server {
       })();
       const contentDisposition: string | undefined = part === undefined ?
         sender.req.headers["content-disposition"] : part.headers["content-disposition"];
+      const parseHeaders = utils.parseHeaders(sender.req.rawHeaders);
+      const xPiping: string[] = parseHeaders.get("x-piping") ?? [];
 
       // Write headers to a receiver
       receiver.res.writeHead(200, {
         ...(contentLength === undefined ? {} : {"Content-Length": contentLength}),
         ...(contentType === undefined ? {} : {"Content-Type": contentType}),
         ...(contentDisposition === undefined ? {} : {"Content-Disposition": contentDisposition}),
+        "X-Piping": xPiping,
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Expose-Headers": "Content-Length, Content-Type",
+        "Access-Control-Expose-Headers": "Content-Length, Content-Type, X-Piping",
         "X-Robots-Tag": "none",
       });
 
