@@ -182,6 +182,10 @@ export class Server {
           res.end();
           break;
         default:
+          res.writeHead(405, {
+            "Access-Control-Allow-Origin": "*",
+            "Allow": "GET, HEAD, POST, PUT, OPTIONS",
+          });
           res.end(`[ERROR] Unsupported method: ${req.method}.\n`);
           break;
       }

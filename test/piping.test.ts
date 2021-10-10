@@ -155,6 +155,13 @@ describe("piping.Server", () => {
     });
   });
 
+  it("should reject unsupported method", async () => {
+    const res = await thenRequest("DELETE", `${pipingUrl}/mydataid`);
+    assert.strictEqual(res.statusCode, 405);
+    const headers = res.headers;
+    assert.strictEqual(headers["access-control-allow-origin"], "*");
+  });
+
   it("should support Preflight request", async () => {
     const res = await thenRequest("OPTIONS", `${pipingUrl}/mydataid`);
 
