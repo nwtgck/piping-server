@@ -112,7 +112,7 @@ export class Server {
             case NAME_TO_RESERVED_PATH.index:
               res.writeHead(200, {
                 "Content-Length": Buffer.byteLength(resources.indexPage),
-                "Content-Type": "text/html"
+                "Content-Type": "text/html; charset=utf-8"
               });
               res.end(resources.indexPage);
               break;
@@ -121,7 +121,7 @@ export class Server {
               const html = resources.noScriptHtml(path ?? "");
               res.writeHead(200, {
                 "Content-Length": Buffer.byteLength(html),
-                "Content-Type": "text/html"
+                "Content-Type": "text/html; charset=utf-8"
               });
               res.end(html);
               break;

@@ -75,8 +75,8 @@ describe("piping.Server", () => {
       assert.strictEqual(res2.headers["content-length"], Buffer.byteLength(res2.getBody("UTF-8")).toString());
 
       // Should have "Content-Type"
-      assert.strictEqual(res1.headers["content-type"], "text/html");
-      assert.strictEqual(res2.headers["content-type"], "text/html");
+      assert.strictEqual(res1.headers["content-type"], "text/html; charset=utf-8");
+      assert.strictEqual(res2.headers["content-type"], "text/html; charset=utf-8");
     });
 
     it("should return noscript Web UI", async () => {
@@ -90,7 +90,7 @@ describe("piping.Server", () => {
       assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
 
       // Should have "Content-Type"
-      assert.strictEqual(res.headers["content-type"], "text/html");
+      assert.strictEqual(res.headers["content-type"], "text/html; charset=utf-8");
     });
 
     it("should return version page", async () => {
