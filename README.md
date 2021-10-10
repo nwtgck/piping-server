@@ -137,8 +137,16 @@ Here are easier ways to own your Piping Server.
 
 See "[Ecosystem around Piping Server · nwtgck/piping-server Wiki](https://github.com/nwtgck/piping-server/wiki/Ecosystem-around-Piping-Server)" to find more about self-hosting.
 
+## Headers passed from sender to receivers
 
-### Command-line options
+Here are headers passed to receivers.
+
+* `Content-Type`
+* `Content-Length`
+* `Content-Disposition`
+* `X-Piping`: custom header whose value is freely specified by the sender
+
+## Command-line options
 
 Here is available CLI options by `piping-server --help`.
 
