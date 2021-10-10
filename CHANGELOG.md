@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.6.0] - 2021-10-10
+### Added
+* Support `X-Piping` header passing arbitrary data from sender to receivers
+
+### Changed
+* Respond 405 Method Not Allowed when method is not supported
+
 ## [1.5.0] - 2021-10-06
 ### Changed
 * Update dependencies
@@ -344,7 +351,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/nwtgck/piping-server/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/nwtgck/piping-server/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/nwtgck/piping-server/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/nwtgck/piping-server/compare/v1.2.3...v1.3.0
