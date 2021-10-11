@@ -153,6 +153,26 @@ describe("piping.Server", () => {
         assert.strictEqual(req.headers["access-control-allow-origin"], "*");
       }
     });
+
+    it("should return a HEAD response with the same headers as GET response", async () => {
+      function normalizeHeaders(headers: http.IncomingHttpHeaders): http.IncomingHttpHeaders {
+        const h = {
+          ...headers,
+          "transfer-encoding": undefined,
+          "date": undefined,
+        };
+        return JSON.parse(JSON.stringify(h, Object.keys(h).sort()));
+      }
+
+      const reservedPaths = ["", "/", "/noscript", "/version", "/help", "/favicon.ico", "/robots.txt"];
+
+      for (const reservedPath of reservedPaths) {
+        const getReq = await thenRequest("GET", `${pipingUrl}${reservedPath}`);
+        const headReq = await thenRequest("HEAD", `${pipingUrl}${reservedPath}`);
+        assert.strictEqual(headReq.statusCode, getReq.statusCode);
+        assert.deepStrictEqual(normalizeHeaders(headReq.headers), normalizeHeaders(getReq.headers));
+      }
+    });
   });
 
   it("should reject unsupported method", async () => {
