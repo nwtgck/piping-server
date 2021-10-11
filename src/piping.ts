@@ -6,7 +6,7 @@ import * as stream from "stream";
 
 import * as resources from "./resources";
 import {VERSION} from "./version";
-import {NAME_TO_RESERVED_PATH, RESERVED_PATHS} from "./reserved-paths";
+import {isReservedPath, NAME_TO_RESERVED_PATH, ReservedPath} from "./reserved-paths";
 import * as utils from "./utils";
 
 type HttpReq = http.IncomingMessage | http2.Http2ServerRequest;
@@ -84,10 +84,15 @@ export class Server {
       const reqPath = reqUrl.pathname;
       this.params.logger?.info(`${req.method} ${req.url}`);
 
+      if (isReservedPath(reqPath) && (req.method === "GET" || req.method === "HEAD")) {
+        this.handleReservedPath(useHttps, req, res, reqPath, reqUrl);
+        return;
+      }
+
       switch (req.method) {
         case "POST":
         case "PUT":
-          if (RESERVED_PATHS.includes(reqPath)) {
+          if (isReservedPath(reqPath)) {
             res.writeHead(400, {
               "Access-Control-Allow-Origin": "*"
             });
@@ -108,68 +113,8 @@ export class Server {
           this.handleSender(req, res, reqUrl);
           break;
         case "GET":
-          switch (reqPath) {
-            case NAME_TO_RESERVED_PATH.index:
-              res.writeHead(200, {
-                "Content-Length": Buffer.byteLength(resources.indexPage),
-                "Content-Type": "text/html; charset=utf-8"
-              });
-              res.end(resources.indexPage);
-              break;
-            case NAME_TO_RESERVED_PATH.noscript: {
-              const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
-              const html = resources.noScriptHtml(path ?? "");
-              res.writeHead(200, {
-                "Content-Length": Buffer.byteLength(html),
-                "Content-Type": "text/html; charset=utf-8"
-              });
-              res.end(html);
-              break;
-            }
-            case NAME_TO_RESERVED_PATH.version:
-              const versionPage: string = VERSION + "\n";
-              res.writeHead(200, {
-                "Access-Control-Allow-Origin": "*",
-                "Content-Length": Buffer.byteLength(versionPage),
-                "Content-Type": "text/plain"
-              });
-              res.end(versionPage);
-              break;
-            case NAME_TO_RESERVED_PATH.help:
-              // x-forwarded-proto is https or not
-              const xForwardedProtoIsHttps: boolean = (() => {
-                const proto = req.headers["x-forwarded-proto"];
-                // NOTE: includes() is for supporting Glitch
-                return proto !== undefined && proto.includes("https");
-              })();
-              const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
-              // NOTE: req.headers.host contains port number
-              const hostname: string = req.headers.host ?? "hostname";
-              // tslint:disable-next-line:no-shadowed-variable
-              const url = `${scheme}://${hostname}`;
-
-              const helpPage: string = resources.generateHelpPage(url);
-              res.writeHead(200, {
-                "Access-Control-Allow-Origin": "*",
-                "Content-Length": Buffer.byteLength(helpPage),
-                "Content-Type": "text/plain"
-              });
-              res.end(helpPage);
-              break;
-            case NAME_TO_RESERVED_PATH.faviconIco:
-              // (from: https://stackoverflow.com/a/35408810/2885946)
-              res.writeHead(204);
-              res.end();
-              break;
-            case NAME_TO_RESERVED_PATH.robotsTxt:
-              res.writeHead(404);
-              res.end();
-              break;
-            default:
-              // Handle a receiver
-              this.handleReceiver(req, res, reqUrl);
-              break;
-          }
+          // Handle a receiver
+          this.handleReceiver(req, res, reqUrl);
           break;
         case "OPTIONS":
           res.writeHead(200, {
@@ -190,6 +135,67 @@ export class Server {
           break;
       }
     };
+  }
+
+  private handleReservedPath(useHttps: boolean, req: HttpReq, res: HttpRes, reqPath: ReservedPath, reqUrl: URL) {
+    switch (reqPath) {
+      case NAME_TO_RESERVED_PATH.index:
+        res.writeHead(200, {
+          "Content-Length": Buffer.byteLength(resources.indexPage),
+          "Content-Type": "text/html; charset=utf-8"
+        });
+        res.end(resources.indexPage);
+        return;
+      case NAME_TO_RESERVED_PATH.noscript: {
+        const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
+        const html = resources.noScriptHtml(path ?? "");
+        res.writeHead(200, {
+          "Content-Length": Buffer.byteLength(html),
+          "Content-Type": "text/html; charset=utf-8"
+        });
+        res.end(html);
+        return;
+      }
+      case NAME_TO_RESERVED_PATH.version:
+        const versionPage: string = VERSION + "\n";
+        res.writeHead(200, {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Length": Buffer.byteLength(versionPage),
+          "Content-Type": "text/plain"
+        });
+        res.end(versionPage);
+        return;
+      case NAME_TO_RESERVED_PATH.help:
+        // x-forwarded-proto is https or not
+        const xForwardedProtoIsHttps: boolean = (() => {
+          const proto = req.headers["x-forwarded-proto"];
+          // NOTE: includes() is for supporting Glitch
+          return proto !== undefined && proto.includes("https");
+        })();
+        const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
+        // NOTE: req.headers.host contains port number
+        const hostname: string = req.headers.host ?? "hostname";
+        // tslint:disable-next-line:no-shadowed-variable
+        const url = `${scheme}://${hostname}`;
+
+        const helpPage: string = resources.generateHelpPage(url);
+        res.writeHead(200, {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Length": Buffer.byteLength(helpPage),
+          "Content-Type": "text/plain"
+        });
+        res.end(helpPage);
+        return;
+      case NAME_TO_RESERVED_PATH.faviconIco:
+        // (from: https://stackoverflow.com/a/35408810/2885946)
+        res.writeHead(204);
+        res.end();
+        break;
+      case NAME_TO_RESERVED_PATH.robotsTxt:
+        res.writeHead(404);
+        res.end();
+        return;
+    }
   }
 
   /**
