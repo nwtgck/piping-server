@@ -2,12 +2,12 @@ name: Docker push for latest
 
 on:
   push:
-    branches:
-    - master
-  release:
-    types: [published]
-  schedule:
-    - cron: '*/30 * * * *'
+#    branches:
+#    - master
+#  release:
+#    types: [published]
+#  schedule:
+#    - cron: '*/30 * * * *'
 
 jobs:
   build_and_push:
