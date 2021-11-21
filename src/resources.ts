@@ -152,6 +152,7 @@ export function noScriptHtml(path: string): string {
   <a href="https://github.com/nwtgck/piping-server">
     https://github.com/nwtgck/piping-server
   </a><br>
+  <a href=".">Top page</a><br>
 </body>
 </html>
 `;

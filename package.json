@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -32,14 +32,14 @@
   "author": "Ryo Ota <nwtgck@nwtgck.org> (https://github.com/nwtgck)",
   "license": "MIT",
   "devDependencies": {
-    "@types/mocha": "^8.0.3",
+    "@types/mocha": "^9.0.0",
     "@types/node": "^14.17.5",
     "@types/power-assert": "^1.5.3",
     "@types/request": "^2.48.5",
     "@types/yargs": "^16.0.0",
     "espower-typescript": "^10.0.0",
     "get-port": "^5.1.1",
-    "mocha": "^8.1.3",
+    "mocha": "^9.1.3",
     "power-assert": "^1.6.1",
     "request": "^2.88.2",
     "then-request": "^6.0.2",

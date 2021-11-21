@@ -146,7 +146,7 @@ Here are headers passed to receivers.
 * `Content-Disposition`
 * `X-Piping`: custom header whose value is freely specified by the sender
 
-## Command-line options
+## Server options
 
 Here is available CLI options by `piping-server --help`.
 

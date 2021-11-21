@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.8.0] - 2021-11-21
+### Changed
+* Update dependencies
+
+### Added
+* (Docker) Provide ARM Docker images
+* TLS certificate hot reload
+* Add "Top page" link to /noscript
+
 ## [1.7.0] - 2021-10-11
 ### Changed
 * Support HEAD method for the reserved paths
@@ -355,7 +364,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/nwtgck/piping-server/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/nwtgck/piping-server/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/nwtgck/piping-server/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/nwtgck/piping-server/compare/v1.4.0...v1.5.0
