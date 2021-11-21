@@ -14,9 +14,7 @@ WORKDIR /app
 RUN npm ci && \
     npm run build && \
     npm prune --production && \
-    npm cache clean --force && \
-    # Remove files for reproducible build
-    rm /root/.npm/anonymous-cli-metrics.json /root/.config/configstore/update-notifier-npm.json
+    npm cache clean --force
 
 # Run a server
 ENTRYPOINT [ "tini", "--", "node", "dist/src/index.js" ]
