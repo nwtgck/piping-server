@@ -82,7 +82,7 @@ export class Server {
       const reqUrl = new URL(req.url ?? "", "a:///");
       // Get path name
       const reqPath = reqUrl.pathname;
-      this.params.logger?.info(`${req.method} ${req.url}`);
+      this.params.logger?.info(`${req.method} ${req.url} HTTP/${req.httpVersion}`);
 
       if (isReservedPath(reqPath) && (req.method === "GET" || req.method === "HEAD")) {
         this.handleReservedPath(useHttps, req, res, reqPath, reqUrl);
