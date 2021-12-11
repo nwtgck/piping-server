@@ -985,15 +985,19 @@ describe("piping.Server", () => {
   });
 
   it("should unregister a sender before establishing", async () => {
-    // Send data
-    const sedReq1 = request.post( {
-      url: `${pipingUrl}/mydataid`,
-      body: "dummy content"
+    // Create send request
+    const sendReq1 = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "POST",
+      path: `/mydataid`
     });
+    // Send content-length
+    sendReq1.setHeader("Content-Length", "dummy content".length);
+    // Send data
+    sendReq1.end("dummy content");
     await sleep(10);
-    // Quit send request
-    sedReq1.abort();
-
+    sendReq1.destroy();
     await sleep(10);
 
     // Send data
@@ -1013,28 +1017,32 @@ describe("piping.Server", () => {
   });
 
   it("should unregister a receiver before establishing", async () => {
-    // Get data
-    const getReq1 = request.get( {
-      url: `${pipingUrl}/mydataid`
+    // GET request
+    const getReq1 = http.request( {
+      host: "localhost",
+      port: pipingPort,
+      method: "GET",
+      path: `/mydataid`
     });
-    await sleep(10);
-    // Quit get request
-    getReq1.abort();
+    // Without this, failed with "Uncaught Error: socket hang up"
+    getReq1.on("error", (err) => {});
+    getReq1.end();
 
+    await sleep(10);
+    getReq1.destroy();
     await sleep(10);
 
     const getPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
-
+    await sleep(10);
     // Send data
-    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    const sendPromise = thenRequest("POST", `${pipingUrl}/mydataid`, {
       body: "this is a content"
     });
 
+    const [get2, sendData] = await Promise.all([getPromise2, sendPromise]);
     // Should be sent
     assert.strictEqual(sendData.statusCode, 200);
-
     // 2nd-get response should be 200
-    const get2 = await getPromise2;
     assert.strictEqual(get2.statusCode, 200);
   });
 
