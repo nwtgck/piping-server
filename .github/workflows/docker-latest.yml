@@ -37,6 +37,6 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
+        platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
         push: true
         tags: nwtgck/piping-server:latest,nwtgck/piping-server:${{ steps.latest_tag.outputs.latest_tag }}

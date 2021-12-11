@@ -106,11 +106,10 @@ You can transfer to multiple receivers. In the demo below, query parameter `?n=3
 Here are public Piping Servers.
 
 * <https://ppng.io>
-* <https://piping.glitch.me>
-* <https://piping-47q675ro2guv.runkit.sh>
 * <https://piping.nwtgck.repl.co>
 * <https://ppng.herokuapp.com>
-
+* <https://piping.glitch.me>
+* <https://piping-47q675ro2guv.runkit.sh>
 
 ## Self-host on Docker
 
