@@ -35,6 +35,14 @@ type UnestablishedPipe = {
 
 type Handler = (req: HttpReq, res: HttpRes) => void;
 
+function resEndWithContentLength(res: HttpRes, statusCode: number, headers: http.OutgoingHttpHeaders, body: string) {
+  res.writeHead(statusCode, {
+    "Content-Length": Buffer.byteLength(body),
+    ...headers,
+  });
+  res.end(body);
+}
+
 /**
  * Convert unestablished pipe to pipe if it is established
  * @param p
@@ -93,20 +101,18 @@ export class Server {
         case "POST":
         case "PUT":
           if (isReservedPath(reqPath)) {
-            res.writeHead(400, {
+            resEndWithContentLength(res, 400, {
               "Access-Control-Allow-Origin": "*"
-            });
-            res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
+            }, `[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
             return;
           }
           // Notify that Content-Range is not supported
           // In the future, resumable upload using Content-Range might be supported
           // ref: https://github.com/httpwg/http-core/pull/653
           if (req.headers["content-range"] !== undefined) {
-            res.writeHead(400, {
+            resEndWithContentLength(res, 400, {
               "Access-Control-Allow-Origin": "*"
-            });
-            res.end(`[ERROR] Content-Range is not supported for now in ${req.method}\n`);
+            }, `[ERROR] Content-Range is not supported for now in ${req.method}\n`);
             return;
           }
           // Handle a sender
@@ -127,11 +133,10 @@ export class Server {
           res.end();
           break;
         default:
-          res.writeHead(405, {
+          resEndWithContentLength(res, 405, {
             "Access-Control-Allow-Origin": "*",
             "Allow": "GET, HEAD, POST, PUT, OPTIONS",
-          });
-          res.end(`[ERROR] Unsupported method: ${req.method}.\n`);
+          }, `[ERROR] Unsupported method: ${req.method}.\n`);
           break;
       }
     };
@@ -140,30 +145,23 @@ export class Server {
   private handleReservedPath(useHttps: boolean, req: HttpReq, res: HttpRes, reqPath: ReservedPath, reqUrl: URL) {
     switch (reqPath) {
       case NAME_TO_RESERVED_PATH.index:
-        res.writeHead(200, {
-          "Content-Length": Buffer.byteLength(resources.indexPage),
+        resEndWithContentLength(res, 200, {
           "Content-Type": "text/html; charset=utf-8"
-        });
-        res.end(resources.indexPage);
+        }, resources.indexPage);
         return;
       case NAME_TO_RESERVED_PATH.noscript: {
         const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
-        const html = resources.noScriptHtml(path ?? "");
-        res.writeHead(200, {
-          "Content-Length": Buffer.byteLength(html),
+        resEndWithContentLength(res, 200, {
           "Content-Type": "text/html; charset=utf-8"
-        });
-        res.end(html);
+        }, resources.noScriptHtml(path ?? ""));
         return;
       }
       case NAME_TO_RESERVED_PATH.version:
         const versionPage: string = VERSION + "\n";
-        res.writeHead(200, {
+        resEndWithContentLength(res, 200, {
           "Access-Control-Allow-Origin": "*",
-          "Content-Length": Buffer.byteLength(versionPage),
           "Content-Type": "text/plain"
-        });
-        res.end(versionPage);
+        }, versionPage);
         return;
       case NAME_TO_RESERVED_PATH.help:
         // x-forwarded-proto is https or not
@@ -179,12 +177,10 @@ export class Server {
         const url = `${scheme}://${hostname}`;
 
         const helpPage: string = resources.generateHelpPage(url);
-        res.writeHead(200, {
+        resEndWithContentLength(res, 200, {
           "Access-Control-Allow-Origin": "*",
-          "Content-Length": Buffer.byteLength(helpPage),
           "Content-Type": "text/plain"
-        });
-        res.end(helpPage);
+        }, helpPage);
         return;
       case NAME_TO_RESERVED_PATH.faviconIco:
         // (from: https://stackoverflow.com/a/35408810/2885946)
@@ -192,7 +188,9 @@ export class Server {
         res.end();
         break;
       case NAME_TO_RESERVED_PATH.robotsTxt:
-        res.writeHead(404);
+        res.writeHead(404, {
+          "Content-Length": 0,
+        });
         res.end();
         return;
     }
@@ -371,25 +369,22 @@ export class Server {
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(reqUrl);
     if (Number.isNaN(nReceivers)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Invalid "n" query parameter\n`);
+      }, `[ERROR] Invalid "n" query parameter\n`);
       return;
     }
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
+      }, `[ERROR] n should > 0, but n = ${nReceivers}.\n`);
       return;
     }
     if (this.pathToEstablished.has(reqPath)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
+      }, `[ERROR] Connection on '${reqPath}' has been established already.\n`);
       return;
     }
     // Get unestablished pipe
@@ -414,18 +409,16 @@ export class Server {
     }
     // If a sender has been connected already
     if (unestablishedPipe.sender !== undefined) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n`);
+      }, `[ERROR] Another sender has been connected on '${reqPath}'.\n`);
       return;
     }
     // If the number of receivers is not the same size as connecting pipe's one
     if (nReceivers !== unestablishedPipe.nReceivers) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+      }, `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
       return;
     }
     // Register the sender
@@ -460,35 +453,31 @@ export class Server {
     // (from: https://speakerdeck.com/masatokinugawa/pwa-study-sw?slide=32)"
     if (req.headers["service-worker"] === "script") {
       // Reject Service Worker registration
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Service Worker registration is rejected.\n`);
+      }, `[ERROR] Service Worker registration is rejected.\n`);
       return;
     }
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(reqUrl);
     if (Number.isNaN(nReceivers)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Invalid query parameter "n"\n`);
+      }, `[ERROR] Invalid query parameter "n"\n`);
       return;
     }
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
+      }, `[ERROR] n should > 0, but n = ${nReceivers}.\n`);
       return;
     }
     // The connection has been established already
     if (this.pathToEstablished.has(reqPath)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
+      }, `[ERROR] Connection on '${reqPath}' has been established already.\n`);
       return;
     }
     // Get unestablishedPipe
@@ -507,18 +496,16 @@ export class Server {
     }
     // If the number of receivers is not the same size as connecting pipe's one
     if (nReceivers !== unestablishedPipe.nReceivers) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+      }, `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
       return;
     }
     // If more receivers can not connect
     if (unestablishedPipe.receivers.length === unestablishedPipe.nReceivers) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end("[ERROR] The number of receivers has reached limits.\n");
+      }, "[ERROR] The number of receivers has reached limits.\n");
       return;
     }
 

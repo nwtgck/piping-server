@@ -138,6 +138,8 @@ describe("piping.Server", () => {
 
       // Status should not be found
       assert.strictEqual(res.statusCode, 404);
+      // Should have "Content-Length"
+      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
     });
 
     it("should not allow user to send the reserved paths", async () => {
@@ -150,6 +152,8 @@ describe("piping.Server", () => {
         });
         // Should be failed
         assert.strictEqual(res.statusCode, 400);
+        // Should have "Content-Length"
+        assert.strictEqual(res.headers["content-length"], res.body.length.toString());
         assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       }
     });
@@ -180,6 +184,7 @@ describe("piping.Server", () => {
     assert.strictEqual(res.statusCode, 405);
     const headers = res.headers;
     assert.strictEqual(headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
   });
 
   it("should support Preflight request", async () => {
@@ -205,6 +210,7 @@ describe("piping.Server", () => {
     assert.strictEqual(res.statusCode, 400);
     const headers = res.headers;
     assert.strictEqual(headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
   });
 
   it("should reject POST and PUT with Content-Range", async () => {
@@ -215,10 +221,12 @@ describe("piping.Server", () => {
     const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, option);
     assert.strictEqual(postRes.statusCode, 400);
     assert.strictEqual(postRes.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(postRes.headers["content-length"], postRes.body.length.toString());
 
     const putRes = await thenRequest("PUT", `${pipingUrl}/mydataid`, option);
     assert.strictEqual(putRes.statusCode, 400);
     assert.strictEqual(putRes.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(putRes.headers["content-length"], putRes.body.length.toString());
   });
 
   it("should handle connection (receiver O, sender: O)", async () => {
@@ -646,6 +654,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
     // Quit get request
     getReq1.abort();
@@ -667,6 +676,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
     // Quit get request
     getReq1.abort();
@@ -696,6 +706,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(res1.statusCode, 400);
     assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
 
     // Quit send request
     sendReq.abort();
@@ -725,6 +736,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(res1.statusCode, 400);
     assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
 
     // Quit send request
     sendReq.abort();
@@ -741,16 +753,18 @@ describe("piping.Server", () => {
 
     await sleep(10);
 
-    const getReqPromise3: Promise<request.Response> = new Promise((resolve) =>
+    const getResPromise3: Promise<request.Response> = new Promise((resolve) =>
       request.get({
         url: `${pipingUrl}/mydataid?n=2`
       }, (err, response, body) => {
         resolve(response);
       })
     );
+    const getRes3 = await getResPromise3;
     // Should be rejected
-    assert.strictEqual((await getReqPromise3).statusCode, 400);
-    assert.strictEqual((await getReqPromise3).headers["access-control-allow-origin"], "*");
+    assert.strictEqual(getRes3.statusCode, 400);
+    assert.strictEqual(getRes3.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(getRes3.headers["content-length"], getRes3.body.length.toString());
     // Quit get requests
     getReq1.abort();
     getReq2.abort();
@@ -767,16 +781,18 @@ describe("piping.Server", () => {
 
     await sleep(10);
 
-    const getReqPromise3: Promise<request.Response> = new Promise((resolve) =>
+    const getResPromise3: Promise<request.Response> = new Promise((resolve) =>
       request.get({
         url: `${pipingUrl}/mydataid?n=3`
       }, (err, response, body) => {
         resolve(response);
       })
     );
+    const getRes3 = await getResPromise3;
     // Should be rejected
-    assert.strictEqual((await getReqPromise3).statusCode, 400);
-    assert.strictEqual((await getReqPromise3).headers["access-control-allow-origin"], "*");
+    assert.strictEqual(getRes3.statusCode, 400);
+    assert.strictEqual(getRes3.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(getRes3.headers["content-length"], getRes3.body.length.toString());
     // Quit get requests
     getReq1.abort();
     getReq2.abort();
@@ -802,6 +818,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
     // Quit get requests
     getReq1.abort();
@@ -828,6 +845,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
     // Quit get requests
     getReq1.abort();
@@ -860,6 +878,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(res2.statusCode, 400);
     assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
 
     // Quit get request
     getReq1.abort();
@@ -893,6 +912,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(res2.statusCode, 400);
     assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
 
     // Quit get request
     getReq1.abort();
@@ -936,6 +956,7 @@ describe("piping.Server", () => {
     // Should be bad request
     assert.strictEqual(res3.statusCode, 400);
     assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res3.headers["content-length"], res3.body.length.toString());
   });
 
   // tslint:disable-next-line:max-line-length
@@ -964,6 +985,7 @@ describe("piping.Server", () => {
     // Should be bad request
     assert.strictEqual(res3.statusCode, 400);
     assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res3.headers["content-length"], res3.body.length.toString());
   });
 
   it(`should reject POST with invalid query parameter "n"`, async () => {
@@ -974,6 +996,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(res.statusCode, 400);
     assert.strictEqual(res.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
   });
 
   it(`should reject GET with invalid query parameter "n"`, async () => {
@@ -982,6 +1005,7 @@ describe("piping.Server", () => {
     // Should be rejected
     assert.strictEqual(res.statusCode, 400);
     assert.strictEqual(res.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
   });
 
   it("should unregister a sender before establishing", async () => {
@@ -1056,6 +1080,7 @@ describe("piping.Server", () => {
       // Should be rejected
       assert.strictEqual(res.statusCode, 400);
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
+      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
     });
 
     it("should not allow n=-1", async () => {
@@ -1067,6 +1092,7 @@ describe("piping.Server", () => {
       // Should be rejected
       assert.strictEqual(res.statusCode, 400);
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
+      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
     });
   });
 
