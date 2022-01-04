@@ -145,12 +145,12 @@ describe("piping.Server", () => {
 
       for (const reservedPath of reservedPaths) {
         // Send data to ""
-        const req = await thenRequest("POST", `${pipingUrl}${reservedPath}`, {
+        const res = await thenRequest("POST", `${pipingUrl}${reservedPath}`, {
           body: "this is a content"
         });
         // Should be failed
-        assert.strictEqual(req.statusCode, 400);
-        assert.strictEqual(req.headers["access-control-allow-origin"], "*");
+        assert.strictEqual(res.statusCode, 400);
+        assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       }
     });
 
@@ -167,10 +167,10 @@ describe("piping.Server", () => {
       const reservedPaths = ["", "/", "/noscript", "/version", "/help", "/favicon.ico", "/robots.txt"];
 
       for (const reservedPath of reservedPaths) {
-        const getReq = await thenRequest("GET", `${pipingUrl}${reservedPath}`);
-        const headReq = await thenRequest("HEAD", `${pipingUrl}${reservedPath}`);
-        assert.strictEqual(headReq.statusCode, getReq.statusCode);
-        assert.deepStrictEqual(normalizeHeaders(headReq.headers), normalizeHeaders(getReq.headers));
+        const getRes = await thenRequest("GET", `${pipingUrl}${reservedPath}`);
+        const headRes = await thenRequest("HEAD", `${pipingUrl}${reservedPath}`);
+        assert.strictEqual(headRes.statusCode, getRes.statusCode);
+        assert.deepStrictEqual(normalizeHeaders(headRes.headers), normalizeHeaders(getRes.headers));
       }
     });
   });
@@ -223,23 +223,23 @@ describe("piping.Server", () => {
 
   it("should handle connection (receiver O, sender: O)", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
     await thenRequest("POST", `${pipingUrl}/mydataid`, {
       body: "this is a content"
     });
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
 
     // Body should be the sent data
-    assert.strictEqual(data.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
-    assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data.headers["content-type"], undefined);
-    assert.strictEqual(data.headers["x-robots-tag"], "none");
+    assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res.headers["content-type"], undefined);
+    assert.strictEqual(res.headers["x-robots-tag"], "none");
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
@@ -296,7 +296,7 @@ describe("piping.Server", () => {
 
   it("should pass sender's Content-Type to receivers' one", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
     await thenRequest("POST", `${pipingUrl}/mydataid`, {
@@ -306,16 +306,16 @@ describe("piping.Server", () => {
       body: "this is a content"
     });
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
 
     // Content-Type should be returned
-    assert.strictEqual(data.headers["content-type"], "text/plain");
+    assert.strictEqual(res.headers["content-type"], "text/plain");
   });
 
   it("should replace 'Content-Type: text/html' with 'text/plain'", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
     await thenRequest("POST", `${pipingUrl}/mydataid`, {
@@ -325,16 +325,16 @@ describe("piping.Server", () => {
       body: "<h1>this is a content</h1>"
     });
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
 
-    // Content-Tyoe should be 'text/plain'
-    assert.strictEqual(data.headers["content-type"], "text/plain");
+    // Content-Type should be 'text/plain'
+    assert.strictEqual(res.headers["content-type"], "text/plain");
   });
 
   it("should replace 'Content-Type: text/html; charset=utf-8' with 'text/plain; charset=utf-8'", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
     await thenRequest("POST", `${pipingUrl}/mydataid`, {
@@ -344,16 +344,16 @@ describe("piping.Server", () => {
       body: "<h1>this is a content</h1>"
     });
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
 
-    // Content-Tyoe should be 'text/plain'
-    assert.strictEqual(data.headers["content-type"], "text/plain; charset=utf-8");
+    // Content-Type should be 'text/plain'
+    assert.strictEqual(res.headers["content-type"], "text/plain; charset=utf-8");
   });
 
   it("should pass sender's Content-Disposition to receivers' one", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
     await thenRequest("POST", `${pipingUrl}/mydataid`, {
@@ -363,16 +363,16 @@ describe("piping.Server", () => {
       body: "this is a content"
     });
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
 
     // Content-Disposition should be returned
-    assert.strictEqual(data.headers["content-disposition"], "attachment; filename=\"myfile.txt\"");
+    assert.strictEqual(res.headers["content-disposition"], "attachment; filename=\"myfile.txt\"");
   });
 
   it("should pass sender's X-Piping to receivers' one", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Send data
     await thenRequest("POST", `${pipingUrl}/mydataid`, {
@@ -382,11 +382,11 @@ describe("piping.Server", () => {
       body: "this is a content"
     });
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
 
     // Content-Type should be returned
-    assert.strictEqual(data.headers["x-piping"], "mymetadata");
+    assert.strictEqual(res.headers["x-piping"], "mymetadata");
   });
 
   it("should pass sender's multiple X-Piping to receivers' ones", async () => {
@@ -417,7 +417,7 @@ describe("piping.Server", () => {
 
   it("should have Access-Control-Allow-Origin and no Access-Control-Expose-Headers in GET/POST response", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     await sleep(10);
 
@@ -429,13 +429,13 @@ describe("piping.Server", () => {
     // Headers of POST response should have Access-Control-Allow-Origin
     assert.strictEqual(postRes.headers["access-control-allow-origin"], "*");
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
 
     // Headers of GET response should have Access-Control-Allow-Origin
-    assert.strictEqual(data.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res.headers["access-control-allow-origin"], "*");
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(data.headers["access-control-expose-headers"], undefined);
+    assert.strictEqual(res.headers["access-control-expose-headers"], undefined);
   });
 
   it("should have Access-Control-Allow-Origin and no Access-Control-Expose-Headers in POST/GET response", async () => {
@@ -463,7 +463,7 @@ describe("piping.Server", () => {
 
   it("should have X-Piping in Access-Control-Expose-Headers in GET/POST response when sending with X-Piping", async () => {
     // Get request promise
-    const reqPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
 
     await sleep(10);
 
@@ -476,10 +476,10 @@ describe("piping.Server", () => {
       body: "this is a content"
     });
 
-    // Get data
-    const data = await reqPromise;
+    // Wait for response
+    const res = await resPromise;
     // Headers of GET response should have Access-Control-Expose-Headers
-    assert.strictEqual(data.headers["access-control-expose-headers"], "X-Piping");
+    assert.strictEqual(res.headers["access-control-expose-headers"], "X-Piping");
   });
 
   it("should have X-Piping Access-Control-Expose-Headers in POST/GET response when sending with X-Piping", async () => {
@@ -509,12 +509,12 @@ describe("piping.Server", () => {
     });
 
     // Get data
-    const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const res = await thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Body should be the sent data
-    assert.strictEqual(data.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
-    assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
   });
 
   it("should be sent chunked data", async () => {
@@ -531,10 +531,10 @@ describe("piping.Server", () => {
     sendReq.end(" a content");
 
     // Get data
-    const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const res = await thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Body should be the sent data
-    assert.strictEqual(data.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res.getBody("UTF-8"), "this is a content");
   });
 
   it("should be sent by PUT method", async () => {
@@ -545,36 +545,36 @@ describe("piping.Server", () => {
     });
 
     // Get data
-    const data = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const res = await thenRequest("GET", `${pipingUrl}/mydataid`);
 
     // Body should be the sent data
-    assert.strictEqual(data.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res.getBody("UTF-8"), "this is a content");
     // Content-length should be returned
-    assert.strictEqual(data.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
   });
 
   // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=3: O, receiver?n=3: O, receiver?n=3: O, sender?n=3: O)", async () => {
     // Get request promise
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
     // Send data
     thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
       body: "this is a content"
     });
 
-    // Await all data
-    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+    // Await all responses
+    const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data and content-length should be returned
-    assert.strictEqual(data1.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data1.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data2.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data2.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data3.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data3.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res1.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res2.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res3.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
   // tslint:disable-next-line:max-line-length
@@ -586,27 +586,27 @@ describe("piping.Server", () => {
     });
 
     // Get data
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
-    // Await all data
-    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+    // Await all responses
+    const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data and content-length should be returned
-    assert.strictEqual(data1.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data1.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data2.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data2.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data3.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data3.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res1.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res2.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res3.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
   // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=3: O, sender?n=3: O, receiver?n=3: O, receiver?n=3: O)", async () => {
 
     // Get data
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
     // Send data
     // (NOTE: Should NOT use `await` because of blocking GET requests)
@@ -615,19 +615,19 @@ describe("piping.Server", () => {
     });
 
     // Get data
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
-    // Await all data
-    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+    // Await all responses
+    const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data and content-length should be returned
-    assert.strictEqual(data1.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data1.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data2.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data2.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(data3.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data3.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res1.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res2.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(res3.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
   it("should handle multi receiver connection (receiver?n=2: O, sender?n=1: X: because too less n)", async () => {
@@ -639,13 +639,13 @@ describe("piping.Server", () => {
     await sleep(10);
 
     // Send data
-    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
+    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
       body: "this is a content"
     });
 
     // Should be rejected
-    assert.strictEqual(sendData.statusCode, 400);
-    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -660,13 +660,13 @@ describe("piping.Server", () => {
     await sleep(10);
 
     // Send data
-    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
       body: "this is a content"
     });
 
     // Should be rejected
-    assert.strictEqual(sendData.statusCode, 400);
-    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -688,14 +688,14 @@ describe("piping.Server", () => {
     await sleep(10);
 
     // Get data
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
+    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
 
-    // Await data
-    const data1 = await dataPromise1;
+    // Await response
+    const res1 = await resPromise1;
 
     // Should be rejected
-    assert.strictEqual(data1.statusCode, 400);
-    assert.strictEqual(data1.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res1.statusCode, 400);
+    assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
 
     // Quit send request
     sendReq.abort();
@@ -717,14 +717,14 @@ describe("piping.Server", () => {
     await sleep(10);
 
     // Get data
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
     // Await data
-    const data1 = await dataPromise1;
+    const res1 = await resPromise1;
 
     // Should be rejected
-    assert.strictEqual(data1.statusCode, 400);
-    assert.strictEqual(data1.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res1.statusCode, 400);
+    assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
 
     // Quit send request
     sendReq.abort();
@@ -795,13 +795,13 @@ describe("piping.Server", () => {
     await sleep(10);
 
     // Send data
-    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
+    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
       body: "this is a content"
     });
 
     // Should be rejected
-    assert.strictEqual(sendData.statusCode, 400);
-    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
 
     // Quit get requests
     getReq1.abort();
@@ -821,13 +821,13 @@ describe("piping.Server", () => {
     await sleep(10);
 
     // Send data
-    const sendData = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
       body: "this is a content"
     });
 
     // Should be rejected
-    assert.strictEqual(sendData.statusCode, 400);
-    assert.strictEqual(sendData.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
 
     // Quit get requests
     getReq1.abort();
@@ -855,11 +855,11 @@ describe("piping.Server", () => {
       url: `${pipingUrl}/mydataid?n=2`
     });
     await sleep(10);
-    const data2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const res2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
 
     // Should be rejected
-    assert.strictEqual(data2.statusCode, 400);
-    assert.strictEqual(data2.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res2.statusCode, 400);
+    assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -888,11 +888,11 @@ describe("piping.Server", () => {
       url: `${pipingUrl}/mydataid?n=2`
     });
     await sleep(10);
-    const data2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
+    const res2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
 
     // Should be rejected
-    assert.strictEqual(data2.statusCode, 400);
-    assert.strictEqual(data2.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res2.statusCode, 400);
+    assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
 
     // Quit get request
     getReq1.abort();
@@ -916,37 +916,37 @@ describe("piping.Server", () => {
 
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
+    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
+    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
+    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
     await sleep(10);
 
     // End send data
     sendReq.end(" a content");
 
-    // Await all data
-    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+    // Await all responses
+    const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data
-    assert.strictEqual(data1.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
 
     // Should be bad request
-    assert.strictEqual(data3.statusCode, 400);
-    assert.strictEqual(data3.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res3.statusCode, 400);
+    assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
   });
 
   // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=2: X, sender?n=2: O)", async () => {
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const dataPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=first`);
+    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=first`);
     await sleep(10);
-    const dataPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=second`);
+    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=second`);
     await sleep(10);
-    const dataPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=third`);
+    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=third`);
     await sleep(10);
 
     // Send data
@@ -954,16 +954,16 @@ describe("piping.Server", () => {
       body: "this is a content"
     });
 
-    // Await all data
-    const [data1, data2, data3] = await Promise.all([dataPromise1, dataPromise2, dataPromise3]);
+    // Await all responses
+    const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data
-    assert.strictEqual(data1.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(data2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
 
     // Should be bad request
-    assert.strictEqual(data3.statusCode, 400);
-    assert.strictEqual(data3.headers["access-control-allow-origin"], "*");
+    assert.strictEqual(res3.statusCode, 400);
+    assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
   });
 
   it(`should reject POST with invalid query parameter "n"`, async () => {
@@ -1007,10 +1007,10 @@ describe("piping.Server", () => {
 
     const get1 = await thenRequest("GET", `${pipingUrl}/mydataid`);
 
-    const sendData = await sendPromise1;
+    const sendRes = await sendPromise1;
 
     // Should be sent
-    assert.strictEqual(sendData.statusCode, 200);
+    assert.strictEqual(sendRes.statusCode, 200);
 
     // Get-response should be 200
     assert.strictEqual(get1.statusCode, 200);
@@ -1039,9 +1039,9 @@ describe("piping.Server", () => {
       body: "this is a content"
     });
 
-    const [get2, sendData] = await Promise.all([getPromise2, sendPromise]);
+    const [get2, sendRes] = await Promise.all([getPromise2, sendPromise]);
     // Should be sent
-    assert.strictEqual(sendData.statusCode, 200);
+    assert.strictEqual(sendRes.statusCode, 200);
     // 2nd-get response should be 200
     assert.strictEqual(get2.statusCode, 200);
   });
