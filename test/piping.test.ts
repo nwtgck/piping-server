@@ -71,8 +71,8 @@ describe("piping.Server", () => {
       assert.strictEqual(res2.getBody("UTF-8").includes("Piping"), true);
 
       // Should have "Content-Length"
-      assert.strictEqual(res1.headers["content-length"], Buffer.byteLength(res1.getBody("UTF-8")).toString());
-      assert.strictEqual(res2.headers["content-length"], Buffer.byteLength(res2.getBody("UTF-8")).toString());
+      assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
+      assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
 
       // Should have "Content-Type"
       assert.strictEqual(res1.headers["content-type"], "text/html; charset=utf-8");
@@ -87,7 +87,7 @@ describe("piping.Server", () => {
       assert.strictEqual(res.getBody("UTF-8").includes("action=\"mypath\""), true);
 
       // Should have "Content-Length"
-      assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
+      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
 
       // Should have "Content-Type"
       assert.strictEqual(res.headers["content-type"], "text/html; charset=utf-8");
@@ -104,7 +104,7 @@ describe("piping.Server", () => {
       // Allow cross-origin
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       // Should have "Content-Length"
-      assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
+      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
       // Should have "Content-Type"
       assert.strictEqual(res.headers["content-type"], "text/plain");
     });
@@ -116,7 +116,7 @@ describe("piping.Server", () => {
       // Allow cross-origin
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       // Should have "Content-Length"
-      assert.strictEqual(res.headers["content-length"], Buffer.byteLength(res.getBody("UTF-8")).toString());
+      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
       // Should have "Content-Type"
       assert.strictEqual(res.headers["content-type"], "text/plain");
 
