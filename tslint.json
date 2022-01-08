@@ -9,7 +9,9 @@
         "interface-over-type-literal": false,
         "object-literal-shorthand": false,
         "triple-equals": true,
-        "no-empty": false
+        "no-empty": false,
+        "class-name": false,
+        "max-classes-per-file": false
     },
     "rulesDirectory": []
 }
