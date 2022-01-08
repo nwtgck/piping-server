@@ -17,19 +17,60 @@ type ReqRes = {
   readonly res: HttpRes
 };
 
+// Main purpose of this class is not to chunked-upload
+class Http1_0SenderRes {
+  private statusCodeAndHeaders: { statusCode: number, headers: http.OutgoingHttpHeaders } | undefined = undefined;
+  private chunks: string[] = [];
+
+  constructor(private res: http.ServerResponse) {}
+
+  writeHead(statusCode: number, headers: http.OutgoingHttpHeaders) {
+    this.statusCodeAndHeaders = { statusCode, headers };
+  }
+
+  write(chunk: string): void {
+    this.chunks.push(chunk);
+  }
+
+  end(chunk: string): void {
+    // this should not be occurred in proper use
+    if (this.statusCodeAndHeaders === undefined) {
+      throw new Error("statusCodeAndHeaders is not defined");
+    }
+    this.chunks.push(chunk);
+    const body = this.chunks.join("");
+    const { statusCode, headers } = this.statusCodeAndHeaders;
+    this.res.writeHead(statusCode, {
+      "Content-Length": Buffer.byteLength(body),
+      ...headers,
+    });
+    this.res.end(body);
+  }
+}
+
+type SenderReqRes = {
+  readonly req: HttpReq,
+  readonly res: Http1_0SenderRes | HttpRes
+};
+
 type Pipe = {
-  readonly sender: ReqRes;
+  readonly sender: SenderReqRes;
   readonly receivers: ReadonlyArray<ReqRes>;
 };
 
-type ReqResAndUnsubscribe = {
+type SenderReqResAndUnsubscribe = {
+  readonly reqRes: SenderReqRes,
+  readonly unsubscribeCloseListener: () => void
+}
+
+type ReceiverReqResAndUnsubscribe = {
   readonly reqRes: ReqRes,
   readonly unsubscribeCloseListener: () => void
 };
 
 type UnestablishedPipe = {
-  sender?: ReqResAndUnsubscribe;
-  readonly receivers: ReqResAndUnsubscribe[];
+  sender?: SenderReqResAndUnsubscribe;
+  readonly receivers: ReceiverReqResAndUnsubscribe[];
   readonly nReceivers: number;
 };
 
@@ -391,12 +432,6 @@ export class Server {
     const unestablishedPipe = this.pathToUnestablishedPipe.get(reqPath);
     // If the path connection is not connecting
     if (unestablishedPipe === undefined) {
-      // Add headers
-      res.writeHead(200, {
-        "Access-Control-Allow-Origin": "*"
-      });
-      // Send waiting message
-      res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
       // Create a sender
       const sender = this.createSenderOrReceiver("sender", req, res, reqPath);
       // Register new unestablished pipe
@@ -405,6 +440,12 @@ export class Server {
         receivers: [],
         nReceivers: nReceivers
       });
+      // Add headers
+      sender.reqRes.res.writeHead(200, {
+        "Access-Control-Allow-Origin": "*"
+      });
+      // Send waiting message
+      sender.reqRes.res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
       return;
     }
     // If a sender has been connected already
@@ -424,13 +465,13 @@ export class Server {
     // Register the sender
     unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
     // Add headers
-    res.writeHead(200, {
+    unestablishedPipe.sender.reqRes.res.writeHead(200, {
       "Access-Control-Allow-Origin": "*"
     });
     // Send waiting message
-    res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
+    unestablishedPipe.sender.reqRes.res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
     // Send the number of receivers information
-    res.write(`[INFO] ${unestablishedPipe.receivers.length} receiver(s) has/have been connected.\n`);
+    unestablishedPipe.sender.reqRes.res.write(`[INFO] ${unestablishedPipe.receivers.length} receiver(s) has/have been connected.\n`);
     // Get pipeOpt if established
     const pipe: Pipe | undefined =
       getPipeIfEstablished(unestablishedPipe);
@@ -539,14 +580,10 @@ export class Server {
    * @param res
    * @param reqPath
    */
-  private createSenderOrReceiver(
-    removerType: "sender" | "receiver",
-    req: HttpReq,
-    res: HttpRes,
-    reqPath: string
-  ): ReqResAndUnsubscribe {
-    // Create receiver req&res
-    const receiverReqRes: ReqRes = { req: req, res: res };
+  // TODO: rename `removerType` to `reqResType`
+  private createSenderOrReceiver(removerType: "sender", req: HttpReq, res: HttpRes, reqPath: string): SenderReqResAndUnsubscribe
+  private createSenderOrReceiver(removerType: "receiver", req: HttpReq, res: HttpRes, reqPath: string): ReceiverReqResAndUnsubscribe
+  private createSenderOrReceiver(removerType: "sender" | "receiver", req: HttpReq, res: HttpRes, reqPath: string): SenderReqResAndUnsubscribe | ReceiverReqResAndUnsubscribe {
     // Define on-close handler
     const closeListener = () => {
       // Get unestablished pipe
@@ -569,7 +606,7 @@ export class Server {
               // Get receivers
               const receivers = unestablishedPipe.receivers;
               // Find receiver's index
-              const idx = receivers.findIndex((r) => r.reqRes === receiverReqRes);
+              const idx = receivers.findIndex((r) => r.reqRes.req === req);
               // If receiver is found
               if (idx !== -1) {
                 // Delete the receiver from the receivers
@@ -597,9 +634,19 @@ export class Server {
     const unsubscribeCloseListener = () => {
       req.removeListener("close", closeListener);
     };
+    if (removerType === "sender" && req.httpVersion === "1.0") {
+      // TODO: remove
+      this.params.logger?.info("HTTP/1.0 sender response used");
+      // TODO: flatten `reqRes` to ...{ req, res }
+      // TODO: rename `res` only for sender after flatten
+      return {
+        reqRes: { req: req, res: new Http1_0SenderRes(res as http.ServerResponse) },
+        unsubscribeCloseListener,
+      };
+    }
     return {
-      reqRes: receiverReqRes,
-      unsubscribeCloseListener: unsubscribeCloseListener
+      reqRes: { req: req, res: res },
+      unsubscribeCloseListener,
     };
   }
 }
