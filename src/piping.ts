@@ -88,15 +88,14 @@ function resEndWithContentLength(res: HttpRes, statusCode: number, headers: http
 function forceHttp1_0StatusLine(res: http.ServerResponse) {
   const socket = res.socket!;
   const originalWrite = socket.write;
-  let firstChunk = true;
-  socket.write = (...args: any) => {
-    const [chunk, ...rest] = args;
-    if (firstChunk && typeof chunk === "string") {
+  socket.write = (chunk: any, ...rest: any) => {
+    if (typeof chunk === "string") {
       const replaced = chunk.replace(/^HTTP\/1.1/, "HTTP/1.0");
       return originalWrite.apply(socket, [replaced, ...rest]);
     }
-    firstChunk = false;
-    return originalWrite.apply(socket, args);
+    // Overwrite socket.write with original one
+    socket.write = originalWrite;
+    return originalWrite.apply(socket, [chunk, ...rest]);
   };
 }
 
