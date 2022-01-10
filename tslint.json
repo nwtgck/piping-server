@@ -11,7 +11,8 @@
         "triple-equals": true,
         "no-empty": false,
         "class-name": false,
-        "max-classes-per-file": false
+        "max-classes-per-file": false,
+        "variable-name": false
     },
     "rulesDirectory": []
 }

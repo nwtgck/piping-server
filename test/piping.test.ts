@@ -178,6 +178,32 @@ describe("piping.Server", () => {
         assert.deepStrictEqual(normalizeHeaders(headRes.headers), normalizeHeaders(getRes.headers));
       }
     });
+
+    it("should respond HTTP/1.0", async () => {
+      const reservedPaths = ["/", "/noscript", "/version", "/help", "/favicon.ico", "/robots.txt"];
+
+      for (const reservedPath of reservedPaths) {
+        const getRes = await thenRequest("GET", `${pipingUrl}${reservedPath}`);
+        const http1_0GetResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
+          const chunks: Buffer[] = [];
+          const socket = net.connect(pipingPort, "localhost", () => {
+            socket.on("data", (chunk) => chunks.push(chunk));
+            socket.on("end", () => resolve(Buffer.concat(chunks)));
+            socket.on("error", (err) => reject(err));
+            socket.write(`\
+GET ${reservedPath} HTTP/1.0
+Host: localhost:${pipingPort}
+
+`.replace(/\n/g, "\r\n"));
+          });
+        });
+        const http1_0GetResString = (await http1_0GetResPromise).toString();
+        assert(http1_0GetResString.startsWith(`HTTP/1.0 ${getRes.statusCode}`));
+        if (getRes.statusCode !== 204) {
+          assert(http1_0GetResString.includes(`Content-Length: ${getRes.body.length}`));
+        }
+      }
+    });
   });
 
   it("should reject unsupported method", async () => {
