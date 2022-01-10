@@ -84,6 +84,22 @@ function resEndWithContentLength(res: HttpRes, statusCode: number, headers: http
   res.end(body);
 }
 
+// Force "HTTP/1.0 ..." response status line, overwriting `req.socket.write`
+function forceHttp1_0StatusLine(res: http.ServerResponse) {
+  const socket = res.socket!;
+  const originalWrite = socket.write;
+  let firstChunk = true;
+  socket.write = (...args: any) => {
+    const [chunk, ...rest] = args;
+    if (firstChunk && typeof chunk === "string") {
+      const replaced = chunk.replace(/^HTTP\/1.1/, "HTTP/1.0");
+      return originalWrite.apply(socket, [replaced, ...rest]);
+    }
+    firstChunk = false;
+    return originalWrite.apply(socket, args);
+  };
+}
+
 /**
  * Convert unestablished pipe to pipe if it is established
  * @param p
@@ -135,6 +151,11 @@ export class Server {
       // Get path name
       const reqPath = reqUrl.pathname;
       this.params.logger?.info(`${req.method} ${req.url} HTTP/${req.httpVersion}`);
+
+      // Force "HTTP/1.0 ..." response status line only for HTTP/1.0 client
+      if (req.httpVersion === "1.0") {
+        forceHttp1_0StatusLine((res as http.ServerResponse));
+      }
 
       if (isReservedPath(reqPath) && (req.method === "GET" || req.method === "HEAD")) {
         this.handleReservedPath(useHttps, req, res, reqPath, reqUrl);
@@ -637,8 +658,6 @@ export class Server {
       req.removeListener("close", closeListener);
     };
     if (reqResType === "sender" && req.httpVersion === "1.0") {
-      // TODO: remove
-      this.params.logger?.info("HTTP/1.0 sender response used");
       return {
         req: req,
         resOrNotChunked: new Http1_0SenderRes(res as http.ServerResponse),

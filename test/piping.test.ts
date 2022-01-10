@@ -1,4 +1,5 @@
 import * as getPort from "get-port";
+import * as net from "net";
 import * as http from "http";
 import * as http2 from "http2";
 import * as log4js from "log4js";
@@ -1068,6 +1069,62 @@ describe("piping.Server", () => {
     assert.strictEqual(sendRes.statusCode, 200);
     // 2nd-get response should be 200
     assert.strictEqual(get2.statusCode, 200);
+  });
+
+  it("should handle connection from HTTP/1.0 sender", async () => {
+    const senderResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      const socket = net.connect(pipingPort, "localhost", () => {
+        socket.on("data", (chunk) => chunks.push(chunk));
+        socket.on("end", () => resolve(Buffer.concat(chunks)));
+        socket.on("error", (err) => reject(err));
+        socket.write(`\
+POST /mydataid HTTP/1.0
+Host: localhost:${pipingPort}
+Content-Length: 17
+Content-Type: text/plain
+
+this is a content`.replace(/\n/g, "\r\n"));
+      });
+    });
+
+    // Get data
+    const getRes = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    // Body should be the sent data
+    assert.strictEqual(getRes.getBody("UTF-8"), "this is a content");
+    // Content-length should be returned
+    assert.strictEqual(getRes.headers["content-length"], "this is a content".length.toString());
+    assert.strictEqual(getRes.headers["content-type"], "text/plain");
+
+    const senderResString = (await senderResPromise).toString();
+    assert(senderResString.startsWith("HTTP/1.0 200 OK\r\n"));
+    assert(senderResString.match(/Content-Length: \d+\r\n/) !== null);
+  });
+
+  it("should handle connection from HTTP/1.0 receiver", async () => {
+    // Send data
+    // (NOTE: Should NOT use `await` because of blocking a GET request)
+    thenRequest("POST", `${pipingUrl}/mydataid`, {
+      body: "this is a content"
+    });
+
+    const receiverResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      const socket = net.connect(pipingPort, "localhost", () => {
+        socket.on("data", (chunk) => chunks.push(chunk));
+        socket.on("end", () => resolve(Buffer.concat(chunks)));
+        socket.on("error", (err) => reject(err));
+        socket.write(`\
+GET /mydataid HTTP/1.0
+Host: localhost:${pipingPort}
+
+`.replace(/\n/g, "\r\n"));
+      });
+    });
+
+    const receiverResString = (await receiverResPromise).toString();
+    assert(receiverResString.startsWith("HTTP/1.0 200 OK\r\n"));
+    assert(receiverResString.includes("Content-Length: 17\r\n"));
   });
 
   context("If number of receivers <= 0", () => {
