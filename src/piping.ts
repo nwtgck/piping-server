@@ -465,6 +465,7 @@ export class Server {
       });
       // Add headers
       sender.resOrNotChunked.writeHead(200, {
+        "Content-Type": "text/plain",
         "Access-Control-Allow-Origin": "*"
       });
       // Send waiting message
@@ -489,6 +490,7 @@ export class Server {
     unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
     // Add headers
     unestablishedPipe.sender.resOrNotChunked.writeHead(200, {
+      "Content-Type": "text/plain",
       "Access-Control-Allow-Origin": "*"
     });
     // Send waiting message
