@@ -210,13 +210,13 @@ export class Server {
     switch (reqPath) {
       case NAME_TO_RESERVED_PATH.index:
         resEndWithContentLength(res, 200, {
-          "Content-Type": "text/html; charset=utf-8"
+          "Content-Type": "text/html"
         }, resources.indexPage);
         return;
       case NAME_TO_RESERVED_PATH.noscript: {
         const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
         resEndWithContentLength(res, 200, {
-          "Content-Type": "text/html; charset=utf-8"
+          "Content-Type": "text/html"
         }, resources.noScriptHtml(path ?? ""));
         return;
       }

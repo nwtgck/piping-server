@@ -76,8 +76,12 @@ describe("piping.Server", () => {
       assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
 
       // Should have "Content-Type"
-      assert.strictEqual(res1.headers["content-type"], "text/html; charset=utf-8");
-      assert.strictEqual(res2.headers["content-type"], "text/html; charset=utf-8");
+      assert.strictEqual(res1.headers["content-type"], "text/html");
+      assert.strictEqual(res2.headers["content-type"], "text/html");
+
+      // Should have charset
+      assert(res1.body.toString().toLowerCase().includes(`<meta charset="utf-8">`));
+      assert(res2.body.toString().toLowerCase().includes(`<meta charset="utf-8">`));
     });
 
     it("should return noscript Web UI", async () => {
@@ -91,7 +95,10 @@ describe("piping.Server", () => {
       assert.strictEqual(res.headers["content-length"], res.body.length.toString());
 
       // Should have "Content-Type"
-      assert.strictEqual(res.headers["content-type"], "text/html; charset=utf-8");
+      assert.strictEqual(res.headers["content-type"], "text/html");
+
+      // Should have charset
+      assert(res.body.toString().toLowerCase().includes(`<meta charset="utf-8">`));
     });
 
     it("should return version page", async () => {
