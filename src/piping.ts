@@ -140,7 +140,7 @@ export class Server {
    *
    * @param params
    */
-  constructor(readonly params: {
+  constructor(private params: {
     readonly logger?: log4js.Logger
   } = {}) { }
 
