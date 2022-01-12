@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.9.0] - 2022-01-11
+### Changed
+* Update dependencies
+* Respond HTTP/1.0 status line for HTTP/1.0 request
+* Respond fixed-size response for HTTP/1.0 sender
+* (library) Make `Server#params` private
+* Add `Content-Type: text/plain` header to sender's response because some old browsers do not display `\n`
+* Respond `Content-Type: text/html` instead of `text/html; charset=utf-8` because old browser does not recognize `; charset=utf-8`
+
 ## [1.8.1] - 2021-12-11
 ### Changed
 * Update dependencies
@@ -369,7 +378,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/nwtgck/piping-server/compare/v1.8.1...v1.9.0
 [1.8.1]: https://github.com/nwtgck/piping-server/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/nwtgck/piping-server/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/nwtgck/piping-server/compare/v1.6.0...v1.7.0
