@@ -17,23 +17,87 @@ type ReqRes = {
   readonly res: HttpRes
 };
 
+// Main purpose of this class is not to chunked-upload
+class Http1_0SenderRes {
+  private statusCodeAndHeaders: { statusCode: number, headers: http.OutgoingHttpHeaders } | undefined = undefined;
+  private chunks: string[] = [];
+
+  constructor(private res: http.ServerResponse) {}
+
+  writeHead(statusCode: number, headers: http.OutgoingHttpHeaders) {
+    this.statusCodeAndHeaders = { statusCode, headers };
+  }
+
+  write(chunk: string): void {
+    this.chunks.push(chunk);
+  }
+
+  end(chunk: string): void {
+    // this should not be occurred in proper use
+    if (this.statusCodeAndHeaders === undefined) {
+      throw new Error("statusCodeAndHeaders is not defined");
+    }
+    this.chunks.push(chunk);
+    const body = this.chunks.join("");
+    const { statusCode, headers } = this.statusCodeAndHeaders;
+    this.res.writeHead(statusCode, {
+      "Content-Length": Buffer.byteLength(body),
+      ...headers,
+    });
+    this.res.end(body);
+  }
+}
+
 type Pipe = {
-  readonly sender: ReqRes;
+  readonly sender: {
+    readonly req: HttpReq,
+    readonly resOrNotChunked: Http1_0SenderRes | HttpRes,
+  };
   readonly receivers: ReadonlyArray<ReqRes>;
 };
 
-type ReqResAndUnsubscribe = {
-  readonly reqRes: ReqRes,
+type SenderReqResAndUnsubscribe = {
+  readonly req: HttpReq,
+  readonly resOrNotChunked: Http1_0SenderRes | HttpRes,
+  readonly unsubscribeCloseListener: () => void
+}
+
+type ReceiverReqResAndUnsubscribe = {
+  readonly req: HttpReq,
+  readonly res: HttpRes,
   readonly unsubscribeCloseListener: () => void
 };
 
 type UnestablishedPipe = {
-  sender?: ReqResAndUnsubscribe;
-  readonly receivers: ReqResAndUnsubscribe[];
+  sender?: SenderReqResAndUnsubscribe;
+  readonly receivers: ReceiverReqResAndUnsubscribe[];
   readonly nReceivers: number;
 };
 
 type Handler = (req: HttpReq, res: HttpRes) => void;
+
+function resEndWithContentLength(res: HttpRes, statusCode: number, headers: http.OutgoingHttpHeaders, body: string) {
+  res.writeHead(statusCode, {
+    "Content-Length": Buffer.byteLength(body),
+    ...headers,
+  });
+  res.end(body);
+}
+
+// Force "HTTP/1.0 ..." response status line, overwriting `req.socket.write`
+function forceHttp1_0StatusLine(res: http.ServerResponse) {
+  const socket = res.socket!;
+  const originalWrite = socket.write;
+  socket.write = (chunk: any, ...rest: any) => {
+    if (typeof chunk === "string") {
+      const replaced = chunk.replace(/^HTTP\/1.1/, "HTTP/1.0");
+      return originalWrite.apply(socket, [replaced, ...rest]);
+    }
+    // Overwrite socket.write with original one
+    socket.write = originalWrite;
+    return originalWrite.apply(socket, [chunk, ...rest]);
+  };
+}
 
 /**
  * Convert unestablished pipe to pipe if it is established
@@ -42,12 +106,15 @@ type Handler = (req: HttpReq, res: HttpRes) => void;
 function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
   if (p.sender !== undefined && p.receivers.length === p.nReceivers) {
     return {
-      sender: p.sender.reqRes,
+      sender: {
+        req: p.sender.req,
+        resOrNotChunked: p.sender.resOrNotChunked,
+      },
       receivers: p.receivers.map((r) => {
         // Unsubscribe on-close handlers
         // NOTE: this operation has side-effect
         r.unsubscribeCloseListener();
-        return r.reqRes;
+        return { req: r.req, res: r.res };
       })
     };
   } else {
@@ -73,7 +140,7 @@ export class Server {
    *
    * @param params
    */
-  constructor(readonly params: {
+  constructor(private params: {
     readonly logger?: log4js.Logger
   } = {}) { }
 
@@ -84,6 +151,11 @@ export class Server {
       const reqPath = reqUrl.pathname;
       this.params.logger?.info(`${req.method} ${req.url} HTTP/${req.httpVersion}`);
 
+      // Force "HTTP/1.0 ..." response status line only for HTTP/1.0 client
+      if (req.httpVersion === "1.0") {
+        forceHttp1_0StatusLine((res as http.ServerResponse));
+      }
+
       if (isReservedPath(reqPath) && (req.method === "GET" || req.method === "HEAD")) {
         this.handleReservedPath(useHttps, req, res, reqPath, reqUrl);
         return;
@@ -93,20 +165,18 @@ export class Server {
         case "POST":
         case "PUT":
           if (isReservedPath(reqPath)) {
-            res.writeHead(400, {
+            resEndWithContentLength(res, 400, {
               "Access-Control-Allow-Origin": "*"
-            });
-            res.end(`[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
+            }, `[ERROR] Cannot send to the reserved path '${reqPath}'. (e.g. '/mypath123')\n`);
             return;
           }
           // Notify that Content-Range is not supported
           // In the future, resumable upload using Content-Range might be supported
           // ref: https://github.com/httpwg/http-core/pull/653
           if (req.headers["content-range"] !== undefined) {
-            res.writeHead(400, {
+            resEndWithContentLength(res, 400, {
               "Access-Control-Allow-Origin": "*"
-            });
-            res.end(`[ERROR] Content-Range is not supported for now in ${req.method}\n`);
+            }, `[ERROR] Content-Range is not supported for now in ${req.method}\n`);
             return;
           }
           // Handle a sender
@@ -127,11 +197,10 @@ export class Server {
           res.end();
           break;
         default:
-          res.writeHead(405, {
+          resEndWithContentLength(res, 405, {
             "Access-Control-Allow-Origin": "*",
             "Allow": "GET, HEAD, POST, PUT, OPTIONS",
-          });
-          res.end(`[ERROR] Unsupported method: ${req.method}.\n`);
+          }, `[ERROR] Unsupported method: ${req.method}.\n`);
           break;
       }
     };
@@ -140,30 +209,23 @@ export class Server {
   private handleReservedPath(useHttps: boolean, req: HttpReq, res: HttpRes, reqPath: ReservedPath, reqUrl: URL) {
     switch (reqPath) {
       case NAME_TO_RESERVED_PATH.index:
-        res.writeHead(200, {
-          "Content-Length": Buffer.byteLength(resources.indexPage),
-          "Content-Type": "text/html; charset=utf-8"
-        });
-        res.end(resources.indexPage);
+        resEndWithContentLength(res, 200, {
+          "Content-Type": "text/html"
+        }, resources.indexPage);
         return;
       case NAME_TO_RESERVED_PATH.noscript: {
         const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
-        const html = resources.noScriptHtml(path ?? "");
-        res.writeHead(200, {
-          "Content-Length": Buffer.byteLength(html),
-          "Content-Type": "text/html; charset=utf-8"
-        });
-        res.end(html);
+        resEndWithContentLength(res, 200, {
+          "Content-Type": "text/html"
+        }, resources.noScriptHtml(path ?? ""));
         return;
       }
       case NAME_TO_RESERVED_PATH.version:
         const versionPage: string = VERSION + "\n";
-        res.writeHead(200, {
+        resEndWithContentLength(res, 200, {
           "Access-Control-Allow-Origin": "*",
-          "Content-Length": Buffer.byteLength(versionPage),
           "Content-Type": "text/plain"
-        });
-        res.end(versionPage);
+        }, versionPage);
         return;
       case NAME_TO_RESERVED_PATH.help:
         // x-forwarded-proto is https or not
@@ -179,12 +241,10 @@ export class Server {
         const url = `${scheme}://${hostname}`;
 
         const helpPage: string = resources.generateHelpPage(url);
-        res.writeHead(200, {
+        resEndWithContentLength(res, 200, {
           "Access-Control-Allow-Origin": "*",
-          "Content-Length": Buffer.byteLength(helpPage),
           "Content-Type": "text/plain"
-        });
-        res.end(helpPage);
+        }, helpPage);
         return;
       case NAME_TO_RESERVED_PATH.faviconIco:
         // (from: https://stackoverflow.com/a/35408810/2885946)
@@ -192,7 +252,9 @@ export class Server {
         res.end();
         break;
       case NAME_TO_RESERVED_PATH.robotsTxt:
-        res.writeHead(404);
+        res.writeHead(404, {
+          "Content-Length": 0,
+        });
         res.end();
         return;
     }
@@ -214,7 +276,7 @@ export class Server {
     const {sender, receivers} = pipe;
 
     // Emit message to sender
-    sender.res.write(`[INFO] Start sending to ${pipe.receivers.length} receiver(s)!\n`);
+    sender.resOrNotChunked.write(`[INFO] Start sending to ${pipe.receivers.length} receiver(s)!\n`);
 
     this.params.logger?.info(`Sending: path='${path}', receivers=${pipe.receivers.length}`);
 
@@ -244,11 +306,11 @@ export class Server {
       // Close receiver
       const abortedListener = (): void => {
         abortedCount++;
-        sender.res.write("[INFO] A receiver aborted.\n");
+        sender.resOrNotChunked.write("[INFO] A receiver aborted.\n");
         senderData.unpipe(passThrough);
         // If aborted-count is # of receivers
         if (abortedCount === receivers.length) {
-          sender.res.end("[INFO] All receiver(s) was/were aborted halfway.\n");
+          sender.resOrNotChunked.end("[INFO] All receiver(s) was/were aborted halfway.\n");
           // Delete from established
           this.removeEstablished(path);
           // Close sender
@@ -260,7 +322,7 @@ export class Server {
         endCount++;
         // If end-count is # of receivers
         if (endCount === receivers.length) {
-          sender.res.end("[INFO] All receiver(s) was/were received successfully.\n");
+          sender.resOrNotChunked.end("[INFO] All receiver(s) was/were received successfully.\n");
           // Delete from established
           this.removeEstablished(path);
         }
@@ -342,12 +404,12 @@ export class Server {
     });
 
     senderData.on("end", () => {
-      sender.res.write("[INFO] Sent successfully!\n");
+      sender.resOrNotChunked.write("[INFO] Sent successfully!\n");
       this.params.logger?.info(`sender on-end: '${path}'`);
     });
 
     senderData.on("error", (error) => {
-      sender.res.end("[ERROR] Failed to send.\n");
+      sender.resOrNotChunked.end("[ERROR] Failed to send.\n");
       // Delete from established
       this.removeEstablished(path);
       this.params.logger?.info(`sender on-error: '${path}'`);
@@ -371,37 +433,28 @@ export class Server {
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(reqUrl);
     if (Number.isNaN(nReceivers)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Invalid "n" query parameter\n`);
+      }, `[ERROR] Invalid "n" query parameter\n`);
       return;
     }
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
+      }, `[ERROR] n should > 0, but n = ${nReceivers}.\n`);
       return;
     }
     if (this.pathToEstablished.has(reqPath)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
+      }, `[ERROR] Connection on '${reqPath}' has been established already.\n`);
       return;
     }
     // Get unestablished pipe
     const unestablishedPipe = this.pathToUnestablishedPipe.get(reqPath);
     // If the path connection is not connecting
     if (unestablishedPipe === undefined) {
-      // Add headers
-      res.writeHead(200, {
-        "Access-Control-Allow-Origin": "*"
-      });
-      // Send waiting message
-      res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
       // Create a sender
       const sender = this.createSenderOrReceiver("sender", req, res, reqPath);
       // Register new unestablished pipe
@@ -410,34 +463,40 @@ export class Server {
         receivers: [],
         nReceivers: nReceivers
       });
+      // Add headers
+      sender.resOrNotChunked.writeHead(200, {
+        "Content-Type": "text/plain",
+        "Access-Control-Allow-Origin": "*"
+      });
+      // Send waiting message
+      sender.resOrNotChunked.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
       return;
     }
     // If a sender has been connected already
     if (unestablishedPipe.sender !== undefined) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Another sender has been connected on '${reqPath}'.\n`);
+      }, `[ERROR] Another sender has been connected on '${reqPath}'.\n`);
       return;
     }
     // If the number of receivers is not the same size as connecting pipe's one
     if (nReceivers !== unestablishedPipe.nReceivers) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+      }, `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
       return;
     }
     // Register the sender
     unestablishedPipe.sender = this.createSenderOrReceiver("sender", req, res, reqPath);
     // Add headers
-    res.writeHead(200, {
+    unestablishedPipe.sender.resOrNotChunked.writeHead(200, {
+      "Content-Type": "text/plain",
       "Access-Control-Allow-Origin": "*"
     });
     // Send waiting message
-    res.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
+    unestablishedPipe.sender.resOrNotChunked.write(`[INFO] Waiting for ${nReceivers} receiver(s)...\n`);
     // Send the number of receivers information
-    res.write(`[INFO] ${unestablishedPipe.receivers.length} receiver(s) has/have been connected.\n`);
+    unestablishedPipe.sender.resOrNotChunked.write(`[INFO] ${unestablishedPipe.receivers.length} receiver(s) has/have been connected.\n`);
     // Get pipeOpt if established
     const pipe: Pipe | undefined =
       getPipeIfEstablished(unestablishedPipe);
@@ -460,35 +519,31 @@ export class Server {
     // (from: https://speakerdeck.com/masatokinugawa/pwa-study-sw?slide=32)"
     if (req.headers["service-worker"] === "script") {
       // Reject Service Worker registration
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Service Worker registration is rejected.\n`);
+      }, `[ERROR] Service Worker registration is rejected.\n`);
       return;
     }
     // Get the number of receivers
     const nReceivers = Server.getNReceivers(reqUrl);
     if (Number.isNaN(nReceivers)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Invalid query parameter "n"\n`);
+      }, `[ERROR] Invalid query parameter "n"\n`);
       return;
     }
     // If the number of receivers is invalid
     if (nReceivers <= 0) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] n should > 0, but n = ${nReceivers}.\n`);
+      }, `[ERROR] n should > 0, but n = ${nReceivers}.\n`);
       return;
     }
     // The connection has been established already
     if (this.pathToEstablished.has(reqPath)) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] Connection on '${reqPath}' has been established already.\n`);
+      }, `[ERROR] Connection on '${reqPath}' has been established already.\n`);
       return;
     }
     // Get unestablishedPipe
@@ -507,18 +562,16 @@ export class Server {
     }
     // If the number of receivers is not the same size as connecting pipe's one
     if (nReceivers !== unestablishedPipe.nReceivers) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end(`[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
+      }, `[ERROR] The number of receivers should be ${unestablishedPipe.nReceivers} but ${nReceivers}.\n`);
       return;
     }
     // If more receivers can not connect
     if (unestablishedPipe.receivers.length === unestablishedPipe.nReceivers) {
-      res.writeHead(400, {
+      resEndWithContentLength(res, 400, {
         "Access-Control-Allow-Origin": "*"
-      });
-      res.end("[ERROR] The number of receivers has reached limits.\n");
+      }, "[ERROR] The number of receivers has reached limits.\n");
       return;
     }
 
@@ -529,7 +582,7 @@ export class Server {
 
     if (unestablishedPipe.sender !== undefined) {
       // Send connection message to the sender
-      unestablishedPipe.sender.reqRes.res.write("[INFO] A receiver was connected.\n");
+      unestablishedPipe.sender.resOrNotChunked.write("[INFO] A receiver was connected.\n");
     }
 
     // Get pipeOpt if established
@@ -547,19 +600,14 @@ export class Server {
    *
    * Main purpose of this method is creating sender/receiver which unregisters unestablished pipe before establish
    *
-   * @param removerType
+   * @param reqResType
    * @param req
    * @param res
    * @param reqPath
    */
-  private createSenderOrReceiver(
-    removerType: "sender" | "receiver",
-    req: HttpReq,
-    res: HttpRes,
-    reqPath: string
-  ): ReqResAndUnsubscribe {
-    // Create receiver req&res
-    const receiverReqRes: ReqRes = { req: req, res: res };
+  private createSenderOrReceiver(reqResType: "sender", req: HttpReq, res: HttpRes, reqPath: string): SenderReqResAndUnsubscribe
+  private createSenderOrReceiver(reqResType: "receiver", req: HttpReq, res: HttpRes, reqPath: string): ReceiverReqResAndUnsubscribe
+  private createSenderOrReceiver(reqResType: "sender" | "receiver", req: HttpReq, res: HttpRes, reqPath: string): SenderReqResAndUnsubscribe | ReceiverReqResAndUnsubscribe {
     // Define on-close handler
     const closeListener = () => {
       // Get unestablished pipe
@@ -568,7 +616,7 @@ export class Server {
       if (unestablishedPipe !== undefined) {
         // Get sender/receiver remover
         const remover =
-          removerType === "sender" ?
+          reqResType === "sender" ?
             (): boolean => {
               // If sender is defined
               if (unestablishedPipe.sender !== undefined) {
@@ -582,7 +630,7 @@ export class Server {
               // Get receivers
               const receivers = unestablishedPipe.receivers;
               // Find receiver's index
-              const idx = receivers.findIndex((r) => r.reqRes === receiverReqRes);
+              const idx = receivers.findIndex((r) => r.req === req);
               // If receiver is found
               if (idx !== -1) {
                 // Delete the receiver from the receivers
@@ -610,9 +658,24 @@ export class Server {
     const unsubscribeCloseListener = () => {
       req.removeListener("close", closeListener);
     };
+    if (reqResType === "sender" && req.httpVersion === "1.0") {
+      return {
+        req: req,
+        resOrNotChunked: new Http1_0SenderRes(res as http.ServerResponse),
+        unsubscribeCloseListener,
+      };
+    }
+    if (reqResType === "sender") {
+      return {
+        req: req,
+        resOrNotChunked: res,
+        unsubscribeCloseListener,
+      };
+    }
     return {
-      reqRes: receiverReqRes,
-      unsubscribeCloseListener: unsubscribeCloseListener
+      req: req,
+      res: res,
+      unsubscribeCloseListener,
     };
   }
 }
