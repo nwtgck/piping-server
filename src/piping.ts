@@ -370,8 +370,7 @@ export class Server {
 
       const passThrough = new stream.PassThrough();
       senderData.pipe(passThrough);
-      // TODO: Not use any
-      passThrough.pipe(receiver.res as any);
+      passThrough.pipe(receiver.res);
       receiver.req.on("end", () => {
         this.params.logger?.info(`receiver on-end: '${path}'`);
         endListener();
