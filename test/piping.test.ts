@@ -254,11 +254,13 @@ Host: localhost:${pipingPort}
     };
     const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, option);
     assert.strictEqual(postRes.statusCode, 400);
+    assert.strictEqual(postRes.headers["content-type"], "text/plain");
     assert.strictEqual(postRes.headers["access-control-allow-origin"], "*");
     assert.strictEqual(postRes.headers["content-length"], postRes.body.length.toString());
 
     const putRes = await thenRequest("PUT", `${pipingUrl}/mydataid`, option);
     assert.strictEqual(putRes.statusCode, 400);
+    assert.strictEqual(putRes.headers["content-type"], "text/plain");
     assert.strictEqual(putRes.headers["access-control-allow-origin"], "*");
     assert.strictEqual(putRes.headers["content-length"], putRes.body.length.toString());
   });
@@ -691,6 +693,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
     assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
@@ -713,6 +716,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
     assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
@@ -743,6 +747,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(res1.statusCode, 400);
+    assert.strictEqual(res1.headers["content-type"], "text/plain");
     assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
 
@@ -773,6 +778,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(res1.statusCode, 400);
+    assert.strictEqual(res1.headers["content-type"], "text/plain");
     assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
 
@@ -801,6 +807,7 @@ Host: localhost:${pipingPort}
     const getRes3 = await getResPromise3;
     // Should be rejected
     assert.strictEqual(getRes3.statusCode, 400);
+    assert.strictEqual(getRes3.headers["content-type"], "text/plain");
     assert.strictEqual(getRes3.headers["access-control-allow-origin"], "*");
     assert.strictEqual(getRes3.headers["content-length"], getRes3.body.length.toString());
     // Quit get requests
@@ -829,6 +836,7 @@ Host: localhost:${pipingPort}
     const getRes3 = await getResPromise3;
     // Should be rejected
     assert.strictEqual(getRes3.statusCode, 400);
+    assert.strictEqual(getRes3.headers["content-type"], "text/plain");
     assert.strictEqual(getRes3.headers["access-control-allow-origin"], "*");
     assert.strictEqual(getRes3.headers["content-length"], getRes3.body.length.toString());
     // Quit get requests
@@ -855,6 +863,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
     assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
@@ -882,6 +891,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(sendRes.statusCode, 400);
+    assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
     assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
@@ -915,6 +925,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(res2.statusCode, 400);
+    assert.strictEqual(res2.headers["content-type"], "text/plain");
     assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
 
@@ -949,6 +960,7 @@ Host: localhost:${pipingPort}
 
     // Should be rejected
     assert.strictEqual(res2.statusCode, 400);
+    assert.strictEqual(res2.headers["content-type"], "text/plain");
     assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
 
@@ -993,6 +1005,7 @@ Host: localhost:${pipingPort}
 
     // Should be bad request
     assert.strictEqual(res3.statusCode, 400);
+    assert.strictEqual(res3.headers["content-type"], "text/plain");
     assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res3.headers["content-length"], res3.body.length.toString());
   });
@@ -1022,6 +1035,7 @@ Host: localhost:${pipingPort}
 
     // Should be bad request
     assert.strictEqual(res3.statusCode, 400);
+    assert.strictEqual(res3.headers["content-type"], "text/plain");
     assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res3.headers["content-length"], res3.body.length.toString());
   });
@@ -1033,6 +1047,7 @@ Host: localhost:${pipingPort}
     });
     // Should be rejected
     assert.strictEqual(res.statusCode, 400);
+    assert.strictEqual(res.headers["content-type"], "text/plain");
     assert.strictEqual(res.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res.headers["content-length"], res.body.length.toString());
   });
@@ -1042,6 +1057,7 @@ Host: localhost:${pipingPort}
     const res = await thenRequest("GET", `${pipingUrl}/mydataid?n=hoge`);
     // Should be rejected
     assert.strictEqual(res.statusCode, 400);
+    assert.strictEqual(res.headers["content-type"], "text/plain");
     assert.strictEqual(res.headers["access-control-allow-origin"], "*");
     assert.strictEqual(res.headers["content-length"], res.body.length.toString());
   });
@@ -1173,6 +1189,7 @@ Host: localhost:${pipingPort}
 
       // Should be rejected
       assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(res.headers["content-type"], "text/plain");
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       assert.strictEqual(res.headers["content-length"], res.body.length.toString());
     });
