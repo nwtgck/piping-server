@@ -9,6 +9,7 @@ import * as log4js from "log4js";
 import * as yargs from "yargs";
 
 import * as piping from "./piping";
+import {VERSION} from "./version";
 
 // Create option parser
 const parser = yargs
@@ -48,6 +49,8 @@ logger.level = "info";
 
 // Create a piping server
 const pipingServer = new piping.Server({ logger });
+
+logger.info(`Piping Server ${VERSION}`);
 
 http.createServer(pipingServer.generateHandler(false))
   .listen(httpPort, () => {
