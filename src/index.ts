@@ -36,7 +36,7 @@ const parser = yargs
   });
 
 // Parse arguments
-const args = parser.parse(process.argv);
+const args = parser.parseSync(process.argv.slice(2));
 const httpPort: number = args["http-port"];
 const enableHttps: boolean = args["enable-https"];
 const httpsPort: number | undefined = args["https-port"];
