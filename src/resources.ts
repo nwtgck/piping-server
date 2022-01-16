@@ -149,6 +149,7 @@ export function noScriptHtml(path: string): string {
     <input type="submit" value="Send" ${path === "" ? "disabled" : ""}>
   </form>
   <hr>
+  Version ${VERSION}<br>
   Piping Server:
   <a href="https://github.com/nwtgck/piping-server">
     https://github.com/nwtgck/piping-server
