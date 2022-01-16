@@ -120,7 +120,15 @@ export const indexPage: string = `\
 
 export function noScriptHtml(queryParams: URLSearchParams): string {
   const pathQueryParameterName = "path";
+  const modeQueryParameterName = "mode";
+  const fileMode = "file";
+  const textMode = "text";
+
   const path = queryParams.get(pathQueryParameterName) ?? "";
+  const mode = queryParams.get(modeQueryParameterName) ?? fileMode;
+
+  const pathIsFilled = path !== "";
+
   const escapedPath = utils.escapeHtmlAttribute(path);
   return `\
 <!DOCTYPE html>
@@ -139,15 +147,21 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
 <body>
   <h2>File transfer without JavaScript</h2>
   <form method="GET" action="${NAME_TO_RESERVED_PATH.noscript}">
-    <h3>Step 1: Specify path</h3>
-    <input name="${pathQueryParameterName}" value="${escapedPath}">
-    <input type="submit" value="Apply">
+    <h3>Step 1: Specify path and mode</h3>
+    <input name="${pathQueryParameterName}" value="${escapedPath}" size="30" placeholder='e.g. "abc123", "myimg.png"'>
+    <input type="submit" value="Apply"><br>
+    <input type="radio" name="${modeQueryParameterName}" value="${fileMode}" ${mode === fileMode ? "checked" : ""}>File
+    <input type="radio" name="${modeQueryParameterName}" value="${textMode}" ${mode === textMode ? "checked" : ""}>Text<br>
   </form>
-  <form method="POST" action="${escapedPath}" enctype="multipart/form-data">
+  <form method="POST" action="${escapedPath}" enctype="multipart/form-data">${
+    (mode === "text") ? `
+    <h3>Step 2: Input text</h3>
+    <textarea name="input_text" cols="30" ${pathIsFilled ? 'rows="10"' : "disabled"} placeholder="${pathIsFilled ? "" : "Fill in the path above first"}"></textarea>`
+    : `
     <h3>Step 2: Choose a file</h3>
-    <input type="file" name="input_file" ${path === "" ? "disabled" : ""}>
+    <input type="file" name="input_file" ${pathIsFilled ? "" : "disabled"}>`}
     <h3>Step 3: Send</h3>
-    <input type="submit" value="Send" ${path === "" ? "disabled" : ""}>
+    <input type="submit" value="Send" ${pathIsFilled ? "" : "disabled"}>
   </form>
   <hr>
   Version ${VERSION}<br>
