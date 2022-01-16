@@ -6,10 +6,8 @@ updates:
     interval: daily
     timezone: Asia/Tokyo
   open-pull-requests-limit: 99
-  reviewers:
-  - nwtgck
-  assignees:
-  - nwtgck
+  reviewers: [ nwtgck ]
+  assignees: [ nwtgck ]
   ignore:
   - dependency-name: "@types/node"
     versions:
@@ -23,17 +21,13 @@ updates:
     interval: daily
     timezone: Asia/Tokyo
   open-pull-requests-limit: 99
-  reviewers:
-  - nwtgck
-  assignees:
-  - nwtgck
+  reviewers: [ nwtgck ]
+  assignees: [ nwtgck ]
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
     interval: daily
     timezone: Asia/Tokyo
   open-pull-requests-limit: 99
-  reviewers:
-  - nwtgck
-  assignees:
-  - nwtgck
+  reviewers: [ nwtgck ]
+  assignees: [ nwtgck ]

@@ -9,6 +9,7 @@ import * as log4js from "log4js";
 import * as yargs from "yargs";
 
 import * as piping from "./piping";
+import {VERSION} from "./version";
 
 // Create option parser
 const parser = yargs
@@ -35,7 +36,7 @@ const parser = yargs
   });
 
 // Parse arguments
-const args = parser.parse(process.argv);
+const args = parser.parseSync(process.argv.slice(2));
 const httpPort: number = args["http-port"];
 const enableHttps: boolean = args["enable-https"];
 const httpsPort: number | undefined = args["https-port"];
@@ -48,6 +49,8 @@ logger.level = "info";
 
 // Create a piping server
 const pipingServer = new piping.Server({ logger });
+
+logger.info(`Piping Server ${VERSION}`);
 
 http.createServer(pipingServer.generateHandler(false))
   .listen(httpPort, () => {

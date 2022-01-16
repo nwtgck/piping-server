@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.10.0] - 2022-01-16
+### Changed
+* Log Piping Server version
+* Update dependencies
+* Show version in /noscript page
+* Support text input mode in /noscript page
+
 ## [1.9.1] - 2022-01-13
 ### Changed
 * Add `Content-Type: text/plain` header to sender's and receiver's error responses
@@ -383,7 +390,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/nwtgck/piping-server/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/nwtgck/piping-server/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/nwtgck/piping-server/compare/v1.8.1...v1.9.0
 [1.8.1]: https://github.com/nwtgck/piping-server/compare/v1.8.0...v1.8.1

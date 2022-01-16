@@ -127,8 +127,6 @@ function getPipeIfEstablished(p: UnestablishedPipe): Pipe | undefined {
   }
 }
 
-export const noScriptPathQueryParameterName = "path";
-
 export class Server {
 
   /** Get the number of receivers
@@ -215,10 +213,9 @@ export class Server {
         }, resources.indexPage);
         return;
       case NAME_TO_RESERVED_PATH.noscript: {
-        const path = reqUrl.searchParams.get(noScriptPathQueryParameterName);
         resEndWithContentLength(res, 200, {
           "Content-Type": "text/html"
-        }, resources.noScriptHtml(path ?? ""));
+        }, resources.noScriptHtml(reqUrl.searchParams));
         return;
       }
       case NAME_TO_RESERVED_PATH.version:
