@@ -156,7 +156,7 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
   <form method="POST" action="${escapedPath}" enctype="multipart/form-data">${
     (mode === "text") ? `
     <h3>Step 2: Input text</h3>
-    <textarea name="input_text" ${pathIsFilled ? 'cols="30" rows="10"' : "disabled"}></textarea>` 
+    <textarea name="input_text" ${pathIsFilled ? 'cols="30" rows="10"' : "disabled"}></textarea>`
     : `
     <h3>Step 2: Choose a file</h3>
     <input type="file" name="input_file" ${pathIsFilled ? "" : "disabled"}>`}
