@@ -1,6 +1,5 @@
 import {VERSION} from "./version";
 import {NAME_TO_RESERVED_PATH} from "./reserved-paths";
-import {noScriptPathQueryParameterName} from "./piping";
 import * as utils from "./utils";
 
 export const indexPage: string = `\
@@ -119,7 +118,9 @@ export const indexPage: string = `\
 </html>
 `;
 
-export function noScriptHtml(path: string): string {
+export function noScriptHtml(queryParams: URLSearchParams): string {
+  const pathQueryParameterName = "path";
+  const path = queryParams.get(pathQueryParameterName) ?? "";
   const escapedPath = utils.escapeHtmlAttribute(path);
   return `\
 <!DOCTYPE html>
@@ -139,7 +140,7 @@ export function noScriptHtml(path: string): string {
   <h2>File transfer without JavaScript</h2>
   <form method="GET" action="${NAME_TO_RESERVED_PATH.noscript}">
     <h3>Step 1: Specify path</h3>
-    <input name="${noScriptPathQueryParameterName}" value="${escapedPath}">
+    <input name="${pathQueryParameterName}" value="${escapedPath}">
     <input type="submit" value="Apply">
   </form>
   <form method="POST" action="${escapedPath}" enctype="multipart/form-data">
