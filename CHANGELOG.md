@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.10.1] - 2022-01-20
+### Changed
+* Update dependencies
+
 ## [1.10.0] - 2022-01-16
 ### Changed
 * Log Piping Server version
@@ -390,7 +394,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.10.1...HEAD
+[1.10.1]: https://github.com/nwtgck/piping-server/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/nwtgck/piping-server/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/nwtgck/piping-server/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/nwtgck/piping-server/compare/v1.8.1...v1.9.0
