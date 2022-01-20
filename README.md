@@ -125,6 +125,16 @@ Run a server in background and it automatically always restarts.
 docker run -p 8080:8080 -d --restart=always nwtgck/piping-server
 ```
 
+## Self-host using portable binaries
+
+Run a Piping Server on <http://localhost:8080> as follows on Linux.
+
+```bash
+curl -L https://github.com/nwtgck/piping-server-pkg/releases/download/v1.10.0/piping-server-pkg-linuxstatic-x64.tar.gz | tar xzvf -
+./piping-server-pkg-linuxstatic-x64/piping-server --http-port=8080
+```
+The binaries are for multi-platform including Linux on x64, Linux on ARM64, Linux on ARMv7, Intel macOS, Apple Silicon macOS and Windows on x64. See <https://github.com/nwtgck/piping-server-pkg> to run on the other platform.
+
 ## Self-host on free services
 
 Here are easier ways to own your Piping Server.
