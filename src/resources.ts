@@ -146,7 +146,7 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
 </head>
 <body>
   <h2>File transfer without JavaScript</h2>
-  <form method="GET" action="${NAME_TO_RESERVED_PATH.noscript}">
+  <form method="GET" action="${NAME_TO_RESERVED_PATH.noscript.substring(1)}">
     <h3>Step 1: Specify path and mode</h3>
     <input name="${pathQueryParameterName}" value="${escapedPath}" size="30" placeholder='e.g. "abc123", "myimg.png"'>
     <input type="submit" value="Apply"><br>
