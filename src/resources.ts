@@ -146,14 +146,14 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
 </head>
 <body>
   <h2>File transfer without JavaScript</h2>
-  <form method="GET" action="${NAME_TO_RESERVED_PATH.noscript}">
+  <form method="GET">
     <h3>Step 1: Specify path and mode</h3>
     <input name="${pathQueryParameterName}" value="${escapedPath}" size="30" placeholder='e.g. "abc123", "myimg.png"'>
     <input type="submit" value="Apply"><br>
     <input type="radio" name="${modeQueryParameterName}" value="${fileMode}" ${mode === fileMode ? "checked" : ""}>File
     <input type="radio" name="${modeQueryParameterName}" value="${textMode}" ${mode === textMode ? "checked" : ""}>Text<br>
   </form>
-  <form method="POST" action="${escapedPath}" enctype="multipart/form-data">${
+  <form method="POST" ${pathIsFilled ? `action="${escapedPath}"` : ""} enctype="multipart/form-data">${
     (mode === "text") ? `
     <h3>Step 2: Input text</h3>
     <textarea name="input_text" cols="30" ${pathIsFilled ? 'rows="10"' : "disabled"} placeholder="${pathIsFilled ? "" : "Fill in the path above first"}"></textarea>`
