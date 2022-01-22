@@ -153,7 +153,7 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
     <input type="radio" name="${modeQueryParameterName}" value="${fileMode}" ${mode === fileMode ? "checked" : ""}>File
     <input type="radio" name="${modeQueryParameterName}" value="${textMode}" ${mode === textMode ? "checked" : ""}>Text<br>
   </form>
-  <form method="POST" action="${escapedPath}" enctype="multipart/form-data">${
+  <form method="POST" ${pathIsFilled ? `action="${escapedPath}"` : ""} enctype="multipart/form-data">${
     (mode === "text") ? `
     <h3>Step 2: Input text</h3>
     <textarea name="input_text" cols="30" ${pathIsFilled ? 'rows="10"' : "disabled"} placeholder="${pathIsFilled ? "" : "Fill in the path above first"}"></textarea>`
