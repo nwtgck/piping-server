@@ -163,6 +163,7 @@ Here is available CLI options by `piping-server --help`.
 Options:
   --help          Show help                                            [boolean]
   --version       Show version number                                  [boolean]
+  --host          Bind address (e.g. 127.0.0.1, ::1)                    [string]
   --http-port     Port of HTTP server                            [default: 8080]
   --enable-https  Enable HTTPS                        [boolean] [default: false]
   --https-port    Port of HTTPS server                                  [number]
