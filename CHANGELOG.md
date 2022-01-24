@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.11.0] - 2022-01-24
+### Changed
+* Update dependencies
+
+### Added
+* Add --host option to listen on specified address
+
 ## [1.10.2] - 2022-01-22
 ### Fixed
 * Change GET action in /noscript page to relative path
@@ -398,7 +405,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.10.2...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/nwtgck/piping-server/compare/v1.10.2...v1.11.0
 [1.10.2]: https://github.com/nwtgck/piping-server/compare/v1.10.1...v1.10.2
 [1.10.1]: https://github.com/nwtgck/piping-server/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/nwtgck/piping-server/compare/v1.9.1...v1.10.0

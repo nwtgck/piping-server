@@ -130,7 +130,7 @@ docker run -p 8080:8080 -d --restart=always nwtgck/piping-server
 Run a Piping Server on <http://localhost:8080> as follows on Linux.
 
 ```bash
-curl -L https://github.com/nwtgck/piping-server-pkg/releases/download/v1.10.0/piping-server-pkg-linuxstatic-x64.tar.gz | tar xzvf -
+curl -L https://github.com/nwtgck/piping-server-pkg/releases/download/v1.10.2/piping-server-pkg-linuxstatic-x64.tar.gz | tar xzvf -
 ./piping-server-pkg-linuxstatic-x64/piping-server --http-port=8080
 ```
 The binaries are for multi-platform including Linux on x64, Linux on ARM64, Linux on ARMv7, Intel macOS, Apple Silicon macOS and Windows on x64. See <https://github.com/nwtgck/piping-server-pkg> to run on the other platform.
@@ -163,6 +163,7 @@ Here is available CLI options by `piping-server --help`.
 Options:
   --help          Show help                                            [boolean]
   --version       Show version number                                  [boolean]
+  --host          Bind address (e.g. 127.0.0.1, ::1)                    [string]
   --http-port     Port of HTTP server                            [default: 8080]
   --enable-https  Enable HTTPS                        [boolean] [default: false]
   --https-port    Port of HTTPS server                                  [number]
