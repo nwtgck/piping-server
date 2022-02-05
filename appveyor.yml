@@ -1,8 +1,8 @@
 # (based on: https://www.appveyor.com/docs/lang/nodejs-iojs/)
 
 environment:
-  # NOTE: Only test in Node.js 10 to shorten time
-  nodejs_version: "10"
+  # NOTE: Only test in Node.js 16 to shorten time
+  nodejs_version: "16"
 
 # Install scripts. (runs after repo cloning)
 install:
