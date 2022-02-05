@@ -5,13 +5,10 @@ on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-18.04
-
     strategy:
       matrix:
         node-version: [10.x, 12.x, 14.x, 16.x]
-
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
@@ -22,3 +19,53 @@ jobs:
     - run: npm run lint
     - run: npm run build
     - run: npm test
+
+  docker_test:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: docker build -t piping-server .
+    - name: Working test with Docker image
+      run: |
+        set -eux
+        # Run a server
+        docker run -d -p 8080:80 --name=piping piping-server --http-port=80
+        # Wait for server running
+        sleep 1
+        # Create a file to send
+        echo 'hello, world' > /tmp/hello.txt
+        # Send and wait for a receiver
+        curl -T /tmp/hello.txt localhost:8080/mypath &
+        # Get data as a file
+        curl localhost:8080/mypath > /tmp/download.txt
+        # Print downloaded file
+        cat  /tmp/download.txt
+        # Test the equality
+        diff /tmp/hello.txt /tmp/download.txt
+        # Print server log
+        docker logs piping
+        # Delete container
+        docker rm -f piping
+    - name: Working test with Docker image for HTTPS
+      run: |
+        set -eux
+        # Create certificates
+        (mkdir ssl_certs && cd ssl_certs && openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -sha256 -nodes --subj '/CN=localhost/')
+        # Run a server
+        docker run -d -p 8080:80 -p 8443:443 -v $PWD/ssl_certs:/ssl_certs --name=piping piping-server --http-port=80 --enable-https=true --https-port=443 --key-path=/ssl_certs/server.key --crt-path=/ssl_certs/server.crt
+        # Wait for server running
+        sleep 1
+        # Create a file to send
+        echo 'hello, world' > /tmp/hello.txt
+        # Send and wait for a receiver
+        curl -kT /tmp/hello.txt https://localhost:8443/mypath &
+        # Get data as a file
+        curl -k https://localhost:8443/mypath > /tmp/download.txt
+        # Print downloaded file
+        cat  /tmp/download.txt
+        # Test the equality
+        diff /tmp/hello.txt /tmp/download.txt
+        # Print server log
+        docker logs piping
+        # Delete container
+        docker rm -f piping
