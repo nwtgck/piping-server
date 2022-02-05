@@ -8,13 +8,6 @@ updates:
   open-pull-requests-limit: 99
   reviewers: [ nwtgck ]
   assignees: [ nwtgck ]
-  ignore:
-  - dependency-name: "@types/node"
-    versions:
-    - ">= 11.a, < 12"
-  - dependency-name: "@types/node"
-    versions:
-    - ">= 13.a, < 14"
 - package-ecosystem: docker
   directory: "/"
   schedule:
