@@ -13,7 +13,7 @@ jobs:
   build_and_push:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: git fetch --unshallow
     - name: Get latest tag
       id: latest_tag
