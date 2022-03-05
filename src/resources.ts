@@ -10,6 +10,11 @@ export const indexPage: string = `\
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta charset="UTF-8">
   <style>
+    body {
+      font-family: "Avenir Next", Helvetica, Arial, sans-serif;
+      font-size: 110%;
+      margin: 1em;
+    }
     h1 {
       display: inline;
     }
@@ -138,6 +143,10 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta charset="UTF-8">
   <style>
+    body {
+      font-family: sans-serif;
+      font-size: 110%;
+    }
     h3 {
       margin-top: 2em;
       margin-bottom: 0.5em;
