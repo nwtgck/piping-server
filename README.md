@@ -1,6 +1,5 @@
 # Piping Server
-[![npm](https://img.shields.io/npm/v/piping-server.svg)](https://www.npmjs.com/package/piping-server) [![CodeFactor](https://www.codefactor.io/repository/github/nwtgck/piping-server/badge)](https://www.codefactor.io/repository/github/nwtgck/piping-server) [![CircleCI](https://circleci.com/gh/nwtgck/piping-server.svg?style=shield)](https://circleci.com/gh/nwtgck/piping-server) [![Build status](https://ci.appveyor.com/api/projects/status/g075o30d5pp4m0pa?svg=true)](https://ci.appveyor.com/project/nwtgck/piping-server)  [![GitHub Actions](https://github.com/nwtgck/piping-server/workflows/Node%20CI/badge.svg)](https://github.com/nwtgck/piping-server/actions) [![Docker Automated build](https://img.shields.io/docker/automated/nwtgck/piping-server.svg)](https://hub.docker.com/r/nwtgck/piping-server/)
- [![](https://images.microbadger.com/badges/image/nwtgck/piping-server.svg)](https://microbadger.com/images/nwtgck/piping-server "Get your own image badge on microbadger.com") [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=nwtgck/piping-server)](https://dependabot.com)
+[![npm](https://img.shields.io/npm/v/piping-server.svg)](https://www.npmjs.com/package/piping-server) [![CodeFactor](https://www.codefactor.io/repository/github/nwtgck/piping-server/badge)](https://www.codefactor.io/repository/github/nwtgck/piping-server) [![Build status](https://ci.appveyor.com/api/projects/status/g075o30d5pp4m0pa?svg=true)](https://ci.appveyor.com/project/nwtgck/piping-server) [![GitHub Actions](https://github.com/nwtgck/piping-server/workflows/Node%20CI/badge.svg)](https://github.com/nwtgck/piping-server/actions) [![Docker Automated build](https://img.shields.io/docker/automated/nwtgck/piping-server.svg)](https://hub.docker.com/r/nwtgck/piping-server/) [![](https://images.microbadger.com/badges/image/nwtgck/piping-server.svg)](https://microbadger.com/images/nwtgck/piping-server "Get your own image badge on microbadger.com")  
 
 Infinitely transfer between every device over HTTP/HTTPS  
 <img src="demo_images/piping-server-terminal-hello.gif" alt="Piping Server hello" width="600">
@@ -130,7 +129,7 @@ docker run -p 8080:8080 -d --restart=always nwtgck/piping-server
 Run a Piping Server on <http://localhost:8080> as follows on Linux.
 
 ```bash
-curl -L https://github.com/nwtgck/piping-server-pkg/releases/download/v1.10.2/piping-server-pkg-linuxstatic-x64.tar.gz | tar xzvf -
+curl -L https://github.com/nwtgck/piping-server-pkg/releases/download/v1.11.1/piping-server-pkg-linuxstatic-x64.tar.gz | tar xzvf -
 ./piping-server-pkg-linuxstatic-x64/piping-server --http-port=8080
 ```
 The binaries are for multi-platform including Linux on x64, Linux on ARM64, Linux on ARMv7, Intel macOS, Apple Silicon macOS and Windows on x64. See <https://github.com/nwtgck/piping-server-pkg> to run on the other platform.

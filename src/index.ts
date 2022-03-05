@@ -62,38 +62,47 @@ http.createServer(pipingServer.generateHandler(false))
     logger.info(`Listen HTTP on ${httpPort}...`);
   });
 
-if (enableHttps && httpsPort !== undefined) {
-  if (serverKeyPath === undefined || serverCrtPath === undefined) {
-    logger.error("Error: --key-path and --crt-path should be specified");
-  } else {
-    let secureContext: tls.SecureContext | undefined;
-    const updateSecureContext = () => {
-      try {
-        secureContext = tls.createSecureContext({
-          key: fs.readFileSync(serverKeyPath),
-          cert: fs.readFileSync(serverCrtPath),
-        });
-        logger.info("Certificate loaded");
-      } catch (e) {
-        logger.error("Failed to load certificate", e);
-      }
-    }
-    updateSecureContext();
-    if (secureContext === undefined) {
-      throw new Error("No certificate");
-    }
-    fs.watchFile(serverCrtPath, updateSecureContext);
-    fs.watchFile(serverKeyPath, updateSecureContext);
-    http2.createSecureServer(
-      {
-        SNICallback: (servername, cb) => cb(null, secureContext!),
-        allowHTTP1: true
-      },
-      pipingServer.generateHandler(true)
-    ).listen({ host, port: httpsPort }, () => {
-      logger.info(`Listen HTTPS on ${httpsPort}...`);
-    });
+if (enableHttps) {
+  if (httpsPort === undefined) {
+    logger.error("--https-port is required");
+    process.exit(1);
   }
+  if (serverKeyPath === undefined) {
+    logger.error("--key-path is required");
+    process.exit(1);
+  }
+  if (serverCrtPath === undefined) {
+    logger.error("--crt-path is required");
+    process.exit(1);
+  }
+
+  let secureContext: tls.SecureContext | undefined;
+  const updateSecureContext = () => {
+    try {
+      secureContext = tls.createSecureContext({
+        key: fs.readFileSync(serverKeyPath),
+        cert: fs.readFileSync(serverCrtPath),
+      });
+      logger.info("Certificate loaded");
+    } catch (e) {
+      logger.error("Failed to load certificate", e);
+    }
+  }
+  updateSecureContext();
+  if (secureContext === undefined) {
+    throw new Error("No certificate");
+  }
+  fs.watchFile(serverCrtPath, updateSecureContext);
+  fs.watchFile(serverKeyPath, updateSecureContext);
+  http2.createSecureServer(
+    {
+      SNICallback: (servername, cb) => cb(null, secureContext!),
+      allowHTTP1: true
+    },
+    pipingServer.generateHandler(true)
+  ).listen({ host, port: httpsPort }, () => {
+    logger.info(`Listen HTTPS on ${httpsPort}...`);
+  });
 }
 
 // Catch and ignore error

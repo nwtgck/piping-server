@@ -1,6 +1,6 @@
 {
   "name": "piping-server",
-  "version": "1.11.1",
+  "version": "1.12.0",
   "description": "Streaming Data Transfer Server over HTTP/HTTPS",
   "bin": {
     "piping-server": "dist/src/index.js"
@@ -36,19 +36,19 @@
     "@types/node": "^16.11.22",
     "@types/power-assert": "^1.5.3",
     "@types/request": "^2.48.5",
-    "@types/yargs": "^17.0.8",
+    "@types/yargs": "^17.0.9",
     "espower-typescript": "^10.0.0",
     "get-port": "^5.1.1",
     "mocha": "^9.2.0",
     "power-assert": "^1.6.1",
     "request": "^2.88.2",
     "then-request": "^6.0.2",
-    "ts-node": "^10.0.0",
+    "ts-node": "^10.6.0",
     "tslint": "^6.1.2",
-    "typescript": "^4.0.2"
+    "typescript": "^4.6.2"
   },
   "dependencies": {
-    "log4js": "^6.4.0",
+    "log4js": "^6.4.2",
     "multiparty": "^4.2.1",
     "yargs": "^17.3.1"
   }
