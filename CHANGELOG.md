@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.12.0] - 2022-03-05
+### Changed
+* Update dependencies
+* (command) Improve HTTPS-related option error messages
+* Change fonts in top page and /noscript page
+
 ## [1.11.1] - 2022-02-05
 ### Changed
 * Update dependencies
@@ -411,7 +417,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.11.1...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/nwtgck/piping-server/compare/v1.11.1...v1.12.0
 [1.11.1]: https://github.com/nwtgck/piping-server/compare/v1.11.0...v1.11.1
 [1.11.0]: https://github.com/nwtgck/piping-server/compare/v1.10.2...v1.11.0
 [1.10.2]: https://github.com/nwtgck/piping-server/compare/v1.10.1...v1.10.2
