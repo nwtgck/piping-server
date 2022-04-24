@@ -34,7 +34,7 @@ export const indexPage: string = `\
 <input type="checkbox" id="text_mode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
 
 <input type="file" id="file_input">
-<textarea id="text_input" placeholder="Input text" cols="30" rows="10"></textarea>
+<textarea id="text_input" placeholder="Input text" cols="30" rows="10" style="display: none"></textarea>
 <br>
 
 <h3>Step 2: Write your secret path</h3>
