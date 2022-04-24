@@ -123,7 +123,7 @@ export const indexPage: string = `\
 </html>
 `;
 
-export function noScriptHtml(queryParams: URLSearchParams): string {
+export function noScriptHtml(queryParams: URLSearchParams, styleNonce: string): string {
   const pathQueryParameterName = "path";
   const modeQueryParameterName = "mode";
   const fileMode = "file";
@@ -142,7 +142,7 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
   <title>File transfer without JavaScript</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta charset="UTF-8">
-  <style>
+  <style nonce="${styleNonce}">
     body {
       font-family: sans-serif;
       font-size: 110%;

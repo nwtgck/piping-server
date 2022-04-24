@@ -97,6 +97,9 @@ describe("piping.Server", () => {
       // Should have "Content-Type"
       assert.strictEqual(res.headers["content-type"], "text/html");
 
+      // Should disable JavaScript and allow CSS with nonce
+      assert(/^default-src 'none'; style-src 'nonce-.+'$/.test(res.headers["content-security-policy"] as string))
+
       // Should have charset
       assert(res.body.toString().toLowerCase().includes(`<meta charset="utf-8">`));
     });
@@ -171,6 +174,7 @@ describe("piping.Server", () => {
         const h = {
           ...headers,
           "transfer-encoding": undefined,
+          "content-security-policy" : undefined, // exclude because it includes nonce
           "date": undefined,
         };
         return JSON.parse(JSON.stringify(h, Object.keys(h).sort()));

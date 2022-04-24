@@ -3,6 +3,7 @@ import * as http2 from "http2";
 import * as log4js from "log4js";
 import * as multiparty from "multiparty";
 import * as stream from "stream";
+import * as crypto from "crypto";
 
 import * as resources from "./resources";
 import {VERSION} from "./version";
@@ -213,9 +214,11 @@ export class Server {
         }, resources.indexPage);
         return;
       case NAME_TO_RESERVED_PATH.noscript: {
+        const styleNonce = crypto.randomBytes(16).toString("base64");
         resEndWithContentLength(res, 200, {
-          "Content-Type": "text/html"
-        }, resources.noScriptHtml(reqUrl.searchParams));
+          "Content-Type": "text/html",
+          "Content-Security-Policy": `default-src 'none'; style-src 'nonce-${styleNonce}'`
+        }, resources.noScriptHtml(reqUrl.searchParams, styleNonce));
         return;
       }
       case NAME_TO_RESERVED_PATH.version:
