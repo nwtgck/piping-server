@@ -34,7 +34,7 @@ export const indexPage: string = `\
 <input type="checkbox" id="text_mode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
 
 <input type="file" id="file_input">
-<textarea id="text_input" placeholder="Input text" cols="30" rows="10"></textarea>
+<textarea id="text_input" placeholder="Input text" cols="30" rows="10" style="display: none"></textarea>
 <br>
 
 <h3>Step 2: Write your secret path</h3>
@@ -123,7 +123,7 @@ export const indexPage: string = `\
 </html>
 `;
 
-export function noScriptHtml(queryParams: URLSearchParams): string {
+export function noScriptHtml(queryParams: URLSearchParams, styleNonce: string): string {
   const pathQueryParameterName = "path";
   const modeQueryParameterName = "mode";
   const fileMode = "file";
@@ -142,7 +142,7 @@ export function noScriptHtml(queryParams: URLSearchParams): string {
   <title>File transfer without JavaScript</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta charset="UTF-8">
-  <style>
+  <style nonce="${styleNonce}">
     body {
       font-family: sans-serif;
       font-size: 110%;
