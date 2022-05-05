@@ -1,14 +1,16 @@
-import * as getPort from "get-port";
+import getPort from "get-port";
 import * as net from "net";
 import * as http from "http";
 import * as http2 from "http2";
 import * as log4js from "log4js";
-import * as assert from "power-assert";
+import assert from "power-assert";
 import * as request from "request";
 import thenRequest from "then-request";
+import * as undici from "undici";
 import * as piping from "../src/piping";
 import * as utils from "../src/utils";
 import {VERSION} from "../src/version";
+import {EventEmitter} from "events";
 
 /**
  * Listen on the specify port
@@ -684,8 +686,9 @@ Host: localhost:${pipingPort}
 
   it("should handle multi receiver connection (receiver?n=2: O, sender?n=1: X: because too less n)", async () => {
     // Get data
-    const getReq1 = request.get( {
-      url: `${pipingUrl}/mydataid?n=2`
+    const abortEventEmitter = new EventEmitter();
+    undici.request(`${pipingUrl}/mydataid?n=2`, {
+      signal: abortEventEmitter,
     });
 
     await sleep(10);
@@ -702,7 +705,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
 
     // Quit get request
-    getReq1.abort();
+    abortEventEmitter.emit("abort");
   });
 
   it("should handle multi receiver connection (receiver?n=2: O, sender?n=3: X: because too much n)", async () => {
