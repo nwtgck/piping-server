@@ -11,6 +11,7 @@ import * as piping from "../src/piping";
 import * as utils from "../src/utils";
 import {VERSION} from "../src/version";
 import {EventEmitter} from "events";
+import {URL, UrlObject} from "url";
 
 /**
  * Listen on the specify port
@@ -37,6 +38,17 @@ function closePromise(server: http.Server | http2.Http2Server): Promise<void> {
 // (from: https://qiita.com/yuba/items/2b17f9ac188e5138319c)
 export function sleep(ms: number): Promise<any> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// NOTE: with keep-alive test will be slow
+function requestNoKeepAlive(
+  url: string | URL | UrlObject,
+  options?: Omit<undici.Dispatcher.RequestOptions, 'origin' | 'path' | 'method'> & Partial<Pick<undici.Dispatcher.RequestOptions, 'method'>>,
+): Promise<undici.Dispatcher.ResponseData> {
+  return undici.request(url, {
+    ...options,
+    dispatcher: new undici.Agent({ pipelining: 0 }), // For disabling keep alive
+  });
 }
 
 // Create a logger
@@ -66,35 +78,39 @@ describe("piping.Server", () => {
   context("In reserved path", () => {
     it("should return index page", async () => {
       // Get response
-      const res1 = await thenRequest("GET", `${pipingUrl}`);
-      const res2 = await thenRequest("GET", `${pipingUrl}/`);
+      const res1 = await requestNoKeepAlive(`${pipingUrl}`);
+      const res2 = await requestNoKeepAlive(`${pipingUrl}/`);
+
+      const res1Body = await res1.body.text();
+      const res2Body = await res2.body.text();
 
       // Body should be index page
-      assert.strictEqual(res1.getBody("UTF-8").includes("Piping"), true);
-      assert.strictEqual(res2.getBody("UTF-8").includes("Piping"), true);
+      assert.strictEqual(res1Body.includes("Piping"), true);
+      assert.strictEqual(res2Body.includes("Piping"), true);
 
       // Should have "Content-Length"
-      assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
-      assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
+      assert.strictEqual(res1.headers["content-length"], res1Body.length.toString());
+      assert.strictEqual(res2.headers["content-length"], res2Body.length.toString());
 
       // Should have "Content-Type"
       assert.strictEqual(res1.headers["content-type"], "text/html");
       assert.strictEqual(res2.headers["content-type"], "text/html");
 
       // Should have charset
-      assert(res1.body.toString().toLowerCase().includes(`<meta charset="utf-8">`));
-      assert(res2.body.toString().toLowerCase().includes(`<meta charset="utf-8">`));
+      assert(res1Body.toLowerCase().includes(`<meta charset="utf-8">`));
+      assert(res2Body.toLowerCase().includes(`<meta charset="utf-8">`));
     });
 
     it("should return noscript Web UI", async () => {
       // Get response
-      const res = await thenRequest("GET", `${pipingUrl}/noscript?path=mypath`);
+      const res = await requestNoKeepAlive(`${pipingUrl}/noscript?path=mypath`);
+      const resBody = await res.body.text();
 
       // Body should be index page
-      assert.strictEqual(res.getBody("UTF-8").includes("action=\"mypath\""), true);
+      assert.strictEqual(resBody.includes("action=\"mypath\""), true);
 
       // Should have "Content-Length"
-      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+      assert.strictEqual(res.headers["content-length"], resBody.length.toString());
 
       // Should have "Content-Type"
       assert.strictEqual(res.headers["content-type"], "text/html");
@@ -103,33 +119,35 @@ describe("piping.Server", () => {
       assert(/^default-src 'none'; style-src 'nonce-.+'$/.test(res.headers["content-security-policy"] as string))
 
       // Should have charset
-      assert(res.body.toString().toLowerCase().includes(`<meta charset="utf-8">`));
+      assert(resBody.toLowerCase().includes(`<meta charset="utf-8">`));
     });
 
     it("should return version page", async () => {
       // Get response
-      const res = await thenRequest("GET", `${pipingUrl}/version`);
+      const res = await requestNoKeepAlive(`${pipingUrl}/version`);
+      const resBody = await res.body.text();
 
       // Body should be index page
       // (from: https://stackoverflow.com/a/22339262/2885946)
-      assert.strictEqual(res.getBody("UTF-8"), VERSION + "\n");
+      assert.strictEqual(resBody, VERSION + "\n");
 
       // Allow cross-origin
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       // Should have "Content-Length"
-      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+      assert.strictEqual(res.headers["content-length"], resBody.length.toString());
       // Should have "Content-Type"
       assert.strictEqual(res.headers["content-type"], "text/plain");
     });
 
     it("should return help page", async () => {
       // Get response
-      const res = await thenRequest("GET", `${pipingUrl}/help`);
+      const res = await requestNoKeepAlive(`${pipingUrl}/help`);
+      const resBody = await res.body.text();
 
       // Allow cross-origin
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       // Should have "Content-Length"
-      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+      assert.strictEqual(res.headers["content-length"], resBody.length.toString());
       // Should have "Content-Type"
       assert.strictEqual(res.headers["content-type"], "text/plain");
 
@@ -139,7 +157,7 @@ describe("piping.Server", () => {
 
     it("should return no favicon", async () => {
       // Get response
-      const res = await thenRequest("GET", `${pipingUrl}/favicon.ico`);
+      const res = await requestNoKeepAlive(`${pipingUrl}/favicon.ico`);
 
       // Status should be No Content
       assert.strictEqual(res.statusCode, 204);
