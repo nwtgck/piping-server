@@ -5,7 +5,6 @@ import * as http2 from "http2";
 import * as log4js from "log4js";
 import assert from "power-assert";
 import * as request from "request";
-import thenRequest from "then-request";
 import * as undici from "undici";
 import * as piping from "../src/piping";
 import * as utils from "../src/utils";
@@ -41,7 +40,7 @@ export function sleep(ms: number): Promise<any> {
 }
 
 // NOTE: with keep-alive test will be slow
-function requestNoKeepAlive(
+function requestWithoutKeepAlive(
   url: string | URL | UrlObject,
   options?: Omit<undici.Dispatcher.RequestOptions, 'origin' | 'path' | 'method'> & Partial<Pick<undici.Dispatcher.RequestOptions, 'method'>>,
 ): Promise<undici.Dispatcher.ResponseData> {
@@ -78,8 +77,8 @@ describe("piping.Server", () => {
   context("In reserved path", () => {
     it("should return index page", async () => {
       // Get response
-      const res1 = await requestNoKeepAlive(`${pipingUrl}`);
-      const res2 = await requestNoKeepAlive(`${pipingUrl}/`);
+      const res1 = await requestWithoutKeepAlive(`${pipingUrl}`);
+      const res2 = await requestWithoutKeepAlive(`${pipingUrl}/`);
 
       const res1Body = await res1.body.text();
       const res2Body = await res2.body.text();
@@ -103,7 +102,7 @@ describe("piping.Server", () => {
 
     it("should return noscript Web UI", async () => {
       // Get response
-      const res = await requestNoKeepAlive(`${pipingUrl}/noscript?path=mypath`);
+      const res = await requestWithoutKeepAlive(`${pipingUrl}/noscript?path=mypath`);
       const resBody = await res.body.text();
 
       // Body should be index page
@@ -124,7 +123,7 @@ describe("piping.Server", () => {
 
     it("should return version page", async () => {
       // Get response
-      const res = await requestNoKeepAlive(`${pipingUrl}/version`);
+      const res = await requestWithoutKeepAlive(`${pipingUrl}/version`);
       const resBody = await res.body.text();
 
       // Body should be index page
@@ -141,7 +140,7 @@ describe("piping.Server", () => {
 
     it("should return help page", async () => {
       // Get response
-      const res = await requestNoKeepAlive(`${pipingUrl}/help`);
+      const res = await requestWithoutKeepAlive(`${pipingUrl}/help`);
       const resBody = await res.body.text();
 
       // Allow cross-origin
@@ -157,7 +156,7 @@ describe("piping.Server", () => {
 
     it("should return no favicon", async () => {
       // Get response
-      const res = await requestNoKeepAlive(`${pipingUrl}/favicon.ico`);
+      const res = await requestWithoutKeepAlive(`${pipingUrl}/favicon.ico`);
 
       // Status should be No Content
       assert.strictEqual(res.statusCode, 204);
@@ -165,12 +164,12 @@ describe("piping.Server", () => {
 
     it("should return no robots.txt", async () => {
       // Get response
-      const res = await thenRequest("GET", `${pipingUrl}/robots.txt`);
+      const res = await requestWithoutKeepAlive(`${pipingUrl}/robots.txt`);
 
       // Status should not be found
       assert.strictEqual(res.statusCode, 404);
       // Should have "Content-Length"
-      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+      assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
     });
 
     it("should not allow user to send the reserved paths", async () => {
@@ -178,13 +177,14 @@ describe("piping.Server", () => {
 
       for (const reservedPath of reservedPaths) {
         // Send data to ""
-        const res = await thenRequest("POST", `${pipingUrl}${reservedPath}`, {
+        const res = await requestWithoutKeepAlive(`${pipingUrl}${reservedPath}`, {
+          method: "POST",
           body: "this is a content"
         });
         // Should be failed
         assert.strictEqual(res.statusCode, 400);
         // Should have "Content-Length"
-        assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+        assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
         assert.strictEqual(res.headers["access-control-allow-origin"], "*");
       }
     });
@@ -203,8 +203,8 @@ describe("piping.Server", () => {
       const reservedPaths = ["", "/", "/noscript", "/version", "/help", "/favicon.ico", "/robots.txt"];
 
       for (const reservedPath of reservedPaths) {
-        const getRes = await thenRequest("GET", `${pipingUrl}${reservedPath}`);
-        const headRes = await thenRequest("HEAD", `${pipingUrl}${reservedPath}`);
+        const getRes = await requestWithoutKeepAlive(`${pipingUrl}${reservedPath}`);
+        const headRes = await requestWithoutKeepAlive(`${pipingUrl}${reservedPath}`, { method: "HEAD" });
         assert.strictEqual(headRes.statusCode, getRes.statusCode);
         assert.deepStrictEqual(normalizeHeaders(headRes.headers), normalizeHeaders(getRes.headers));
       }
@@ -214,7 +214,7 @@ describe("piping.Server", () => {
       const reservedPaths = ["/", "/noscript", "/version", "/help", "/favicon.ico", "/robots.txt"];
 
       for (const reservedPath of reservedPaths) {
-        const getRes = await thenRequest("GET", `${pipingUrl}${reservedPath}`);
+        const getRes = await requestWithoutKeepAlive(`${pipingUrl}${reservedPath}`);
         const http1_0GetResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
           const chunks: Buffer[] = [];
           const socket = net.connect(pipingPort, "localhost", () => {
@@ -231,22 +231,22 @@ Host: localhost:${pipingPort}
         const http1_0GetResString = (await http1_0GetResPromise).toString();
         assert(http1_0GetResString.startsWith(`HTTP/1.0 ${getRes.statusCode}`));
         if (getRes.statusCode !== 204) {
-          assert(http1_0GetResString.includes(`Content-Length: ${getRes.body.length}`));
+          assert(http1_0GetResString.includes(`Content-Length: ${(await getRes.body.text()).length}`));
         }
       }
     });
   });
 
   it("should reject unsupported method", async () => {
-    const res = await thenRequest("DELETE", `${pipingUrl}/mydataid`);
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, { method: "DELETE" });
     assert.strictEqual(res.statusCode, 405);
     const headers = res.headers;
     assert.strictEqual(headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+    assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
   });
 
   it("should support Preflight request", async () => {
-    const res = await thenRequest("OPTIONS", `${pipingUrl}/mydataid`);
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, { method: "OPTIONS" });
 
     assert.strictEqual(res.statusCode, 200);
 
@@ -259,7 +259,7 @@ Host: localhost:${pipingPort}
   });
 
   it("should reject Service Worker registration request", async () => {
-    const res = await thenRequest("GET", `${pipingUrl}/mysw.js`, {
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mysw.js`, {
       headers: {
         "Service-Worker": "script"
       }
@@ -268,33 +268,34 @@ Host: localhost:${pipingPort}
     assert.strictEqual(res.statusCode, 400);
     const headers = res.headers;
     assert.strictEqual(headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+    assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
   });
 
   it("should reject POST and PUT with Content-Range", async () => {
-    const option = {
+    const commonOptions = {
       body: "hello",
       headers: { "Content-Range": "bytes 2-6/100" },
     };
-    const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, option);
+    const postRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, { ...commonOptions, method: "POST" });
     assert.strictEqual(postRes.statusCode, 400);
     assert.strictEqual(postRes.headers["content-type"], "text/plain");
     assert.strictEqual(postRes.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(postRes.headers["content-length"], postRes.body.length.toString());
+    assert.strictEqual(postRes.headers["content-length"], (await postRes.body.text()).length.toString());
 
-    const putRes = await thenRequest("PUT", `${pipingUrl}/mydataid`, option);
+    const putRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, { ...commonOptions, method: "PUT" });
     assert.strictEqual(putRes.statusCode, 400);
     assert.strictEqual(putRes.headers["content-type"], "text/plain");
     assert.strictEqual(putRes.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(putRes.headers["content-length"], putRes.body.length.toString());
+    assert.strictEqual(putRes.headers["content-length"], (await putRes.body.text()).length.toString());
   });
 
   it("should handle connection (receiver O, sender: O)", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Send data
-    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    const sendRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       body: "this is a content"
     });
     assert.strictEqual(sendRes.headers["content-type"], "text/plain");
@@ -303,7 +304,7 @@ Host: localhost:${pipingPort}
     const res = await resPromise;
 
     // Body should be the sent data
-    assert.strictEqual(res.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res.body.text(), "this is a content");
     // Content-length should be returned
     assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
@@ -365,10 +366,11 @@ Host: localhost:${pipingPort}
 
   it("should pass sender's Content-Type to receivers' one", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       headers: {
         "content-type": "text/plain"
       },
@@ -384,10 +386,11 @@ Host: localhost:${pipingPort}
 
   it("should replace 'Content-Type: text/html' with 'text/plain'", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       headers: {
         "content-type": "text/html"
       },
@@ -403,10 +406,11 @@ Host: localhost:${pipingPort}
 
   it("should replace 'Content-Type: text/html; charset=utf-8' with 'text/plain; charset=utf-8'", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       headers: {
         "content-type": "text/html; charset=utf-8"
       },
@@ -422,10 +426,11 @@ Host: localhost:${pipingPort}
 
   it("should pass sender's Content-Disposition to receivers' one", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       headers: {
         "content-disposition": "attachment; filename=\"myfile.txt\""
       },
@@ -441,10 +446,11 @@ Host: localhost:${pipingPort}
 
   it("should pass sender's X-Piping to receivers' one", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       headers: {
         "x-piping": "mymetadata"
       },
@@ -469,10 +475,13 @@ Host: localhost:${pipingPort}
     getReq.end();
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid`, {
-      headers: {
-        "x-piping": ["mymetadata1", "mymetadata2", "mymetadata3"],
-      },
+    await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
+      headers: [
+        "x-piping", "mymetadata1",
+        "x-piping", "mymetadata2",
+        "x-piping", "mymetadata3",
+      ],
       body: "this is a content"
     });
 
@@ -486,12 +495,13 @@ Host: localhost:${pipingPort}
 
   it("should have Access-Control-Allow-Origin and no Access-Control-Expose-Headers in GET/POST response", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     await sleep(10);
 
     // Send data
-    const postRes = await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    const postRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -509,14 +519,15 @@ Host: localhost:${pipingPort}
 
   it("should have Access-Control-Allow-Origin and no Access-Control-Expose-Headers in POST/GET response", async () => {
     // Send data
-    const postResPromise = thenRequest("POST", `${pipingUrl}/mydataid`, {
+    const postResPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       body: "this is a content"
     });
 
     await sleep(10);
 
     // Get request promise
-    const getRes = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const getRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Headers of GET response should have Access-Control-Allow-Origin
     assert.strictEqual(getRes.headers["access-control-allow-origin"], "*");
@@ -532,12 +543,13 @@ Host: localhost:${pipingPort}
 
   it("should have X-Piping in Access-Control-Expose-Headers in GET/POST response when sending with X-Piping", async () => {
     // Get request promise
-    const resPromise = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const resPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     await sleep(10);
 
     // Send data
-    await thenRequest("POST", `${pipingUrl}/mydataid`, {
+    await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       // NOTE: headers have X-Piping
       headers: {
         "X-Piping": "mymetadata",
@@ -553,7 +565,8 @@ Host: localhost:${pipingPort}
 
   it("should have X-Piping Access-Control-Expose-Headers in POST/GET response when sending with X-Piping", async () => {
     // Send data
-    thenRequest("POST", `${pipingUrl}/mydataid`, {
+    requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       // NOTE: headers have X-Piping
       headers: {
         "X-Piping": "mymetadata",
@@ -564,7 +577,7 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Get request promise
-    const getRes = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const getRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Headers of GET response should have Access-Control-Expose-Headers
     assert.strictEqual(getRes.headers["access-control-expose-headers"], "X-Piping");
@@ -573,18 +586,19 @@ Host: localhost:${pipingPort}
   it("should handle connection (sender: O, receiver: O)", async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
-    const sendResPromise = thenRequest("POST", `${pipingUrl}/mydataid`, {
+    const sendResPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       body: "this is a content"
     });
 
     // Get data
-    const getRes = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const getRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     const sendRes = await sendResPromise;
     assert.strictEqual(sendRes.headers["content-type"], "text/plain");
 
     // Body should be the sent data
-    assert.strictEqual(getRes.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await getRes.body.text(), "this is a content");
     // Content-length should be returned
     assert.strictEqual(getRes.headers["content-length"], "this is a content".length.toString());
   });
@@ -603,24 +617,25 @@ Host: localhost:${pipingPort}
     sendReq.end(" a content");
 
     // Get data
-    const res = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Body should be the sent data
-    assert.strictEqual(res.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res.body.text(), "this is a content");
   });
 
   it("should be sent by PUT method", async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
-    thenRequest("PUT", `${pipingUrl}/mydataid`, {
+    requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "PUT",
       body: "this is a content"
     });
 
     // Get data
-    const res = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     // Body should be the sent data
-    assert.strictEqual(res.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res.body.text(), "this is a content");
     // Content-length should be returned
     assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
   });
@@ -628,12 +643,13 @@ Host: localhost:${pipingPort}
   // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=3: O, receiver?n=3: O, receiver?n=3: O, sender?n=3: O)", async () => {
     // Get request promise
-    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
+    const resPromise2 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
+    const resPromise3 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
 
     // Send data
-    thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -641,11 +657,11 @@ Host: localhost:${pipingPort}
     const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data and content-length should be returned
-    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual((await res1.body.text()), "this is a content");
     assert.strictEqual(res1.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual((await res2.body.text()), "this is a content");
     assert.strictEqual(res2.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(res3.getBody("UTF-8"), "this is a content");
+    assert.strictEqual((await res3.body.text()), "this is a content");
     assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
@@ -653,24 +669,25 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=3: O, receiver?n=3: O, receiver?n=3: O, receiver?n=3: O)", async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking GET requests)
-    thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`, {
+      method: "POST",
       body: "this is a content"
     });
 
     // Get data
-    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
+    const resPromise2 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
+    const resPromise3 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
 
     // Await all responses
     const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data and content-length should be returned
-    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res1.body.text(), "this is a content");
     assert.strictEqual(res1.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res2.body.text(), "this is a content");
     assert.strictEqual(res2.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(res3.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res3.body.text(), "this is a content");
     assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
@@ -678,27 +695,28 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (receiver?n=3: O, sender?n=3: O, receiver?n=3: O, receiver?n=3: O)", async () => {
 
     // Get data
-    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
 
     // Send data
     // (NOTE: Should NOT use `await` because of blocking GET requests)
-    thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`, {
+      method: "POST",
       body: "this is a content"
     });
 
     // Get data
-    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
-    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise2 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
+    const resPromise3 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
 
     // Await all responses
     const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data and content-length should be returned
-    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res1.body.text(), "this is a content");
     assert.strictEqual(res1.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res2.body.text(), "this is a content");
     assert.strictEqual(res2.headers["content-length"], "this is a content".length.toString());
-    assert.strictEqual(res3.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res3.body.text(), "this is a content");
     assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
@@ -712,7 +730,8 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Send data
-    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
+    const sendRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=1`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -720,7 +739,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
+    assert.strictEqual(sendRes.headers["content-length"], (await sendRes.body.text()).length.toString());
 
     // Quit get request
     abortEventEmitter.emit("abort");
@@ -735,7 +754,8 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Send data
-    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    const sendRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -743,7 +763,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
+    assert.strictEqual(sendRes.headers["content-length"], (await sendRes.body.text()).length.toString());
 
     // Quit get request
     getReq1.abort();
@@ -765,7 +785,7 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Get data
-    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
+    const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=1`);
 
     // Await response
     const res1 = await resPromise1;
@@ -774,7 +794,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(res1.statusCode, 400);
     assert.strictEqual(res1.headers["content-type"], "text/plain");
     assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
+    assert.strictEqual(res1.headers["content-length"], (await res1.body.text()).length.toString());
 
     // Quit send request
     sendReq.abort();
@@ -796,7 +816,7 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Get data
-    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
 
     // Await data
     const res1 = await resPromise1;
@@ -805,7 +825,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(res1.statusCode, 400);
     assert.strictEqual(res1.headers["content-type"], "text/plain");
     assert.strictEqual(res1.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res1.headers["content-length"], res1.body.length.toString());
+    assert.strictEqual(res1.headers["content-length"], (await res1.body.text()).length.toString());
 
     // Quit send request
     sendReq.abort();
@@ -882,7 +902,8 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Send data
-    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=1`, {
+    const sendRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=1`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -890,7 +911,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
+    assert.strictEqual(sendRes.headers["content-length"], (await sendRes.body.text()).length.toString());
 
     // Quit get requests
     getReq1.abort();
@@ -910,7 +931,8 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Send data
-    const sendRes = await thenRequest("POST", `${pipingUrl}/mydataid?n=3`, {
+    const sendRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -918,7 +940,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(sendRes.statusCode, 400);
     assert.strictEqual(sendRes.headers["content-type"], "text/plain");
     assert.strictEqual(sendRes.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(sendRes.headers["content-length"], sendRes.body.length.toString());
+    assert.strictEqual(sendRes.headers["content-length"], (await sendRes.body.text()).length.toString());
 
     // Quit get requests
     getReq1.abort();
@@ -946,13 +968,13 @@ Host: localhost:${pipingPort}
       url: `${pipingUrl}/mydataid?n=2`
     });
     await sleep(10);
-    const res2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=3`);
+    const res2 = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
 
     // Should be rejected
     assert.strictEqual(res2.statusCode, 400);
     assert.strictEqual(res2.headers["content-type"], "text/plain");
     assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
+    assert.strictEqual(res2.headers["content-length"], (await res2.body.text()).length.toString());
 
     // Quit get request
     getReq1.abort();
@@ -981,13 +1003,13 @@ Host: localhost:${pipingPort}
       url: `${pipingUrl}/mydataid?n=2`
     });
     await sleep(10);
-    const res2 = await thenRequest("GET", `${pipingUrl}/mydataid?n=1`);
+    const res2 = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=1`);
 
     // Should be rejected
     assert.strictEqual(res2.statusCode, 400);
     assert.strictEqual(res2.headers["content-type"], "text/plain");
     assert.strictEqual(res2.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res2.headers["content-length"], res2.body.length.toString());
+    assert.strictEqual(res2.headers["content-length"], (await res2.body.text()).length.toString());
 
     // Quit get request
     getReq1.abort();
@@ -1011,11 +1033,11 @@ Host: localhost:${pipingPort}
 
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
+    const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
+    const resPromise2 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=2`);
     await sleep(10);
-    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2`);
+    const resPromise3 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=2`);
     await sleep(10);
 
     // End send data
@@ -1025,29 +1047,30 @@ Host: localhost:${pipingPort}
     const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data
-    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res1.body.text(), "this is a content");
+    assert.strictEqual(await res2.body.text(), "this is a content");
 
     // Should be bad request
     assert.strictEqual(res3.statusCode, 400);
     assert.strictEqual(res3.headers["content-type"], "text/plain");
     assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res3.headers["content-length"], res3.body.length.toString());
+    assert.strictEqual(res3.headers["content-length"], (await res3.body.text()).length.toString());
   });
 
   // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=2: X, sender?n=2: O)", async () => {
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)
-    const resPromise1 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=first`);
+    const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=2&tag=first`);
     await sleep(10);
-    const resPromise2 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=second`);
+    const resPromise2 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=2&tag=second`);
     await sleep(10);
-    const resPromise3 = thenRequest("GET", `${pipingUrl}/mydataid?n=2&tag=third`);
+    const resPromise3 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=2&tag=third`);
     await sleep(10);
 
     // Send data
-    thenRequest("POST", `${pipingUrl}/mydataid?n=2`, {
+    requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=2`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -1055,36 +1078,37 @@ Host: localhost:${pipingPort}
     const [res1, res2, res3] = await Promise.all([resPromise1, resPromise2, resPromise3]);
 
     // Body should be the sent data
-    assert.strictEqual(res1.getBody("UTF-8"), "this is a content");
-    assert.strictEqual(res2.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await res1.body.text(), "this is a content");
+    assert.strictEqual(await res2.body.text(), "this is a content");
 
     // Should be bad request
     assert.strictEqual(res3.statusCode, 400);
     assert.strictEqual(res3.headers["content-type"], "text/plain");
     assert.strictEqual(res3.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res3.headers["content-length"], res3.body.length.toString());
+    assert.strictEqual(res3.headers["content-length"], (await res3.body.text()).length.toString());
   });
 
   it(`should reject POST with invalid query parameter "n"`, async () => {
     // Get data
-    const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=hoge`, {
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=hoge`, {
+      method: "POST",
       body: "this is a content"
     });
     // Should be rejected
     assert.strictEqual(res.statusCode, 400);
     assert.strictEqual(res.headers["content-type"], "text/plain");
     assert.strictEqual(res.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+    assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
   });
 
   it(`should reject GET with invalid query parameter "n"`, async () => {
     // Get data
-    const res = await thenRequest("GET", `${pipingUrl}/mydataid?n=hoge`);
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=hoge`);
     // Should be rejected
     assert.strictEqual(res.statusCode, 400);
     assert.strictEqual(res.headers["content-type"], "text/plain");
     assert.strictEqual(res.headers["access-control-allow-origin"], "*");
-    assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+    assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
   });
 
   it("should unregister a sender before establishing", async () => {
@@ -1104,11 +1128,12 @@ Host: localhost:${pipingPort}
     await sleep(10);
 
     // Send data
-    const sendPromise1 = thenRequest("POST", `${pipingUrl}/mydataid`, {
+    const sendPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       body: "this is a content"
     });
 
-    const get1 = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const get1 = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
     const sendRes = await sendPromise1;
 
@@ -1135,10 +1160,11 @@ Host: localhost:${pipingPort}
     getReq1.destroy();
     await sleep(10);
 
-    const getPromise2 = thenRequest("GET", `${pipingUrl}/mydataid`);
+    const getPromise2 = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
     await sleep(10);
     // Send data
-    const sendPromise = thenRequest("POST", `${pipingUrl}/mydataid`, {
+    const sendPromise = requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -1167,9 +1193,9 @@ this is a content`.replace(/\n/g, "\r\n"));
     });
 
     // Get data
-    const getRes = await thenRequest("GET", `${pipingUrl}/mydataid`);
+    const getRes = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
     // Body should be the sent data
-    assert.strictEqual(getRes.getBody("UTF-8"), "this is a content");
+    assert.strictEqual(await getRes.body.text(), "this is a content");
     // Content-length should be returned
     assert.strictEqual(getRes.headers["content-length"], "this is a content".length.toString());
     assert.strictEqual(getRes.headers["content-type"], "text/plain");
@@ -1182,7 +1208,8 @@ this is a content`.replace(/\n/g, "\r\n"));
   it("should handle connection from HTTP/1.0 receiver", async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking a GET request)
-    thenRequest("POST", `${pipingUrl}/mydataid`, {
+    requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "POST",
       body: "this is a content"
     });
 
@@ -1208,7 +1235,8 @@ Host: localhost:${pipingPort}
   context("If number of receivers <= 0", () => {
     it("should not allow n=0", async () => {
       // Send data
-      const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=0`, {
+      const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=0`, {
+        method: "POST",
         body: "this is a content"
       });
 
@@ -1216,38 +1244,40 @@ Host: localhost:${pipingPort}
       assert.strictEqual(res.statusCode, 400);
       assert.strictEqual(res.headers["content-type"], "text/plain");
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
-      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+      assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
     });
 
     it("should not allow n=-1", async () => {
       // Send data
-      const res = await thenRequest("POST", `${pipingUrl}/mydataid?n=-1`, {
+      const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=-1`, {
+        method: "POST",
         body: "this is a content"
       });
 
       // Should be rejected
       assert.strictEqual(res.statusCode, 400);
       assert.strictEqual(res.headers["access-control-allow-origin"], "*");
-      assert.strictEqual(res.headers["content-length"], res.body.length.toString());
+      assert.strictEqual(res.headers["content-length"], (await res.body.text()).length.toString());
     });
   });
 
   context("By multipart/data-form", () => {
     it("should allow sender to send data via multipart without multipart content-type", async () => {
-      const formData = {
-        "dummy form name": "this is a content"
-      };
+      const formData = new undici.FormData();
+      formData.append("dummy form name", "this is a content");
 
       // Send data
-      request.post({url: `${pipingUrl}/mydataid`, formData: formData});
+      requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+        body: formData,
+      })
 
       await sleep(10);
 
-      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+      const getPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
       const getData1 = await getPromise1;
       assert.strictEqual(getData1.statusCode, 200);
-      assert.strictEqual(getData1.getBody("UTF-8"), "this is a content");
+      assert.strictEqual(await getData1.body.text(), "this is a content");
     });
 
     it("should pass sender's Content-Type to receivers' one", async () => {
@@ -1265,7 +1295,7 @@ Host: localhost:${pipingPort}
 
       await sleep(10);
 
-      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+      const getPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
       const getData1 = await getPromise1;
       assert.strictEqual(getData1.statusCode, 200);
@@ -1287,7 +1317,7 @@ Host: localhost:${pipingPort}
 
       await sleep(10);
 
-      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+      const getPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
       const getData1 = await getPromise1;
       assert.strictEqual(getData1.statusCode, 200);
@@ -1309,7 +1339,7 @@ Host: localhost:${pipingPort}
 
       await sleep(10);
 
-      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+      const getPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
       const getData1 = await getPromise1;
       assert.strictEqual(getData1.statusCode, 200);
@@ -1331,7 +1361,7 @@ Host: localhost:${pipingPort}
 
       await sleep(10);
 
-      const getPromise1 = thenRequest("GET", `${pipingUrl}/mydataid`);
+      const getPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid`);
 
       const getData1 = await getPromise1;
       assert.strictEqual(getData1.statusCode, 200);
