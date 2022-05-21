@@ -5,7 +5,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         node-version: [10.x, 12.x, 14.x, 16.x]
@@ -21,7 +21,7 @@ jobs:
     - run: npm test
 
   docker_test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
     - run: docker build -t piping-server .
