@@ -191,6 +191,10 @@ export class Server {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, X-Piping",
+            // Private Network Access preflights: https://developer.chrome.com/blog/private-network-access-preflight/
+            ...(req.headers["access-control-request-private-network"] === "true" ? {
+              "Access-Control-Allow-Private-Network": "true",
+            }: {}),
             "Access-Control-Max-Age": 86400,
             "Content-Length": 0
           });
