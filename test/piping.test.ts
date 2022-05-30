@@ -258,6 +258,26 @@ Host: localhost:${pipingPort}
     assert.strictEqual(headers["content-length"], "0");
   });
 
+  it("should support Private Network Access Preflight request", async () => {
+    const res = await requestWithoutKeepAlive(`${pipingUrl}/mydataid`, {
+      method: "OPTIONS",
+      headers: {
+        "Access-Control-Request-Private-Network": "true",
+      },
+    });
+
+    assert.strictEqual(res.statusCode, 200);
+
+    const headers = res.headers;
+    assert.strictEqual(headers["access-control-allow-origin"], "*");
+    assert.strictEqual(headers["access-control-allow-methods"], "GET, HEAD, POST, PUT, OPTIONS");
+    assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition, X-Piping");
+    assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition, X-Piping");
+    assert.strictEqual(headers["access-control-allow-private-network"], "true");
+    assert.strictEqual(headers["access-control-max-age"], "86400");
+    assert.strictEqual(headers["content-length"], "0");
+  });
+
   it("should reject Service Worker registration request", async () => {
     const res = await requestWithoutKeepAlive(`${pipingUrl}/mysw.js`, {
       headers: {
