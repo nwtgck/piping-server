@@ -19,13 +19,45 @@ jobs:
     - run: npm run lint
     - run: npm run build
     - run: npm test
+    - name: Operational test
+      run: |
+        set -eux
+        # Create certificates
+        (mkdir /tmp/ssl_certs && cd /tmp/ssl_certs && openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -sha256 -nodes --subj '/CN=localhost/')
+        # Run a server
+        node ./dist/src/index.js --http-port=8080 --enable-https=true --https-port=8443 --key-path=/tmp/ssl_certs/server.key --crt-path=/tmp/ssl_certs/server.crt &> /tmp/piping_log.txt &
+        # Wait for server running
+        sleep 1
+        
+        # Create a file to send
+        echo 'hello, world' > /tmp/hello.txt
+        
+        # Send and wait for a receiver
+        curl -T /tmp/hello.txt localhost:8080/mypath &
+        # Get data as a file
+        curl localhost:8080/mypath > /tmp/download.txt
+        # Print downloaded file
+        cat  /tmp/download.txt
+        # Test the equality
+        diff /tmp/hello.txt /tmp/download.txt
+        
+        # Send and wait for a receiver
+        curl -kT /tmp/hello.txt https://localhost:8443/mypath &
+        # Get data as a file
+        curl -k https://localhost:8443/mypath > /tmp/download.txt
+        # Print downloaded file
+        cat  /tmp/download.txt
+        # Test the equality
+        diff /tmp/hello.txt /tmp/download.txt
+        # Print server log
+        cat /tmp/piping_log.txt
 
   docker_test:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v3
     - run: docker build -t piping-server .
-    - name: Working test with Docker image
+    - name: Operational test with Docker image
       run: |
         set -eux
         # Run a server
@@ -46,7 +78,7 @@ jobs:
         docker logs piping
         # Delete container
         docker rm -f piping
-    - name: Working test with Docker image for HTTPS
+    - name: Operational test with Docker image for HTTPS
       run: |
         set -eux
         # Create certificates
