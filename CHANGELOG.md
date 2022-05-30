@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.12.3] - 2022-05-30
+### Changed
+* Update dependencies
+* Allow cross-origin request to private network (Private Network Access Preflight)
+
 ## [1.12.2] - 2022-05-22
 ### Changed
 * Update dependencies
@@ -428,7 +433,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.2...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.3...HEAD
+[1.12.3]: https://github.com/nwtgck/piping-server/compare/v1.12.2...v1.12.3
 [1.12.2]: https://github.com/nwtgck/piping-server/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/nwtgck/piping-server/compare/v1.12.0...v1.12.1
 [1.12.0]: https://github.com/nwtgck/piping-server/compare/v1.11.1...v1.12.0
