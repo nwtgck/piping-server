@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.12.4] - 2022-06-19
+### Changed
+* Update dependencies
+* (Docker) Use node 16.15.1 as base docker image 
+
 ## [1.12.3] - 2022-05-30
 ### Changed
 * Update dependencies
@@ -433,7 +438,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.3...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.4...HEAD
+[1.12.4]: https://github.com/nwtgck/piping-server/compare/v1.12.3...v1.12.4
 [1.12.3]: https://github.com/nwtgck/piping-server/compare/v1.12.2...v1.12.3
 [1.12.2]: https://github.com/nwtgck/piping-server/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/nwtgck/piping-server/compare/v1.12.0...v1.12.1
