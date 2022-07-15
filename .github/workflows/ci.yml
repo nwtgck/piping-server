@@ -4,7 +4,7 @@ name: Node CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  test_on_linux:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -51,6 +51,22 @@ jobs:
         diff /tmp/hello.txt /tmp/download.txt
         # Print server log
         cat /tmp/piping_log.txt
+
+  test_on_windows:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
 
   docker_test:
     runs-on: ubuntu-20.04
