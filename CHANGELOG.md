@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.12.6] - 2022-08-10
+### Changed
+* Update dependencies
+
+### Fixed
+* Change the way of setting secure context to avoid an error "curl: (35) error:14004410:SSL routines:CONNECT_CR_SRVR_HELLO:sslv3 alert handshake failure" on client side in some environment
+
 ## [1.12.5] - 2022-07-06
 ### Changed
 * Update dependencies
@@ -442,7 +449,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.5...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.6...HEAD
+[1.12.6]: https://github.com/nwtgck/piping-server/compare/v1.12.5...v1.12.6
 [1.12.5]: https://github.com/nwtgck/piping-server/compare/v1.12.4...v1.12.5
 [1.12.4]: https://github.com/nwtgck/piping-server/compare/v1.12.3...v1.12.4
 [1.12.3]: https://github.com/nwtgck/piping-server/compare/v1.12.2...v1.12.3
