@@ -76,31 +76,28 @@ if (enableHttps) {
     process.exit(1);
   }
 
-  let secureContext: tls.SecureContext | undefined;
+  const generateSecureContextOptions: () => tls.SecureContextOptions = () => ({
+    key: fs.readFileSync(serverKeyPath),
+    cert: fs.readFileSync(serverCrtPath),
+  });
+  const http2Server = http2.createSecureServer(
+    {
+      ...generateSecureContextOptions(),
+      allowHTTP1: true
+    },
+    pipingServer.generateHandler(true)
+  );
   const updateSecureContext = () => {
     try {
-      secureContext = tls.createSecureContext({
-        key: fs.readFileSync(serverKeyPath),
-        cert: fs.readFileSync(serverCrtPath),
-      });
+      http2Server.setSecureContext(generateSecureContextOptions());
       logger.info("Certificate loaded");
     } catch (e) {
       logger.error("Failed to load certificate", e);
     }
-  }
-  updateSecureContext();
-  if (secureContext === undefined) {
-    throw new Error("No certificate");
-  }
+  };
   fs.watchFile(serverCrtPath, updateSecureContext);
   fs.watchFile(serverKeyPath, updateSecureContext);
-  http2.createSecureServer(
-    {
-      SNICallback: (servername, cb) => cb(null, secureContext!),
-      allowHTTP1: true
-    },
-    pipingServer.generateHandler(true)
-  ).listen({ host, port: httpsPort }, () => {
+  http2Server.listen({ host, port: httpsPort }, () => {
     logger.info(`Listen HTTPS on ${httpsPort}...`);
   });
 }
