@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.12.7] - 2022-09-04
+### Changed
+* Update dependencies
+* Allow Web browser to detect X-Piping feature in preflight request
+
 ## [1.12.6] - 2022-08-10
 ### Changed
 * Update dependencies
@@ -449,7 +454,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.6...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.7...HEAD
+[1.12.7]: https://github.com/nwtgck/piping-server/compare/v1.12.6...v1.12.7
 [1.12.6]: https://github.com/nwtgck/piping-server/compare/v1.12.5...v1.12.6
 [1.12.5]: https://github.com/nwtgck/piping-server/compare/v1.12.4...v1.12.5
 [1.12.4]: https://github.com/nwtgck/piping-server/compare/v1.12.3...v1.12.4
