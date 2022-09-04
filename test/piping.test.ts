@@ -254,6 +254,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(headers["access-control-allow-origin"], "*");
     assert.strictEqual(headers["access-control-allow-methods"], "GET, HEAD, POST, PUT, OPTIONS");
     assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition, X-Piping");
+    assert.strictEqual(headers["access-control-expose-headers"], "Access-Control-Allow-Headers");
     assert.strictEqual(headers["access-control-max-age"], "86400");
     assert.strictEqual(headers["content-length"], "0");
   });
