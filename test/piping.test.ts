@@ -1249,8 +1249,12 @@ Host: localhost:${pipingPort}
     });
 
     const receiverResString = (await receiverResPromise).toString();
+    const receiverResSplit = receiverResString.split("\r\n");
     assert(receiverResString.startsWith("HTTP/1.0 200 OK\r\n"));
-    assert(receiverResString.includes("Content-Length: 17\r\n"));
+    assert(receiverResSplit.includes("Content-Length: 17"));
+    assert(receiverResSplit.includes("Access-Control-Allow-Origin: *"));
+    assert(receiverResSplit.includes("X-Robots-Tag: none"));
+    assert(receiverResSplit[receiverResSplit.length - 1].includes("this is a content"));
   });
 
   context("If number of receivers <= 0", () => {
