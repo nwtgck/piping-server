@@ -1286,7 +1286,7 @@ Host: localhost:${pipingPort}
     });
   });
 
-  context("By multipart/data-form", () => {
+  context("By multipart/form-data", () => {
     it("should allow sender to send data via multipart without multipart content-type", async () => {
       const formData = {
         "dummy form name": "this is a content"
