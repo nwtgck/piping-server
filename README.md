@@ -106,7 +106,6 @@ Here are public Piping Servers.
 
 * <https://ppng.io>
 * <https://piping.nwtgck.repl.co>
-* <https://ppng.herokuapp.com>
 * <https://piping.glitch.me>
 * <https://piping-47q675ro2guv.runkit.sh>
 
@@ -141,7 +140,6 @@ Here are easier ways to own your Piping Server.
 - Remix on Glitch <https://glitch.com/~piping>
 - Clone on RunKit: <https://runkit.com/nwtgck/piping>
 - Fork on Repl.it: <https://repl.it/@nwtgck/piping>
-- Deploy to Heroku: <https://elements.heroku.com/buttons/nwtgck/piping-server>
 
 See "[Ecosystem around Piping Server · nwtgck/piping-server Wiki](https://github.com/nwtgck/piping-server/wiki/Ecosystem-around-Piping-Server)" to find more about self-hosting.
 
@@ -169,8 +167,6 @@ Options:
   --key-path      Private key path                                      [string]
   --crt-path      Certification path                                    [string]
 ```
-
-Click the button above to deploy a Piping Server to Heroku.
 
 ## Piping Server written in Rust
 Piping Server is also developed in Rust.  
