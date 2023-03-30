@@ -28,7 +28,7 @@ jobs:
     - name: Install piping-server-check
       run: cd /tmp && wget -O piping-server-check.deb https://github.com/nwtgck/piping-server-check/releases/download/v${PIPING_SERVER_CHECK_VERSION}/piping-server-check-${PIPING_SERVER_CHECK_VERSION}-linux-amd64.deb && sudo dpkg -i piping-server-check.deb
     - name: piping-server-check
-      run: piping-server-check --http1.1 --compromise post_cancel_post --compromise get_cancel_get --concurrency 100 --server-command="${SERVER_COMMAND}" --transfer-speed-byte $((1024 * 1024 * 1024 * 1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m --transfer-span 2m
+      run: piping-server-check --http1.1 --concurrency 100 --server-command="${SERVER_COMMAND}" --transfer-speed-byte $((1024 * 1024 * 1024 * 1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m --transfer-span 2m
       env:
         SERVER_COMMAND: 'mkdir -p /tmp/logs && exec node ./dist/src/index.js --http-port=$HTTP_PORT --enable-https=true --https-port=$HTTPS_PORT --key-path=/tmp/ssl_certs/server.key --crt-path=/tmp/ssl_certs/server.crt 2>&1 | tee /tmp/logs/$(date "+%s%3N").log > /dev/stderr'
       timeout-minutes: 4
