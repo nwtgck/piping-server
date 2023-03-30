@@ -35,7 +35,7 @@ jobs:
       timeout-minutes: 4
     - name: Show server logs from piping-server-check
       if: ${{ always() }}
-      run: cat /tmp/logs/*
+      run: tail -n +1 /tmp/logs/*
 
 #  docker_test:
 #    runs-on: ubuntu-20.04
