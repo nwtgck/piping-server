@@ -31,8 +31,8 @@ jobs:
     - name: piping-server-check
       run: piping-server-check --http1.1 --concurrency 100 --server-command='node ./dist/src/index.js --http-port=$HTTP_PORT' --transfer-speed-byte $((1024 * 1024 * 1024 * 1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
       timeout-minutes: 4
-    - name: Show server logs from piping-server-check
-      run: cat /tmp/logs/*
+#    - name: Show server logs from piping-server-check
+#      run: cat /tmp/logs/*
 
 #  docker_test:
 #    runs-on: ubuntu-20.04
