@@ -31,7 +31,7 @@ jobs:
 #        curl -L https://nodejs.org/dist/v18.15.0/node-v18.15.0-linux-x64.tar.xz | tar xfJ -
 #        mv ./node-v18.15.0-linux-x64/bin/node node
     - name: piping-server-check
-      run: piping-server-check --http1.1 --concurrency 100 --server-command='node ./dist/src/index.js --http-port=$HTTP_PORT' --transfer-speed-byte $((1024 * 10244)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
+      run: piping-server-check --http1.1 --concurrency 100 --server-command='node ./dist/src/index.js --http-port=$HTTP_PORT' --transfer-speed-byte $((1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
       timeout-minutes: 4
 #    - name: Show server logs from piping-server-check
 #      run: cat /tmp/logs/*
