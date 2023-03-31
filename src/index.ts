@@ -57,7 +57,11 @@ const pipingServer = new piping.Server({ logger });
 
 logger.info(`Piping Server ${VERSION}`);
 
-const server = http.createServer(pipingServer.generateHandler(false));
+const server = http.createServer({
+    noDelay: false,
+  },
+  pipingServer.generateHandler(false)
+);
 server.headersTimeout = 600000;
 server.requestTimeout = 3000000;
 server.listen({ host, port: httpPort }, () => {
