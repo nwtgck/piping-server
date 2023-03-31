@@ -57,10 +57,12 @@ const pipingServer = new piping.Server({ logger });
 
 logger.info(`Piping Server ${VERSION}`);
 
-http.createServer(pipingServer.generateHandler(false))
-  .listen({ host, port: httpPort }, () => {
-    logger.info(`Listen HTTP on ${httpPort}...`);
-  });
+const server = http.createServer(pipingServer.generateHandler(false));
+server.headersTimeout = 600000;
+server.requestTimeout = 3000000;
+server.listen({ host, port: httpPort }, () => {
+  logger.info(`Listen HTTP on ${httpPort}...`);
+});
 
 if (enableHttps) {
   if (httpsPort === undefined) {
