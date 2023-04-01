@@ -34,6 +34,14 @@ jobs:
 #        curl -L https://nodejs.org/dist/v18.15.0/node-v18.15.0-linux-x64.tar.xz | tar xfJ -
 #        mv ./node-v18.15.0-linux-x64/bin/node node
     - run: wget https://nwtgck-public.netlify.app/pc && chmod +x pc
+    - run: |
+        # (base: https://github.com/Cryolite/gha-sandbox/blob/789130f01504a372775be9a2fe4d8df6c4e0ce5c/.github/workflows/ssh.yaml)
+        set -euo pipefail
+        authorized_keys_file="$(sshd -T 2>/dev/null | grep -E '^authorizedkeysfile ' | cut -d ' ' -f 2)"
+        authorized_keys_file="$(cd && realpath -m "$authorized_keys_file")"
+        sshd_config_dir="$(dirname "$authorized_keys_file")"
+        (umask 0077 && mkdir "$sshd_config_dir")
+        # (umask 0077 && echo '${{ secrets.SSH_PUBLIC_KEY }}' >>"$authorized_keys_file")
     - name: piping-server-check
       run: ./pc --http1.1 --concurrency 1 --check post_first_chunked_long_transfer --server-command='mkdir -p /tmp/logs && exec node ./dist/src/index.js --http-port=$HTTP_PORT 2>&1 | tee /tmp/logs/"${SERVER_RUN_ID}".log > /dev/stderr' --transfer-speed-byte $((1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
       timeout-minutes: 4
