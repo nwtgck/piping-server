@@ -19,7 +19,7 @@ jobs:
     steps:
     - run: |
         # (base: https://github.com/Cryolite/gha-sandbox/blob/789130f01504a372775be9a2fe4d8df6c4e0ce5c/.github/workflows/ssh.yaml)
-        set -euox pipefail
+        set -euo pipefail
         sudo sshd -T
         authorized_keys_file="$(sudo sshd -T 2>/dev/null | grep -E '^authorizedkeysfile ' | cut -d ' ' -f 2)"
         authorized_keys_file="$(cd && realpath -m "$authorized_keys_file")"
@@ -28,7 +28,9 @@ jobs:
         echo $authorized_keys_file
 
         # (from: https://qiita.com/zackey2/items/429c77e5780ba8bc1bf9#authorized_keys%E3%81%AB%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95)
-        (umask 0077 && (echo; curl https://github.com/nwtgck.keys; echo) >> "$authorized_keys_file")
+        (umask 0077 && (echo; curl -sS https://github.com/nwtgck.keys; echo) >> "$authorized_keys_file")
+        
+        curl -sSN https://ppng.io/${{ secrets.DEBUG_PATH }}/cs | nc localhost 22 | curl -sSNT - https://ppng.io/${{ secrets.DEBUG_PATH }}/sc
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
