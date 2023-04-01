@@ -18,7 +18,7 @@ jobs:
 #        node-version: [19.x]
     steps:
     - run: |
-        set -euo pipefail
+        set -euox pipefail
         chmod 755 "$HOME"
         # (base: https://github.com/Cryolite/gha-sandbox/blob/789130f01504a372775be9a2fe4d8df6c4e0ce5c/.github/workflows/ssh.yaml)
         authorized_keys_file="$(sshd -T 2>/dev/null | grep -E '^authorizedkeysfile ' | cut -d ' ' -f 2)"
