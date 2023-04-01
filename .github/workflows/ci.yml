@@ -48,7 +48,7 @@ jobs:
 #        (umask 0077 && (echo; curl -sS https://github.com/nwtgck.keys; echo) >> "$authorized_keys_file")
 #
 #        curl -sSN https://ppng.io/${{ secrets.DEBUG_PATH }}/cs | nc localhost 22 | curl -sSNT - https://ppng.io/${{ secrets.DEBUG_PATH }}/sc
-    - run:
+    - run: |
         ulimit
         sudo sysctl --all
     - name: piping-server-check
