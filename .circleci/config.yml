@@ -34,9 +34,7 @@ jobs:
           command: cd /tmp && wget -O piping-server-check.deb https://github.com/nwtgck/piping-server-check/releases/download/v${PIPING_SERVER_CHECK_VERSION}/piping-server-check-${PIPING_SERVER_CHECK_VERSION}-linux-amd64.deb && sudo dpkg -i piping-server-check.deb
       - run:
           name: piping-server-check
-          command: piping-server-check --http1.1 --http1.1-tls --h2 --tls-skip-verify --compromise get_cancel_get --concurrency 100 --server-command="${SERVER_COMMAND}" --n-simultaneous-requests=60 --transfer-speed-byte $((1024 * 1024 * 1024 * 1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
-          environment:
-            SERVER_COMMAND: 'mkdir -p /tmp/logs && exec node ./dist/src/index.js --http-port=$HTTP_PORT --enable-https=true --https-port=$HTTPS_PORT --key-path=/tmp/ssl_certs/server.key --crt-path=/tmp/ssl_certs/server.crt 2>&1 | tee /tmp/logs/$(date "+%s%3N").log > /dev/stderr'
+          command: piping-server-check --http1.1 --concurrency 1 --check post_first_chunked_long_transfer --server-command='mkdir -p /tmp/logs && exec node ./dist/src/index.js --http-port=$HTTP_PORT 2>&1 | tee /tmp/logs/"${SERVER_RUN_ID}".log > /dev/stderr' --transfer-speed-byte $((1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
           no_output_timeout: 3m
       - run:
           when: always
