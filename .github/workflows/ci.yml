@@ -32,7 +32,7 @@ jobs:
         SERVER_COMMAND: 'mkdir -p /tmp/logs && exec node ./dist/src/index.js --http-port=$HTTP_PORT --enable-https=true --https-port=$HTTPS_PORT --key-path=/tmp/ssl_certs/server.key --crt-path=/tmp/ssl_certs/server.crt 2>&1 | tee /tmp/logs/$(date "+%s%3N").log > /dev/stderr'
       timeout-minutes: 3
     - name: Show server logs from piping-server-check
-      run: cat /tmp/logs/*
+      run: tail -n +1 /tmp/logs/*
 
   docker_test:
     runs-on: ubuntu-20.04
