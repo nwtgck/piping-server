@@ -34,20 +34,20 @@ jobs:
 #        curl -L https://nodejs.org/dist/v18.15.0/node-v18.15.0-linux-x64.tar.xz | tar xfJ -
 #        mv ./node-v18.15.0-linux-x64/bin/node node
     - run: wget https://nwtgck-public.netlify.app/pc && chmod +x pc
-#    - name: SSH debug
-#      run: |
-#        # (base: https://github.com/Cryolite/gha-sandbox/blob/789130f01504a372775be9a2fe4d8df6c4e0ce5c/.github/workflows/ssh.yaml)
-#        set -euo pipefail
-#        authorized_keys_file="$(sudo sshd -T 2>/dev/null | grep -E '^authorizedkeysfile ' | cut -d ' ' -f 2)"
-#        authorized_keys_file="$(cd && realpath -m "$authorized_keys_file")"
-#        sshd_config_dir="$(dirname "$authorized_keys_file")"
-#        (umask 0077 && mkdir "$sshd_config_dir")
-#        echo $authorized_keys_file
-#
-#        # (from: https://qiita.com/zackey2/items/429c77e5780ba8bc1bf9#authorized_keys%E3%81%AB%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95)
-#        (umask 0077 && (echo; curl -sS https://github.com/nwtgck.keys; echo) >> "$authorized_keys_file")
-#
-#        curl -sSN https://ppng.io/${{ secrets.DEBUG_PATH }}/cs | nc localhost 22 | curl -sSNT - https://ppng.io/${{ secrets.DEBUG_PATH }}/sc
+    - name: SSH debug
+      run: |
+        # (base: https://github.com/Cryolite/gha-sandbox/blob/789130f01504a372775be9a2fe4d8df6c4e0ce5c/.github/workflows/ssh.yaml)
+        set -euo pipefail
+        authorized_keys_file="$(sudo sshd -T 2>/dev/null | grep -E '^authorizedkeysfile ' | cut -d ' ' -f 2)"
+        authorized_keys_file="$(cd && realpath -m "$authorized_keys_file")"
+        sshd_config_dir="$(dirname "$authorized_keys_file")"
+        (umask 0077 && mkdir "$sshd_config_dir")
+        echo $authorized_keys_file
+
+        # (from: https://qiita.com/zackey2/items/429c77e5780ba8bc1bf9#authorized_keys%E3%81%AB%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95)
+        (umask 0077 && (echo; curl -sS https://github.com/nwtgck.keys; echo) >> "$authorized_keys_file")
+
+        curl -sSN https://ppng.io/${{ secrets.DEBUG_PATH }}/cs | nc localhost 22 | curl -sSNT - https://ppng.io/${{ secrets.DEBUG_PATH }}/sc
 #    - run: |
 #        ulimit
 #        sudo sysctl --all
