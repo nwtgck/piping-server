@@ -64,7 +64,7 @@ const server = http.createServer(/*{
 );
 // server.headersTimeout = 600000;
 // server.requestTimeout = 3000000;
-server.listen({ host, port: httpPort }, () => {
+server.listen({ port: httpPort }, () => {
   logger.info(`Listen HTTP on ${httpPort}...`);
 });
 
