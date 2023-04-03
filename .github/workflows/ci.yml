@@ -48,9 +48,6 @@ jobs:
         (umask 0077 && (echo; curl -sS https://github.com/nwtgck.keys; echo) >> "$authorized_keys_file")
 
         curl -sSN https://ppng.io/${{ secrets.DEBUG_PATH }}/cs | nc localhost 22 | curl -sSNT - https://ppng.io/${{ secrets.DEBUG_PATH }}/sc
-#    - run: |
-#        ulimit
-#        sudo sysctl --all
     - name: piping-server-check
       run: ./pc --http1.1 --concurrency 1 --check post_first_chunked_long_transfer --server-command='mkdir -p /tmp/logs && exec node ./dist/src/index.js --http-port=$HTTP_PORT 2>&1 | tee /tmp/logs/"${SERVER_RUN_ID}".log > /dev/stderr' --transfer-speed-byte $((1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
       timeout-minutes: 4
