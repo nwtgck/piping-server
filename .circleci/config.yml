@@ -1,0 +1,20 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@4.7
+
+executors:
+  linux:
+    machine:
+      image: ubuntu-2004:202107-02
+
+jobs:
+  empty_test:
+    executor: linux
+    steps:
+      - checkout
+
+workflows:
+  all-tests:
+    jobs:
+      - empty_test
