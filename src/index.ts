@@ -57,7 +57,11 @@ const pipingServer = new piping.Server({ logger });
 
 logger.info(`Piping Server ${VERSION}`);
 
-http.createServer(pipingServer.generateHandler(false))
+http.createServer({
+    requestTimeout: 0,
+  },
+  pipingServer.generateHandler(false),
+)
   .listen({ host, port: httpPort }, () => {
     logger.info(`Listen HTTP on ${httpPort}...`);
   });

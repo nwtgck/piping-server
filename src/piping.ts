@@ -97,10 +97,10 @@ function forceHttp1_0StatusLine(res: http.ServerResponse) {
   socket.write = (chunk: any, ...rest: any) => {
     if (typeof chunk === "string") {
       const replaced = chunk.replace(/^HTTP\/1.1/, "HTTP/1.0");
+      // Overwrite socket.write with original one
+      socket.write = originalWrite;
       return originalWrite.apply(socket, [replaced, ...rest]);
     }
-    // Overwrite socket.write with original one
-    socket.write = originalWrite;
     return originalWrite.apply(socket, [chunk, ...rest]);
   };
 }
