@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.12.9] - 2023-04-08
+### Changed
+* Update dependencies
+* (Docker) Use node 16.20.0 as base docker image
+
+### Fixed
+* Update timing of overwriting with original socket.write() in HTTP/1.0
+* Set `requestTimeout: 0` to HTTP/1.1 server option for supporting Node.js 18
+
 ## [1.12.8] - 2022-11-26
 ### Changed
 * Update dependencies
@@ -461,7 +470,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 * Docker automated build on Docker Hub
 * Support HTTPS
 
-[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.8...HEAD
+[Unreleased]: https://github.com/nwtgck/piping-server/compare/v1.12.9...HEAD
+[1.12.9]: https://github.com/nwtgck/piping-server/compare/v1.12.8...v1.12.9
 [1.12.8]: https://github.com/nwtgck/piping-server/compare/v1.12.7...v1.12.8
 [1.12.7]: https://github.com/nwtgck/piping-server/compare/v1.12.6...v1.12.7
 [1.12.6]: https://github.com/nwtgck/piping-server/compare/v1.12.5...v1.12.6
