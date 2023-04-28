@@ -62,7 +62,7 @@ describe("piping.Server", () => {
     // Get available port
     pipingPort = await getPort();
     // Define Piping URL
-    pipingUrl = `http://localhost:${pipingPort}`;
+    pipingUrl = `http://127.0.0.1:${pipingPort}`;
     // Create a Piping server
     pipingServer = http.createServer(new piping.Server({logger}).generateHandler(false));
     // Listen on the port
@@ -217,13 +217,13 @@ describe("piping.Server", () => {
         const getRes = await requestWithoutKeepAlive(`${pipingUrl}${reservedPath}`);
         const http1_0GetResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
           const chunks: Buffer[] = [];
-          const socket = net.connect(pipingPort, "localhost", () => {
+          const socket = net.connect(pipingPort, "127.0.0.1", () => {
             socket.on("data", (chunk) => chunks.push(chunk));
             socket.on("end", () => resolve(Buffer.concat(chunks)));
             socket.on("error", (err) => reject(err));
             socket.write(`\
 GET ${reservedPath} HTTP/1.0
-Host: localhost:${pipingPort}
+Host: 127.0.0.1:${pipingPort}
 
 `.replace(/\n/g, "\r\n"));
           });
@@ -337,7 +337,7 @@ Host: localhost:${pipingPort}
     // Get available port
     const http2PipingPort = await getPort();
     // Define Piping URL
-    const http2PipingUrl = `http://localhost:${http2PipingPort}`;
+    const http2PipingUrl = `http://127.0.0.1:${http2PipingPort}`;
 
     // Create a Piping server on HTTP/2
     const http2PipingServer = http2.createServer(new piping.Server({logger}).generateHandler(false));
@@ -488,7 +488,7 @@ Host: localhost:${pipingPort}
   it("should pass sender's multiple X-Piping to receivers' ones", async () => {
     // Create a GET request
     const getReq = http.request({
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "GET",
       path: `/mydataid`
@@ -627,7 +627,7 @@ Host: localhost:${pipingPort}
   it("should be sent chunked data", async () => {
     // Create a send request
     const sendReq = http.request({
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid`
@@ -793,7 +793,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=1: X: because too less n)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -824,7 +824,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=3: X: because too much n)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -972,7 +972,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=3: X: because too much)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -1007,7 +1007,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=1: X: because too less)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -1042,7 +1042,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2: O, receiver?n=2: O, receiver?n=2: X) to ensure gradual sending", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -1135,7 +1135,7 @@ Host: localhost:${pipingPort}
   it("should unregister a sender before establishing", async () => {
     // Create send request
     const sendReq1 = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid`
@@ -1168,7 +1168,7 @@ Host: localhost:${pipingPort}
   it("should unregister a receiver before establishing", async () => {
     // GET request
     const getReq1 = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "GET",
       path: `/mydataid`
@@ -1199,13 +1199,13 @@ Host: localhost:${pipingPort}
   it("should handle connection from HTTP/1.0 sender", async () => {
     const senderResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const socket = net.connect(pipingPort, "localhost", () => {
+      const socket = net.connect(pipingPort, "127.0.0.1", () => {
         socket.on("data", (chunk) => chunks.push(chunk));
         socket.on("end", () => resolve(Buffer.concat(chunks)));
         socket.on("error", (err) => reject(err));
         socket.write(`\
 POST /mydataid HTTP/1.0
-Host: localhost:${pipingPort}
+Host: 127.0.0.1:${pipingPort}
 Content-Length: 17
 Content-Type: text/plain
 
@@ -1236,13 +1236,13 @@ this is a content`.replace(/\n/g, "\r\n"));
 
     const receiverResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const socket = net.connect(pipingPort, "localhost", () => {
+      const socket = net.connect(pipingPort, "127.0.0.1", () => {
         socket.on("data", (chunk) => chunks.push(chunk));
         socket.on("end", () => resolve(Buffer.concat(chunks)));
         socket.on("error", (err) => reject(err));
         socket.write(`\
 GET /mydataid HTTP/1.0
-Host: localhost:${pipingPort}
+Host: 127.0.0.1:${pipingPort}
 
 `.replace(/\n/g, "\r\n"));
       });
