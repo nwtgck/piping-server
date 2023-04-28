@@ -1,4 +1,3 @@
-import getPort from "get-port";
 import * as net from "net";
 import * as http from "http";
 import * as http2 from "http2";
@@ -13,13 +12,14 @@ import {EventEmitter} from "events";
 import {URL, UrlObject} from "url";
 
 /**
- * Listen on the specify port
+ * Listen and return port
  * @param server
- * @param port
  */
-function listenPromise(server: http.Server | http2.Http2Server, port: number): Promise<void> {
-  return new Promise<void>((resolve) => {
-    server.listen(port, resolve);
+function listenPromise(server: http.Server | http2.Http2Server): Promise<number> {
+  return new Promise<number>((resolve) => {
+    server.listen(0, () => {
+      resolve((server.address() as net.AddressInfo).port);
+    });
   });
 }
 
@@ -59,14 +59,12 @@ describe("piping.Server", () => {
   let pipingUrl: string;
 
   beforeEach(async () => {
-    // Get available port
-    pipingPort = await getPort();
-    // Define Piping URL
-    pipingUrl = `http://127.0.0.1:${pipingPort}`;
     // Create a Piping server
     pipingServer = http.createServer(new piping.Server({logger}).generateHandler(false));
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
+    // Listen
+    pipingPort = await listenPromise(pipingServer);
+    // Define Piping URL
+    pipingUrl = `http://127.0.0.1:${pipingPort}`;
   });
 
   afterEach(async () => {
@@ -334,16 +332,14 @@ Host: 127.0.0.1:${pipingPort}
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
-    // Get available port
-    const http2PipingPort = await getPort();
-    // Define Piping URL
-    const http2PipingUrl = `http://127.0.0.1:${http2PipingPort}`;
-
     // Create a Piping server on HTTP/2
     const http2PipingServer = http2.createServer(new piping.Server({logger}).generateHandler(false));
     const sessions: http2.Http2Session[] = [];
     http2PipingServer.on("session", (session) => sessions.push(session));
-    await listenPromise(http2PipingServer, http2PipingPort);
+    // Listen
+    const http2PipingPort = await listenPromise(http2PipingServer);
+    // Define Piping URL
+    const http2PipingUrl = `http://127.0.0.1:${http2PipingPort}`;
 
     // Get request
     const getReq = http2.connect(`${http2PipingUrl}`)
