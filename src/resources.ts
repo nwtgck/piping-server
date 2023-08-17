@@ -208,12 +208,14 @@ echo 'hello!' | curl -T - ${url}/mypath
 # Send a directory (zip)
 zip -q -r - ./mydir | curl -T - ${url}/mypath
 ## Get
-curl ${url}/mypath | tar xf -
+curl -O ${url}/mypath
+unzip mypath
+rm mypath
 
 # Send a directory (tar.gz)
 tar zfcp - ./mydir | curl -T - ${url}/mypath
 ## Get
-curl ${url}/mypath | tar xf -
+curl ${url}/mypath | tar zxf -
 
 # Encryption
 ## Send
