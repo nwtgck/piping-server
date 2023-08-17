@@ -1,4 +1,3 @@
-import getPort from "get-port";
 import * as net from "net";
 import * as http from "http";
 import * as http2 from "http2";
@@ -13,13 +12,14 @@ import {EventEmitter} from "events";
 import {URL, UrlObject} from "url";
 
 /**
- * Listen on the specify port
+ * Listen and return port
  * @param server
- * @param port
  */
-function listenPromise(server: http.Server | http2.Http2Server, port: number): Promise<void> {
-  return new Promise<void>((resolve) => {
-    server.listen(port, resolve);
+function listenPromise(server: http.Server | http2.Http2Server): Promise<number> {
+  return new Promise<number>((resolve) => {
+    server.listen(0, () => {
+      resolve((server.address() as net.AddressInfo).port);
+    });
   });
 }
 
@@ -59,14 +59,12 @@ describe("piping.Server", () => {
   let pipingUrl: string;
 
   beforeEach(async () => {
-    // Get available port
-    pipingPort = await getPort();
-    // Define Piping URL
-    pipingUrl = `http://localhost:${pipingPort}`;
     // Create a Piping server
     pipingServer = http.createServer(new piping.Server({logger}).generateHandler(false));
-    // Listen on the port
-    await listenPromise(pipingServer, pipingPort);
+    // Listen
+    pipingPort = await listenPromise(pipingServer);
+    // Define Piping URL
+    pipingUrl = `http://127.0.0.1:${pipingPort}`;
   });
 
   afterEach(async () => {
@@ -217,13 +215,13 @@ describe("piping.Server", () => {
         const getRes = await requestWithoutKeepAlive(`${pipingUrl}${reservedPath}`);
         const http1_0GetResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
           const chunks: Buffer[] = [];
-          const socket = net.connect(pipingPort, "localhost", () => {
+          const socket = net.connect(pipingPort, "127.0.0.1", () => {
             socket.on("data", (chunk) => chunks.push(chunk));
             socket.on("end", () => resolve(Buffer.concat(chunks)));
             socket.on("error", (err) => reject(err));
             socket.write(`\
 GET ${reservedPath} HTTP/1.0
-Host: localhost:${pipingPort}
+Host: 127.0.0.1:${pipingPort}
 
 `.replace(/\n/g, "\r\n"));
           });
@@ -273,7 +271,7 @@ Host: localhost:${pipingPort}
     assert.strictEqual(headers["access-control-allow-origin"], "*");
     assert.strictEqual(headers["access-control-allow-methods"], "GET, HEAD, POST, PUT, OPTIONS");
     assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition, X-Piping");
-    assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition, X-Piping");
+    assert.strictEqual(headers["access-control-expose-headers"], "Access-Control-Allow-Headers");
     assert.strictEqual(headers["access-control-allow-private-network"], "true");
     assert.strictEqual(headers["access-control-max-age"], "86400");
     assert.strictEqual(headers["content-length"], "0");
@@ -334,16 +332,14 @@ Host: localhost:${pipingPort}
   });
 
   it("should handle connection over HTTP/2 (receiver O, sender: O)", async () => {
-    // Get available port
-    const http2PipingPort = await getPort();
-    // Define Piping URL
-    const http2PipingUrl = `http://localhost:${http2PipingPort}`;
-
     // Create a Piping server on HTTP/2
     const http2PipingServer = http2.createServer(new piping.Server({logger}).generateHandler(false));
     const sessions: http2.Http2Session[] = [];
     http2PipingServer.on("session", (session) => sessions.push(session));
-    await listenPromise(http2PipingServer, http2PipingPort);
+    // Listen
+    const http2PipingPort = await listenPromise(http2PipingServer);
+    // Define Piping URL
+    const http2PipingUrl = `http://127.0.0.1:${http2PipingPort}`;
 
     // Get request
     const getReq = http2.connect(`${http2PipingUrl}`)
@@ -488,7 +484,7 @@ Host: localhost:${pipingPort}
   it("should pass sender's multiple X-Piping to receivers' ones", async () => {
     // Create a GET request
     const getReq = http.request({
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "GET",
       path: `/mydataid`
@@ -627,7 +623,7 @@ Host: localhost:${pipingPort}
   it("should be sent chunked data", async () => {
     // Create a send request
     const sendReq = http.request({
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid`
@@ -793,7 +789,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=1: X: because too less n)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -824,7 +820,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=3: X: because too much n)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -972,7 +968,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=3: X: because too much)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -1007,7 +1003,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=1: X: because too less)", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -1042,7 +1038,7 @@ Host: localhost:${pipingPort}
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2: O, receiver?n=2: O, receiver?n=2: X) to ensure gradual sending", async () => {
     // Create send request
     const sendReq = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid?n=2`
@@ -1135,7 +1131,7 @@ Host: localhost:${pipingPort}
   it("should unregister a sender before establishing", async () => {
     // Create send request
     const sendReq1 = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "POST",
       path: `/mydataid`
@@ -1168,7 +1164,7 @@ Host: localhost:${pipingPort}
   it("should unregister a receiver before establishing", async () => {
     // GET request
     const getReq1 = http.request( {
-      host: "localhost",
+      host: "127.0.0.1",
       port: pipingPort,
       method: "GET",
       path: `/mydataid`
@@ -1199,13 +1195,13 @@ Host: localhost:${pipingPort}
   it("should handle connection from HTTP/1.0 sender", async () => {
     const senderResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const socket = net.connect(pipingPort, "localhost", () => {
+      const socket = net.connect(pipingPort, "127.0.0.1", () => {
         socket.on("data", (chunk) => chunks.push(chunk));
         socket.on("end", () => resolve(Buffer.concat(chunks)));
         socket.on("error", (err) => reject(err));
         socket.write(`\
 POST /mydataid HTTP/1.0
-Host: localhost:${pipingPort}
+Host: 127.0.0.1:${pipingPort}
 Content-Length: 17
 Content-Type: text/plain
 
@@ -1236,21 +1232,25 @@ this is a content`.replace(/\n/g, "\r\n"));
 
     const receiverResPromise: Promise<Buffer> = new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const socket = net.connect(pipingPort, "localhost", () => {
+      const socket = net.connect(pipingPort, "127.0.0.1", () => {
         socket.on("data", (chunk) => chunks.push(chunk));
         socket.on("end", () => resolve(Buffer.concat(chunks)));
         socket.on("error", (err) => reject(err));
         socket.write(`\
 GET /mydataid HTTP/1.0
-Host: localhost:${pipingPort}
+Host: 127.0.0.1:${pipingPort}
 
 `.replace(/\n/g, "\r\n"));
       });
     });
 
     const receiverResString = (await receiverResPromise).toString();
+    const receiverResSplit = receiverResString.split("\r\n");
     assert(receiverResString.startsWith("HTTP/1.0 200 OK\r\n"));
-    assert(receiverResString.includes("Content-Length: 17\r\n"));
+    assert(receiverResSplit.includes("Content-Length: 17"));
+    assert(receiverResSplit.includes("Access-Control-Allow-Origin: *"));
+    assert(receiverResSplit.includes("X-Robots-Tag: none"));
+    assert(receiverResSplit[receiverResSplit.length - 1].includes("this is a content"));
   });
 
   context("If number of receivers <= 0", () => {
@@ -1282,7 +1282,7 @@ Host: localhost:${pipingPort}
     });
   });
 
-  context("By multipart/data-form", () => {
+  context("By multipart/form-data", () => {
     it("should allow sender to send data via multipart without multipart content-type", async () => {
       const formData = {
         "dummy form name": "this is a content"

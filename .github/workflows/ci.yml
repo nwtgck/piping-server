@@ -3,6 +3,9 @@ name: Node CI
 
 on: [push, pull_request]
 
+env:
+  PIPING_SERVER_CHECK_VERSION: 0.13.1
+
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -19,85 +22,33 @@ jobs:
     - run: npm run lint
     - run: npm run build
     - run: npm test
-    - name: Operational test
-      run: |
-        set -eux
-        # Create certificates
-        (mkdir /tmp/ssl_certs && cd /tmp/ssl_certs && openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -sha256 -nodes --subj '/CN=localhost/')
-        # Run a server
-        node ./dist/src/index.js --http-port=8080 --enable-https=true --https-port=8443 --key-path=/tmp/ssl_certs/server.key --crt-path=/tmp/ssl_certs/server.crt &> /tmp/piping_log.txt &
-        # Wait for server running
-        sleep 1
-        
-        # Create a file to send
-        echo 'hello, world' > /tmp/hello.txt
-        
-        # Send and wait for a receiver
-        curl -T /tmp/hello.txt localhost:8080/mypath &
-        # Get data as a file
-        curl localhost:8080/mypath > /tmp/download.txt
-        # Print downloaded file
-        cat  /tmp/download.txt
-        # Test the equality
-        diff /tmp/hello.txt /tmp/download.txt
-        
-        # Send and wait for a receiver
-        curl -kT /tmp/hello.txt https://localhost:8443/mypath &
-        # Get data as a file
-        curl -k https://localhost:8443/mypath > /tmp/download.txt
-        # Print downloaded file
-        cat  /tmp/download.txt
-        # Test the equality
-        diff /tmp/hello.txt /tmp/download.txt
-        # Print server log
-        cat /tmp/piping_log.txt
+    - name: Create certificates
+      run: cd /tmp && mkdir ssl_certs && cd ssl_certs && openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -sha256 -nodes --subj '/CN=localhost/'
+    - name: Install piping-server-check
+      run: cd /tmp && wget -O piping-server-check.deb https://github.com/nwtgck/piping-server-check/releases/download/v${PIPING_SERVER_CHECK_VERSION}/piping-server-check-${PIPING_SERVER_CHECK_VERSION}-linux-amd64.deb && sudo dpkg -i piping-server-check.deb
+    - name: piping-server-check
+      run: piping-server-check --http1.1 --http1.1-tls --h2 --tls-skip-verify --concurrency 100 --server-command="${SERVER_COMMAND}" --n-simultaneous-requests=60 --transfer-speed-byte $((1024 * 1024 * 1024 * 1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
+      env:
+        SERVER_COMMAND: 'mkdir -p /tmp/logs && exec node ./dist/src/index.js --http-port=$HTTP_PORT --enable-https=true --https-port=$HTTPS_PORT --key-path=/tmp/ssl_certs/server.key --crt-path=/tmp/ssl_certs/server.crt 2>&1 | tee /tmp/logs/$SERVER_RUN_ID.log > /dev/stderr'
+      timeout-minutes: 2
+    - name: Show server logs from piping-server-check
+      if: ${{ always() }}
+      run: tail -n +1 /tmp/logs/*
 
   docker_test:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
     - run: docker build -t piping-server .
-    - name: Operational test with Docker image
-      run: |
-        set -eux
-        # Run a server
-        docker run -d -p 8080:80 --name=piping piping-server --http-port=80
-        # Wait for server running
-        sleep 1
-        # Create a file to send
-        echo 'hello, world' > /tmp/hello.txt
-        # Send and wait for a receiver
-        curl -T /tmp/hello.txt localhost:8080/mypath &
-        # Get data as a file
-        curl localhost:8080/mypath > /tmp/download.txt
-        # Print downloaded file
-        cat  /tmp/download.txt
-        # Test the equality
-        diff /tmp/hello.txt /tmp/download.txt
-        # Print server log
-        docker logs piping
-        # Delete container
-        docker rm -f piping
-    - name: Operational test with Docker image for HTTPS
-      run: |
-        set -eux
-        # Create certificates
-        (mkdir ssl_certs && cd ssl_certs && openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -sha256 -nodes --subj '/CN=localhost/')
-        # Run a server
-        docker run -d -p 8080:80 -p 8443:443 -v $PWD/ssl_certs:/ssl_certs --name=piping piping-server --http-port=80 --enable-https=true --https-port=443 --key-path=/ssl_certs/server.key --crt-path=/ssl_certs/server.crt
-        # Wait for server running
-        sleep 1
-        # Create a file to send
-        echo 'hello, world' > /tmp/hello.txt
-        # Send and wait for a receiver
-        curl -kT /tmp/hello.txt https://localhost:8443/mypath &
-        # Get data as a file
-        curl -k https://localhost:8443/mypath > /tmp/download.txt
-        # Print downloaded file
-        cat  /tmp/download.txt
-        # Test the equality
-        diff /tmp/hello.txt /tmp/download.txt
-        # Print server log
-        docker logs piping
-        # Delete container
-        docker rm -f piping
+    - name: Create certificates
+      run: cd /tmp && mkdir ssl_certs && cd ssl_certs && openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -sha256 -nodes --subj '/CN=localhost/'
+    - name: Install piping-server-check
+      run: cd /tmp && wget -O piping-server-check.deb https://github.com/nwtgck/piping-server-check/releases/download/v${PIPING_SERVER_CHECK_VERSION}/piping-server-check-${PIPING_SERVER_CHECK_VERSION}-linux-amd64.deb && sudo dpkg -i piping-server-check.deb
+    - name: piping-server-check
+      run: piping-server-check --http1.1 --http1.1-tls --h2 --tls-skip-verify --concurrency 100 --server-command="${SERVER_COMMAND}" --n-simultaneous-requests=60 --transfer-speed-byte $((1024 * 1024 * 1024 * 1024)) --transfer-span 3s --transfer-span 10s --transfer-span 1m
+      env:
+        SERVER_COMMAND: 'mkdir -p /tmp/logs && exec docker run --rm -p $HTTP_PORT:80 -p $HTTPS_PORT:443 -v /tmp/ssl_certs:/ssl_certs piping-server --http-port=80 --enable-https=true --https-port=443 --key-path=/ssl_certs/server.key --crt-path=/ssl_certs/server.crt 2>&1 | tee /tmp/logs/$SERVER_RUN_ID.log > /dev/stderr'
+      timeout-minutes: 3
+    - name: Show server logs from piping-server-check
+      if: ${{ always() }}
+      run: tail -n +1 /tmp/logs/*
