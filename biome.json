@@ -1,27 +1,27 @@
 {
-    "$schema":"https://biomejs.dev/schemas/1.3.3/schema.json",
-    "organizeImports":{
-        "enabled":false
+    "$schema": "https://biomejs.dev/schemas/1.3.3/schema.json",
+    "organizeImports": {
+        "enabled": false
     },
-    "linter":{
-        "enabled":true,
-        "rules":{
-            "recommended":true,
-            "complexity":{
-                "useLiteralKeys":"warn",
-                "useOptionalChain":"warn"
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "complexity": {
+                "useLiteralKeys": "warn",
+                "useOptionalChain": "warn"
             },
-            "suspicious":{
-                "noExplicitAny":"warn"
+            "suspicious": {
+                "noExplicitAny": "warn"
             },
-            "style":{
-                "useTemplate":"warn",
-                "noInferrableTypes":"warn",
-                "noUnusedTemplateLiteral":"warn",
-                "noNonNullAssertion":"warn"
+            "style": {
+                "useTemplate": "warn",
+                "noInferrableTypes": "warn",
+                "noUnusedTemplateLiteral": "warn",
+                "noNonNullAssertion": "warn"
             },
-            "correctness":{
-                "noSwitchDeclarations":"warn"
+            "correctness": {
+                "noSwitchDeclarations": "warn"
             }
         }
     }
