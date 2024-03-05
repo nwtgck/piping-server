@@ -60,7 +60,6 @@ export const indexPage: string = `\
       deactivatedInput.setAttribute("disabled", "");
       deactivatedInput.style.display = "none";
     }
-    setInputs();
     // Body of toggleInputMode
     function toggle() {
       // Swap inputs
@@ -68,6 +67,14 @@ export const indexPage: string = `\
       activeInput      = deactivatedInput;
       deactivatedInput = tmpInput;
       setInputs();
+    }
+    // Support browser form restoration
+    window.onload = function () {
+      if (window.text_mode.checked) {
+        toggle();
+      } else {
+        setInputs();
+      }
     }
     return toggle;
   })();
