@@ -657,7 +657,6 @@ Host: 127.0.0.1:${pipingPort}
     assert.strictEqual(res.headers["content-length"], "this is a content".length.toString());
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=3: O, receiver?n=3: O, receiver?n=3: O, sender?n=3: O)", async () => {
     // Get request promise
     const resPromise1 = requestWithoutKeepAlive(`${pipingUrl}/mydataid?n=3`);
@@ -682,7 +681,6 @@ Host: 127.0.0.1:${pipingPort}
     assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (sender?n=3: O, receiver?n=3: O, receiver?n=3: O, receiver?n=3: O)", async () => {
     // Send data
     // (NOTE: Should NOT use `await` because of blocking GET requests)
@@ -708,7 +706,6 @@ Host: 127.0.0.1:${pipingPort}
     assert.strictEqual(res3.headers["content-length"], "this is a content".length.toString());
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=3: O, sender?n=3: O, receiver?n=3: O, receiver?n=3: O)", async () => {
 
     // Get data
@@ -906,7 +903,6 @@ Host: 127.0.0.1:${pipingPort}
     getReq2.abort();
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, sender?n=1: X: because too less)", async () => {
     // Get data
     const getReq1 = request.get({
@@ -935,7 +931,6 @@ Host: 127.0.0.1:${pipingPort}
     getReq2.abort();
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, sender?n=3: X: because too much)", async () => {
     // Get data
     const getReq1 = request.get({
@@ -964,7 +959,6 @@ Host: 127.0.0.1:${pipingPort}
     getReq2.abort();
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=3: X: because too much)", async () => {
     // Create send request
     const sendReq = http.request( {
@@ -999,7 +993,6 @@ Host: 127.0.0.1:${pipingPort}
     sendReq.abort();
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2 O, receiver?n=1: X: because too less)", async () => {
     // Create send request
     const sendReq = http.request( {
@@ -1034,7 +1027,6 @@ Host: 127.0.0.1:${pipingPort}
     sendReq.abort();
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (sender?n=2: O, receiver?n=2: O, receiver?n=2: O, receiver?n=2: X) to ensure gradual sending", async () => {
     // Create send request
     const sendReq = http.request( {
@@ -1074,7 +1066,6 @@ Host: 127.0.0.1:${pipingPort}
     assert.strictEqual(res3.headers["content-length"], (await res3.body.text()).length.toString());
   });
 
-  // tslint:disable-next-line:max-line-length
   it("should handle multi receiver connection (receiver?n=2: O, receiver?n=2: O, receiver?n=2: X, sender?n=2: O)", async () => {
     // Get request promises
     // (NOTE: Each sleep is to ensure the order of requests)

@@ -189,7 +189,6 @@ export function noScriptHtml(queryParams: URLSearchParams, styleNonce: string): 
  * @param {string} url
  * @returns {string}
  */
-// tslint:disable-next-line:no-shadowed-variable
 export function generateHelpPage(url: string): string {
   return (
 `Help for Piping Server ${VERSION}

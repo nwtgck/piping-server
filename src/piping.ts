@@ -244,7 +244,6 @@ export class Server {
         const scheme: string = (useHttps || xForwardedProtoIsHttps) ? "https" : "http";
         // NOTE: req.headers.host contains port number
         const hostname: string = req.headers.host ?? "hostname";
-        // tslint:disable-next-line:no-shadowed-variable
         const url = `${scheme}://${hostname}`;
 
         const helpPage: string = resources.generateHelpPage(url);
@@ -273,7 +272,6 @@ export class Server {
    * @param path
    * @param pipe
    */
-  // tslint:disable-next-line:no-shadowed-variable
   private async runPipe(path: string, pipe: Pipe): Promise<void> {
     // Add to established
     this.pathToEstablished.add(path);
@@ -533,7 +531,6 @@ export class Server {
     // If the path connection is not connecting
     if (unestablishedPipe === undefined) {
       // Create a receiver
-      /* tslint:disable:no-shadowed-variable */
       const receiver = this.createSenderOrReceiver("receiver", req, res, reqPath);
       // Set a receiver
       this.pathToUnestablishedPipe.set(reqPath, {
